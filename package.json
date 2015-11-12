@@ -1,0 +1,39 @@
+{
+  "name": "routist",
+  "version": "0.0.1",
+  "description": "routist",
+  "readmeFilename": "README.md",
+  "main": "src/index",
+  "typings": "src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublish": "npm run build",
+    "test": "node ./scripts/runTestSuite"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yortus/routist.git"
+  },
+  "keywords": [
+    "router",
+    "routing"
+  ],
+  "contributors": [
+    {
+      "name": "Troy Gerwien",
+      "email": "yortus@gmail.com"
+    }
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yortus/routist/issues"
+  },
+  "homepage": "https://github.com/yortus/routist#readme",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "chai": "^3.2.0",
+    "mocha": "^2.2.5",
+    "typescript": "1.8.0-dev.20151111"
+  }
+}
