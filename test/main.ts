@@ -1,4 +1,4 @@
-import routist = require('..');
+import routist = require('..'); // TODO: use public API... But need to copy index.d.ts to /built to do that
 import {expect} from 'chai';
 
 

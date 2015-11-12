@@ -1,3 +1,6 @@
+import {async, await} from 'asyncawait';
+
+
 function delay(ms: number) {
     return new Promise(resolve => {
         setTimeout(resolve, ms);
@@ -5,12 +8,12 @@ function delay(ms: number) {
 }
 
 
-export async function main() {
+export var main = async (() => {
     console.log(111);
-    await delay(500);
+    await (delay(500));
     console.log(222);
-    await delay(500);
+    await (delay(500));
     console.log(333);
-    await delay(500);
+    await (delay(500));
     return 'done';
-}
+});

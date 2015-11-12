@@ -1,0 +1,15 @@
+﻿{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "ES5",
+        "removeComments": false,
+        "sourceMap": true,
+        "outDir": "../built/test"
+    },
+    "files": [
+        "main.ts",
+        "../src/typings/chai/chai.d.ts",
+        "../src/typings/mocha/mocha.d.ts",
+        "../src/typings/es6-promise/es6-promise.d.ts"
+    ]
+}

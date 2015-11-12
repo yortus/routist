@@ -1,3 +1,1 @@
-
-
-export function main(): Promise<string>;
+export declare function main(): Promise<any>;

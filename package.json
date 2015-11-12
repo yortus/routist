@@ -3,10 +3,10 @@
   "version": "0.0.1",
   "description": "routist",
   "readmeFilename": "README.md",
-  "main": "src/index",
+  "main": "built/src/index",
   "typings": "src/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p src && tsc -p test",
     "prepublish": "npm run build",
     "test": "node ./scripts/runTestSuite"
   },
@@ -30,10 +30,11 @@
   },
   "homepage": "https://github.com/yortus/routist#readme",
   "dependencies": {
+    "asyncawait": "^1.0.1"
   },
   "devDependencies": {
     "chai": "^3.2.0",
     "mocha": "^2.2.5",
-    "typescript": "1.8.0-dev.20151111"
+    "typescript": "^1.6.2"
   }
 }
