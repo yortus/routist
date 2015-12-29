@@ -1,15 +1,20 @@
+// TODO: add missing features:
+// 1. [ ] support segments AFTER the rest/globstar (in addition to segments BEFORE it)
+// 2. [ ] remove distinct handling of extensions
+// 3. [ ] support segments with BOTH literal AND capture parts, not just either-or (and pre- and post- literal parts). This also adds back extension support.
+var dsl = require('./route-pattern-dsl');
 /**
  * A route pattern represents a set of URLs by describing the constraints
  * that any given URL must satisfy in order to match the pattern.
  */
 var RoutePattern = (function () {
     /** Construct a new RoutePattern instance. */
-    function RoutePattern(method, segments, rest, extension) {
-        this.method = method ? method.toUpperCase() : null;
-        this.segments = segments;
-        this.rest = rest;
-        this.extension = extension;
-        this.canonical = this.getCanonicalForm();
+    function RoutePattern(source) {
+        var parts = dsl.parse(source);
+        this.method = parts.method ? parts.method.toUpperCase() : null;
+        this.segments = parts.segments;
+        this.rest = parts.rest;
+        this.canonical = getCanonicalForm(parts);
         ensureNoDuplicateCaptureNames(this);
     }
     /**
@@ -34,29 +39,29 @@ var RoutePattern = (function () {
     RoutePattern.prototype.toString = function () {
         return this.canonical;
     };
-    /**
-     * Return the canonical textual representation of the pattern.
-     * Equivalent patterns are guaranteed to return the same result.
-     */
-    RoutePattern.prototype.getCanonicalForm = function () {
-        // Ensure identity patterns are handled appropriately.
-        if (this === RoutePattern.UNIVERSAL)
-            return 'U';
-        if (this === RoutePattern.EMPTY)
-            return 'E';
-        // Put all the pattern parts together canonically.
-        return (this.method || 'ANY')
-            + ' '
-            + this.segments.map(function (s) { return '/' + (s.type === 'literal' ? s.text : '*'); }).join('')
-            + (this.rest ? '/**' : '')
-            + (this.extension || '');
-    };
     /** Sentinel value for a pattern that matches all URLs. */
     RoutePattern.UNIVERSAL = { canonical: 'U', toString: function () { return 'U'; } };
     /** Sentinel value for a pattern that matches no URLs. */
     RoutePattern.EMPTY = { canonical: 'E', toString: function () { return 'E'; } };
     return RoutePattern;
 })();
+/**
+ * Return the canonical textual representation of the pattern.
+ * Equivalent patterns are guaranteed to return the same result.
+ */
+function getCanonicalForm(parts) {
+    // Put all the pattern parts together canonically.
+    var cf = (parts.method || 'ANY') + ' ';
+    for (var i = 0; i < parts.segments.length; ++i) {
+        if (parts.rest && i === parts.rest.index)
+            cf += '/**';
+        var s = parts.segments[i];
+        cf += '/' + (s.type === 'literal' ? s.text : '*');
+    }
+    if (parts.rest && parts.rest.index === parts.segments.length)
+        cf += '/**';
+    return cf;
+}
 /** Private helper function for RoutePattern constructor. */
 function ensureNoDuplicateCaptureNames(pattern) {
     var names = pattern.segments.filter(function (s) { return s.type === 'capture'; }).map(function (s) { return s.name; });
@@ -79,10 +84,6 @@ function computeIntersection(a, b) {
     if (a.method && b.method && a.method !== b.method)
         return RoutePattern.EMPTY;
     var method = a.method || b.method;
-    // Compute the intersection of the extensions.
-    if (a.extension && b.extension && a.extension !== b.extension)
-        return RoutePattern.EMPTY;
-    var extension = a.extension || b.extension;
     // Compute the intersection of the formal segments. If one pattern has more formal segments
     // than the other, the excess formal segments are considered in a subsequent step.
     var longestCommonCount = Math.min(a.segments.length, b.segments.length);
@@ -109,9 +110,9 @@ function computeIntersection(a, b) {
         }
     }
     // Compute the intersection of the 'rest' segment(s).
-    var rest = a.rest && b.rest ? { name: null } : null;
+    var rest = a.rest && b.rest ? { index: 0, name: null } : null;
     // Return the result.
-    return new RoutePattern(method, segments, rest, extension);
+    return new RoutePattern(getCanonicalForm({ method: method, segments: segments, rest: rest }));
 }
 /** Private helper function for RoutePattern#match. */
 function matchRequestAgainstPattern(pattern, method, pathname) {
@@ -119,14 +120,6 @@ function matchRequestAgainstPattern(pattern, method, pathname) {
     // Match the method.
     if (pattern.method && pattern.method !== method.toUpperCase())
         return null;
-    // Match the extension.
-    if (pattern.extension) {
-        if (pathname.length < pattern.extension.length)
-            return null;
-        if (pathname.slice(-pattern.extension.length) !== pattern.extension)
-            return null;
-        pathname = pathname.slice(0, pathname.length - pattern.extension.length);
-    }
     // Match the formal segments.
     var pathSegments = pathname.slice(1).split('/').map(decodeURIComponent);
     if (pathSegments.length < pattern.segments.length)

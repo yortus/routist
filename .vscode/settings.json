@@ -6,6 +6,7 @@
 		"**/.DS_Store": true,
         "**/*.njsproj": true,
         "**/*.sln": true,
-        "**/*.js.map": true
+        "**/*.js": { "when": "$(basename).ts" },
+        "**/*.js.map": { "when": "$(basename)" }
 	}
 }

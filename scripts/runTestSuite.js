@@ -1,6 +1,12 @@
 ﻿
+//require('../src/route-pattern-3');
+
+
+
+// TODO: was...
+
 // Tell mocha where the test files are.
-process.argv.push('built/test');
+process.argv.push('test');
 
 // Tell mocha *not* to call process.exit() when tests have finished.
 process.argv.push('--no-exit');

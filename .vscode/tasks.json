@@ -2,7 +2,7 @@
 	"version": "0.1.0",
 	"command": "npm",
 	"isShellCommand": true,
-	"showOutput": "always",
+	"showOutput": "silent",
 	"args": ["run", "build"],
 	"problemMatcher": "$tsc"
 }

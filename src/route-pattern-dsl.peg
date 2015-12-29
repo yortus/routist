@@ -1,0 +1,52 @@
+Pattern
+=   m:Method   _   &"/"   pre:Segment*   star:GlobCapture?   post:Segment*
+    {
+        return {
+            method: m,
+            segments: [].concat(pre, post),
+            rest: !star ? null : {
+                index: pre.length,
+                name: star.id
+            }
+        };
+    }
+
+
+Method
+=   "ANY"i   { return null; }
+/   ("GET"i / "POST"i / "PUT"i / "DELETE"i)
+
+
+Segment
+=   !GlobCapture   "/"   pre:LITERAL_CHAR*   star:StarCapture?   post:LITERAL_CHAR*
+    {
+        if (star) {
+            return { type: 'capture', name: star.id };
+        }
+        else {
+            return { type: 'literal', text: [].concat(pre, post).join('') };
+        }
+    }
+
+
+StarCapture
+=   "*"   !"*"   { return {id: null}; }
+/   "{"   id:IDENTIFIER   "}"   { return {id}; }
+
+
+GlobCapture
+=   "/**"   { return {id: null}; }
+/   "/{..."   id:IDENTIFIER   "}"   { return {id}; }
+
+
+
+
+
+
+//================================================================================
+//=                                  TERMINALS                                   =
+//================================================================================
+
+LITERAL_CHAR    = [a-z0-9._-]i
+IDENTIFIER      = [a-z_$]i   [a-z0-9_$]i*   { return text(); }
+_ 'whitespace'  = [ \t]+   ("#" .*)?   { return text(); }
