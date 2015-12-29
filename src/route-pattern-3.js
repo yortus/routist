@@ -1,8 +1,8 @@
 'use strict';
 debugger;
 var assert = require('assert');
-//let r = unify('a*m*n*z', 'a*n*p*z');
-//console.log(r);
+var r = unify('a*m*n*z', 'a*n*p*z');
+console.log(r);
 function unify(a, b) {
     var aFixtures = ("^" + a + "$").split('*');
     var bFixtures = ("^" + b + "$").split('*');
@@ -28,11 +28,11 @@ function unifyRest(a, b, u, v) {
     }
     // Stopping case
     if (v === b.length - 1) {
-        return unifyOne(a, b, u, v, a.length - u);
+        return unifyOne(a.slice(u - 1), b.slice(v - 1));
     }
     else {
         for (var n = 1; n <= a.length - u; ++n) {
-            var head = unifyOne(a, b, u, v, n);
+            var head = unifyOne(a.slice(u - 1, u + n), b.slice(v - 1, v + 1));
             if (head === null)
                 continue;
             var tail = unifyRest(a, b, u + n, v + 1);
@@ -45,13 +45,16 @@ function unifyRest(a, b, u, v) {
         return null;
     }
 }
-function unifyOne(a, b, u, v, n) {
-    assert(u > 0 && u < a.length && v > 0 && v < b.length);
-    assert(n > 0 && n <= a.length - u);
-    var la = a[u - 1];
-    var lb = b[v - 1];
-    var ra = a[u + n - 1];
-    var rb = b[v];
+function unifyOne(a, b) {
+    assert(a.length >= 2 && b.length === 2);
+    // assert(u > 0 && u < a.length && v > 0 && v < b.length);
+    // assert(n > 0 && n <= a.length - u);
+    var la = a[0], lb = b[0];
+    var ra = a[a.length - 1], rb = b[1];
+    // let la = a[u - 1];
+    // let lb = b[v - 1];
+    // let ra = a[u + n - 1];
+    // let rb = b[v];
     var l = contains(la, lb) ? la : contains(lb, la) ? lb : null;
     if (l === null)
         return null;
@@ -61,7 +64,7 @@ function unifyOne(a, b, u, v, n) {
     var overlap = longestOverlap(l, r); // TODO: BUG if n > 1
     if (overlap.length > 0)
         return null; // TODO: over-restrictive; relax through more specific checks
-    return [l].concat(a.slice(u, u + n - 1), [r]);
+    return [l].concat(a.slice(1, -1), [r]);
 }
 function contains(a, b) {
     return a.indexOf(b) !== -1;

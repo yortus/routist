@@ -5,8 +5,8 @@ debugger;
 import assert = require('assert');
 
 
-//let r = unify('a*m*n*z', 'a*n*p*z');
-//console.log(r);
+let r = unify('a*m*n*z', 'a*n*p*z');
+console.log(r);
 
 
 export function unify(a: string, b: string) {
@@ -48,14 +48,14 @@ function unifyRest(a: string[], b: string[], u: number, v: number): string[] {
 
     // Stopping case
     if (v === b.length - 1) {
-        return unifyOne(a, b, u, v, a.length - u);
+        return unifyOne(a.slice(u - 1), b.slice(v - 1));
     }
 
     // Recursive case
     else {
         for (let n = 1; n <= a.length - u; ++n) {
 
-            let head = unifyOne(a, b, u, v, n);
+            let head = unifyOne(a.slice(u - 1, u + n), b.slice(v - 1, v + 1));
             if (head === null) continue;
 
             let tail = unifyRest(a, b, u + n, v + 1);
@@ -74,15 +74,12 @@ function unifyRest(a: string[], b: string[], u: number, v: number): string[] {
 
 
 
-function unifyOne(a: string[], b: string[], u: number, v: number, n: number): string[] {
+function unifyOne(a: string[], b: string[]): string[] {
 
-    assert(u > 0 && u < a.length && v > 0 && v < b.length);
-    assert(n > 0 && n <= a.length - u);
+    assert(a.length >= 2 && b.length === 2);
 
-    let la = a[u - 1];
-    let lb = b[v - 1];
-    let ra = a[u + n - 1];
-    let rb = b[v];
+    let la = a[0], lb = b[0];
+    let ra = a[a.length - 1], rb = b[1];        
 
     let l = contains(la, lb) ? la : contains(lb, la) ? lb : null;
     if (l === null) return null;
@@ -93,7 +90,7 @@ function unifyOne(a: string[], b: string[], u: number, v: number, n: number): st
     let overlap = longestOverlap(l, r); // TODO: BUG if n > 1
     if (overlap.length > 0) return null; // TODO: over-restrictive; relax through more specific checks
 
-    return [l, ...a.slice(u, u + n - 1), r];
+    return [l, ...a.slice(1, -1), r];
 }
 
 
