@@ -12,30 +12,30 @@ function unify(a, b) {
     if (bFixtures.length === 1) {
         throw new Error('Not implemented');
     }
-    var x = unifyRest(aFixtures, bFixtures, 1, 1);
+    var x = unifyRest(aFixtures, bFixtures);
     if (x === null)
         return null;
     //assert(x.length >= 2 && x[0].startsWith('^') && x[x.length - 1].endsWith('$'));
     return x.join('*').slice(1, -1);
 }
 exports.unify = unify;
-function unifyRest(a, b, u, v) {
+function unifyRest(a, b) {
     // Assert preconditions
-    assert(u > 0 && u < a.length && v > 0 && v < b.length);
+    assert(a.length >= 2 && b.length >= 2);
     // Order by longest first
-    if (b.length - v > a.length - u) {
-        return unifyRest(b, a, v, u);
+    if (b.length > a.length) {
+        return unifyRest(b, a);
     }
     // Stopping case
-    if (v === b.length - 1) {
-        return unifyOne(a.slice(u - 1), b.slice(v - 1));
+    if (b.length === 2) {
+        return unifyOne(a, b);
     }
     else {
-        for (var n = 1; n <= a.length - u; ++n) {
-            var head = unifyOne(a.slice(u - 1, u + n), b.slice(v - 1, v + 1));
+        for (var n = 2; n <= a.length; ++n) {
+            var head = unifyOne(a.slice(0, n), b.slice(0, 2));
             if (head === null)
                 continue;
-            var tail = unifyRest(a, b, u + n, v + 1);
+            var tail = unifyRest(a.slice(n - 1), b.slice(1));
             if (tail === null)
                 continue;
             var overlap = head.pop();
@@ -47,14 +47,8 @@ function unifyRest(a, b, u, v) {
 }
 function unifyOne(a, b) {
     assert(a.length >= 2 && b.length === 2);
-    // assert(u > 0 && u < a.length && v > 0 && v < b.length);
-    // assert(n > 0 && n <= a.length - u);
     var la = a[0], lb = b[0];
     var ra = a[a.length - 1], rb = b[1];
-    // let la = a[u - 1];
-    // let lb = b[v - 1];
-    // let ra = a[u + n - 1];
-    // let rb = b[v];
     var l = contains(la, lb) ? la : contains(lb, la) ? lb : null;
     if (l === null)
         return null;

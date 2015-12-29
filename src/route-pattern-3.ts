@@ -26,7 +26,7 @@ export function unify(a: string, b: string) {
         // as above...
     }
 
-    var x = unifyRest(aFixtures, bFixtures, 1, 1);
+    var x = unifyRest(aFixtures, bFixtures);
     if (x === null) return null;
 
     //assert(x.length >= 2 && x[0].startsWith('^') && x[x.length - 1].endsWith('$'));
@@ -36,29 +36,29 @@ export function unify(a: string, b: string) {
 
 
 
-function unifyRest(a: string[], b: string[], u: number, v: number): string[] {
+function unifyRest(a: string[], b: string[]): string[] {
 
     // Assert preconditions
-    assert(u > 0 && u < a.length && v > 0 && v < b.length);
+    assert(a.length >= 2 && b.length >= 2);
 
     // Order by longest first
-    if (b.length - v > a.length - u) {
-        return unifyRest(b, a, v, u);
+    if (b.length > a.length) {
+        return unifyRest(b, a);
     }
 
     // Stopping case
-    if (v === b.length - 1) {
-        return unifyOne(a.slice(u - 1), b.slice(v - 1));
+    if (b.length === 2) {
+        return unifyOne(a, b);
     }
 
     // Recursive case
     else {
-        for (let n = 1; n <= a.length - u; ++n) {
+        for (let n = 2; n <= a.length; ++n) {
 
-            let head = unifyOne(a.slice(u - 1, u + n), b.slice(v - 1, v + 1));
+            let head = unifyOne(a.slice(0, n), b.slice(0, 2));
             if (head === null) continue;
 
-            let tail = unifyRest(a, b, u + n, v + 1);
+            let tail = unifyRest(a.slice(n - 1), b.slice(1));
             if (tail === null) continue;
 
             let overlap = head.pop();
