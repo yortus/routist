@@ -1,12 +1,12 @@
 //import {RoutePattern} from '..';
 import {expect} from 'chai';
-import {unify} from '../src/route-pattern-3';
+import {intersectSegments, Segment} from '../src/route-pattern-3';
 class RoutePattern {
     constructor(public p: string) {
     }
     canonical = this.p.slice(1);
     intersectWith(other: RoutePattern) {
-        var u = unify(this.canonical, other.canonical);
+        var u = intersectSegments(new Segment(this.p.slice(1)), new Segment(other.p.slice(1)));
         return new RoutePattern(`/${u}`);
     }
 }

@@ -5,28 +5,54 @@ debugger;
 import assert = require('assert');
 
 
-let r = unify('a*m*n*z', 'a*n*p*z');
+
+export class Segment {
+    constructor(text: string) {
+        // TODO: Validate...
+        this.terms = `^${text}$`.split('*');
+    }
+
+    terms: TermList;
+}
+
+
+interface TermList extends Array<string> { }
+
+
+let r = intersectSegments(new Segment('a*m*n*z'), new Segment('a*n*p*z'));
 console.log(r);
 
 
-export function unify(a: string, b: string) {
+// TODO: validation:
+// - valid tokens: /, a-z, A-Z, 0-9, _, ., -, *, ** (plus named captures eg {$name})
+// - all segments start with '/'
+// - '**' must be an entire segment, ie '.../**/...'
+// - '*' may not be followed by another '*' (except as a globstar operator) (eg '/*{name}')
+// - ditto for '**' (eg '/**/**')
 
-    let aFixtures = `^${a}$`.split('*');
-    let bFixtures = `^${b}$`.split('*');
+//   ADDED 27/12/2015:
+// - maximum two '*' per segment (supports "starts with", "ends with", and "contains")
+// - maximum two '**' per pattern (analogous logic as above)
 
-    if (aFixtures.length === 1) {
+
+
+
+export function intersectSegments(a: Segment, b: Segment) {
+
+
+    if (a.terms.length === 1) {
         throw new Error('Not implemented');
         // b.length === 1 && a === b
         // for i=0..b.len-1:
         //   ix = a.indexOf(b[i], ix)
         //   if ix === -1 return null
     }
-    if (bFixtures.length === 1) {
+    if (b.terms.length === 1) {
         throw new Error('Not implemented');
         // as above...
     }
 
-    var x = unifyRest(aFixtures, bFixtures);
+    var x = unifyRest(a.terms, b.terms);
     if (x === null) return null;
 
     //assert(x.length >= 2 && x[0].startsWith('^') && x[x.length - 1].endsWith('$'));
@@ -36,7 +62,7 @@ export function unify(a: string, b: string) {
 
 
 
-function unifyRest(a: string[], b: string[]): string[] {
+function unifyRest(a: TermList, b: TermList): string[] {
 
     // Assert preconditions
     assert(a.length >= 2 && b.length >= 2);
@@ -74,7 +100,7 @@ function unifyRest(a: string[], b: string[]): string[] {
 
 
 
-function unifyOne(a: string[], b: string[]): string[] {
+function unifyOne(a: TermList, b: TermList): string[] {
 
     assert(a.length >= 2 && b.length === 2);
 
@@ -101,4 +127,8 @@ function contains(a: string, b: string): boolean {
 
 function longestOverlap(lhs: string, rhs: string): string {
     return `${lhs}/${rhs}`.match(/(.*)\/\1/)[1];
+}
+
+
+function toRegExp(t: TermList) {
 }

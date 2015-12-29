@@ -1,24 +1,39 @@
 'use strict';
 debugger;
 var assert = require('assert');
-var r = unify('a*m*n*z', 'a*n*p*z');
+var Segment = (function () {
+    function Segment(text) {
+        // TODO: Validate...
+        this.terms = ("^" + text + "$").split('*');
+    }
+    return Segment;
+})();
+exports.Segment = Segment;
+var r = intersectSegments(new Segment('a*m*n*z'), new Segment('a*n*p*z'));
 console.log(r);
-function unify(a, b) {
-    var aFixtures = ("^" + a + "$").split('*');
-    var bFixtures = ("^" + b + "$").split('*');
-    if (aFixtures.length === 1) {
+// TODO: validation:
+// - valid tokens: /, a-z, A-Z, 0-9, _, ., -, *, ** (plus named captures eg {$name})
+// - all segments start with '/'
+// - '**' must be an entire segment, ie '.../**/...'
+// - '*' may not be followed by another '*' (except as a globstar operator) (eg '/*{name}')
+// - ditto for '**' (eg '/**/**')
+//   ADDED 27/12/2015:
+// - maximum two '*' per segment (supports "starts with", "ends with", and "contains")
+// - maximum two '**' per pattern (analogous logic as above)
+function intersectSegments(a, b) {
+    if (a.terms.length === 1) {
         throw new Error('Not implemented');
     }
-    if (bFixtures.length === 1) {
+    if (b.terms.length === 1) {
         throw new Error('Not implemented');
     }
-    var x = unifyRest(aFixtures, bFixtures);
+    var x = unifyRest(a.terms, b.terms);
     if (x === null)
         return null;
     //assert(x.length >= 2 && x[0].startsWith('^') && x[x.length - 1].endsWith('$'));
     return x.join('*').slice(1, -1);
 }
-exports.unify = unify;
+exports.intersectSegments = intersectSegments;
 function unifyRest(a, b) {
     // Assert preconditions
     assert(a.length >= 2 && b.length >= 2);
@@ -65,5 +80,7 @@ function contains(a, b) {
 }
 function longestOverlap(lhs, rhs) {
     return (lhs + "/" + rhs).match(/(.*)\/\1/)[1];
+}
+function toRegExp(t) {
 }
 //# sourceMappingURL=route-pattern-3.js.map

@@ -5,7 +5,7 @@ var RoutePattern = (function () {
         this.canonical = this.p.slice(1);
     }
     RoutePattern.prototype.intersectWith = function (other) {
-        var u = route_pattern_3_1.unify(this.canonical, other.canonical);
+        var u = route_pattern_3_1.intersectSegments(new route_pattern_3_1.Segment(this.p.slice(1)), new route_pattern_3_1.Segment(other.p.slice(1)));
         return new RoutePattern("/" + u);
     };
     return RoutePattern;
