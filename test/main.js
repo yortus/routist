@@ -47,6 +47,7 @@ describe('it', function () {
             '*/… ∩ …/*',
             '*… ∩ …*',
             'a… ∩ …a',
+            '*a… ∩ …a*',
             'a* ∩ *a',
             'a/… ∩ …/a',
         ];
@@ -80,7 +81,7 @@ function reduceUnifications(unifications) {
     function toRegex(s) {
         var text = s.split('').map(function (c) {
             if (c === '*')
-                return '[^\\/]*';
+                return '[^\\/…]*';
             if (c === '…')
                 return '.*';
             if (['/'].indexOf(c) !== -1)
@@ -95,41 +96,26 @@ function getUnifications(a, b) {
         var ab = a + b;
         return ab === '' || ab === '*' || ab === '…' ? [''] : [];
     }
-    else if (a[0] === '…') {
+    else if ('…*'.indexOf(a[0]) === -1 && '…*'.indexOf(b[0]) !== -1) {
+        return getUnifications(b, a);
+    }
+    else if (a[0] !== '…' && b[0] === '…') {
+        return getUnifications(b, a);
+    }
+    else if (a[0] === '…' || a[0] === '*') {
         var result = [];
         for (var n = 0; n <= b.length; ++n) {
             var bFirst = b.slice(0, n);
+            if (a[0] === '*' && bFirst.indexOf('/') !== -1)
+                break;
             var bTip = b[n - 1];
             var bRest = b.slice(n);
-            if (bTip === '…')
+            if (bTip === '…' || bTip === '*')
                 bRest = bTip + bRest;
             var more = getUnifications(a.slice(1), bRest).map(function (u) { return bFirst + u; });
             result.push.apply(result, more);
         }
         return result;
-    }
-    else if (b[0] === '…') {
-        return getUnifications(b, a);
-    }
-    else if (a[0] === '*') {
-        var result = [];
-        for (var n = 0; n <= b.length; ++n) {
-            var bFirst = b.slice(0, n);
-            if (bFirst.indexOf('/') !== -1)
-                break;
-            if (a[0] === '*' && bFirst.indexOf('…') !== -1)
-                break;
-            var bTip = b[n - 1];
-            var bRest = b.slice(n);
-            if (bTip === '*')
-                bRest = bTip + bRest;
-            var more = getUnifications(a.slice(1), bRest).map(function (u) { return bFirst + u; });
-            result.push.apply(result, more);
-        }
-        return result;
-    }
-    else if (b[0] === '*') {
-        return getUnifications(b, a);
     }
     else {
         if (a[0] !== b[0])
