@@ -27,6 +27,15 @@ describe('it', function () {
             '/a/*b ∩ /*/*c*',
             '/a/*b ∩ /*/*c*/*',
             '/foo/* ∩ /*/bar',
+            '/a/b ∩ /…',
+            '/a/b ∩ …',
+            '/ ∩ …',
+            ' ∩ …',
+            '….html ∩ …',
+            '/foo/….html ∩ …',
+            '/foo/….html ∩ /foo/bar/*z/*',
+            '/foo/….html ∩ /foo/bar/*z/…',
+            '/* ∩ /…',
         ];
         tests.forEach(function (test) {
             var _a = test.split(' ∩ '), a = _a[0], b = _a[1];
@@ -59,6 +68,8 @@ function reduceUnifications(unifications) {
         var text = s.split('').map(function (c) {
             if (c === '*')
                 return '[^\\/]*';
+            if (c === '…')
+                return '.*';
             if (['/'].indexOf(c) !== -1)
                 return "\\" + c;
             return c;
@@ -69,21 +80,24 @@ function reduceUnifications(unifications) {
 function getUnifications(a, b) {
     if (a === '' || b === '') {
         var ab = a + b;
-        return ab === '' || ab === '*' ? [''] : [];
+        return ab === '' || ab === '*' || ab === '…' ? [''] : [];
     }
-    else if (a[0] === '*') {
+    else if (a[0] === '*' || a[0] === '…') {
         var result = [];
         for (var n = 0; n <= b.length; ++n) {
             var bFirst = b.slice(0, n);
-            if (bFirst.indexOf('/') !== -1)
+            if (a[0] === '*' && bFirst.indexOf('/') !== -1)
                 break;
-            var bRest = (b[n - 1] === '*' ? '*' : '') + b.slice(n);
+            var bTip = b[n - 1];
+            var bRest = b.slice(n);
+            if (bTip === '*' || bTip === '…')
+                bRest = bTip + bRest;
             var more = getUnifications(a.slice(1), bRest).map(function (u) { return bFirst + u; });
             result.push.apply(result, more);
         }
         return result;
     }
-    else if (b[0] === '*') {
+    else if (b[0] === '*' || b[0] === '…') {
         return getUnifications(b, a);
     }
     else {
