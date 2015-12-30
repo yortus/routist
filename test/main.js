@@ -7,21 +7,26 @@ describe('it', function () {
     // });
     it('works', function () {
         var tests = [
-            'ab* ∩ *b',
-            'f*o*o*z ∩ foo*baz',
-            'f*o*o*baz ∩ foo*z',
-            'ab*b ∩ a*bc',
-            'ab*b ∩ a*bc*',
-            'a*b ∩ ab*ab',
-            'a*b ∩ ba*ab',
-            '*m*n* ∩ *n*m*',
-            '*m*n* ∩ *n*m*n*',
-            ' ∩ ',
-            ' ∩ *',
-            '* ∩ *',
-            '* ∩ ',
-            'f ∩ ',
-            ' ∩ f'
+            '/ab* ∩ /*b',
+            '/f*o*o*z ∩ /foo*baz',
+            '/*/f*o*o*baz ∩ /aaa/foo*z',
+            '/ab*b ∩ /a*bc',
+            '/ab*b ∩ /a*bc*',
+            '/a*b ∩ /ab*ab',
+            '/a*b ∩ /ba*ab',
+            '/*m*n* ∩ /*n*m*',
+            '/*m*n* ∩ /*n*m*n*',
+            '/ ∩ /',
+            '/ ∩ /*',
+            '/* ∩ /*',
+            '/* ∩ /',
+            '/f ∩ /',
+            '/ ∩ /f',
+            '/a/b ∩ /*',
+            '/a/b ∩ /*/*c*',
+            '/a/*b ∩ /*/*c*',
+            '/a/*b ∩ /*/*c*/*',
+            '/foo/* ∩ /*/bar',
         ];
         tests.forEach(function (test) {
             var _a = test.split(' ∩ '), a = _a[0], b = _a[1];
@@ -37,8 +42,7 @@ function reduceUnifications(unifications) {
         if (isEliminated[i])
             continue;
         var u = unifications[i];
-        var reText = u.split('').map(function (c) { return c === '*' ? '.*' : (((c))); }).join('');
-        var re = new RegExp("^" + reText + "$");
+        var re = toRegex(u);
         for (var j = 0; j < unifications.length; ++j) {
             if (i === j)
                 continue;
@@ -51,6 +55,16 @@ function reduceUnifications(unifications) {
     unifications = unifications.filter(function (_, i) { return !isEliminated[i]; });
     var result = unifications.length === 1 ? unifications[0] : '∅';
     return result;
+    function toRegex(s) {
+        var text = s.split('').map(function (c) {
+            if (c === '*')
+                return '[^\\/]*';
+            if (['/'].indexOf(c) !== -1)
+                return "\\" + c;
+            return c;
+        }).join('');
+        return new RegExp("^" + text + "$");
+    }
 }
 function getUnifications(a, b) {
     if (a === '' || b === '') {
@@ -61,6 +75,8 @@ function getUnifications(a, b) {
         var result = [];
         for (var n = 0; n <= b.length; ++n) {
             var bFirst = b.slice(0, n);
+            if (bFirst.indexOf('/') !== -1)
+                break;
             var bRest = (b[n - 1] === '*' ? '*' : '') + b.slice(n);
             var more = getUnifications(a.slice(1), bRest).map(function (u) { return bFirst + u; });
             result.push.apply(result, more);
