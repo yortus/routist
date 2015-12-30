@@ -58,6 +58,12 @@ describe('it', () => {
             '*… ∩ …*', // TODO: <==== BUG result is '*…'. Should disallow adjacent * and …
             'a… ∩ …a',
             '*a… ∩ …a*', // TODO: <==== BUG result is *a* ∪ *a*a… ∪ *a…a* (how got *a*a… ??)
+            '…a* ∩ *a…',
+            '…a* ∩ *z…',
+            '*z… ∩ …a*',
+            '*z* ∩ *a*',
+            'a*… ∩ …*a',
+            'a…* ∩ *…a',
             'a* ∩ *a',
             'a/… ∩ …/a',
         ];
@@ -118,6 +124,7 @@ function getUnifications(a: string, b: string): string[] {
         for (let n = 0; n <= b.length; ++n) {
             let bFirst = b.slice(0, n);
             if (a[0] === '*' && bFirst.indexOf('/') !== -1) break;
+            if (a[0] === '*' && bFirst.indexOf('…') !== -1) break;
             let bTip = b[n - 1];
             let bRest = b.slice(n);
             if (bTip === '…' || bTip === '*') bRest = bTip + bRest;

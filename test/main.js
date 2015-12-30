@@ -48,6 +48,12 @@ describe('it', function () {
             '*… ∩ …*',
             'a… ∩ …a',
             '*a… ∩ …a*',
+            '…a* ∩ *a…',
+            '…a* ∩ *z…',
+            '*z… ∩ …a*',
+            '*z* ∩ *a*',
+            'a*… ∩ …*a',
+            'a…* ∩ *…a',
             'a* ∩ *a',
             'a/… ∩ …/a',
         ];
@@ -107,6 +113,8 @@ function getUnifications(a, b) {
         for (var n = 0; n <= b.length; ++n) {
             var bFirst = b.slice(0, n);
             if (a[0] === '*' && bFirst.indexOf('/') !== -1)
+                break;
+            if (a[0] === '*' && bFirst.indexOf('…') !== -1)
                 break;
             var bTip = b[n - 1];
             var bRest = b.slice(n);
