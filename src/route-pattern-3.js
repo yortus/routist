@@ -9,7 +9,7 @@ var Segment = (function () {
     return Segment;
 })();
 exports.Segment = Segment;
-// TODO: BUG: a*m*n*z   ∩   a*n*m*z   ==>   a*m*n*m*z (WRONG!)
+// TODO: BUG: *m*n*   ∩   *n*m*   ==>   *m*n*m* (WRONG!)
 var r = intersectSegments(new Segment('*m*n*'), new Segment('*n*m*'));
 console.log(r);
 // TODO: validation:
