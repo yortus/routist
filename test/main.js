@@ -26,28 +26,32 @@ describe('it', function () {
         tests.forEach(function (test) {
             var _a = test.split(' ∩ '), a = _a[0], b = _a[1];
             var unifications = getUnifications(a, b);
-            var isEliminated = unifications.map(function (u) { return false; });
-            for (var i = 0; i < unifications.length; ++i) {
-                if (isEliminated[i])
-                    continue;
-                var u = unifications[i];
-                var reText = u.split('').map(function (c) { return c === '*' ? '.*' : (((c))); }).join('');
-                var re = new RegExp("^" + reText + "$");
-                for (var j = 0; j < unifications.length; ++j) {
-                    if (i === j)
-                        continue;
-                    if (isEliminated[j])
-                        continue;
-                    var v = unifications[j];
-                    isEliminated[j] = re.test(v);
-                }
-            }
-            unifications = unifications.filter(function (_, i) { return !isEliminated[i]; });
-            var result = unifications.length === 1 ? unifications[0] : '∅';
+            var result = reduceUnifications(unifications);
             console.log(test + "   ==>   " + result);
         });
     });
 });
+function reduceUnifications(unifications) {
+    var isEliminated = unifications.map(function (u) { return false; });
+    for (var i = 0; i < unifications.length; ++i) {
+        if (isEliminated[i])
+            continue;
+        var u = unifications[i];
+        var reText = u.split('').map(function (c) { return c === '*' ? '.*' : (((c))); }).join('');
+        var re = new RegExp("^" + reText + "$");
+        for (var j = 0; j < unifications.length; ++j) {
+            if (i === j)
+                continue;
+            if (isEliminated[j])
+                continue;
+            var v = unifications[j];
+            isEliminated[j] = re.test(v);
+        }
+    }
+    unifications = unifications.filter(function (_, i) { return !isEliminated[i]; });
+    var result = unifications.length === 1 ? unifications[0] : '∅';
+    return result;
+}
 function getUnifications(a, b) {
     if (a === '' || b === '') {
         var ab = a + b;

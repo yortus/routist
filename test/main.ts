@@ -34,29 +34,34 @@ describe('it', () => {
         tests.forEach(test => {
             let [a, b] = test.split(' ∩ ');
             let unifications = getUnifications(a, b);
-            let isEliminated = unifications.map(u => false);
-            for (let i = 0; i < unifications.length; ++i) {
-                if (isEliminated[i]) continue;
-
-                let u = unifications[i];
-                let reText = u.split('').map(c => c === '*' ? '.*' : (((/*TODO*/c)))).join('');
-                let re = new RegExp(`^${reText}$`);
-
-                for (let j = 0; j < unifications.length; ++j) {
-                    if (i === j) continue;
-                    if (isEliminated[j]) continue;
-                    let v = unifications[j];
-                    isEliminated[j] = re.test(v);
-                }
-            }
-
-            unifications = unifications.filter((_, i) => !isEliminated[i]);
-            let result = unifications.length === 1 ? unifications[0] : '∅';
-            
+            let result = reduceUnifications(unifications);
             console.log(`${test}   ==>   ${result}`);
         });
     });
 });
+
+
+function reduceUnifications(unifications: string[]): string {
+    let isEliminated = unifications.map(u => false);
+
+    for (let i = 0; i < unifications.length; ++i) {
+        if (isEliminated[i]) continue;
+        let u = unifications[i];
+        let reText = u.split('').map(c => c === '*' ? '.*' : (((/*TODO*/c)))).join('');
+        let re = new RegExp(`^${reText}$`);
+
+        for (let j = 0; j < unifications.length; ++j) {
+            if (i === j) continue;
+            if (isEliminated[j]) continue;
+            let v = unifications[j];
+            isEliminated[j] = re.test(v);
+        }
+    }
+
+    unifications = unifications.filter((_, i) => !isEliminated[i]);
+    let result = unifications.length === 1 ? unifications[0] : '∅';
+    return result;
+}
 
 
 function getUnifications(a: string, b: string): string[] {
