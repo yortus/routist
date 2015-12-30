@@ -1,15 +1,9 @@
+// TODO: restore 'method'
+
+
 Pattern
-=   m:Method   _   &"/"   pre:Segment*   star:GlobCapture?   post:Segment*
-    {
-        return {
-            method: m,
-            segments: [].concat(pre, post),
-            rest: !star ? null : {
-                index: pre.length,
-                name: star.id
-            }
-        };
-    }
+=   "/"   !.   { return []; }
+/   RestOfPatternStartingWithGlobstar / RestOfPatternStartingWithSegments;
 
 
 Method
@@ -17,36 +11,43 @@ Method
 /   ("GET"i / "POST"i / "PUT"i / "DELETE"i)
 
 
+RestOfPatternStartingWithGlobstar
+=   head:Globstar   tail:RestOfPatternStartingWithSegments?   { return [].concat([[]], {'**':head}, tail ? tail : [[]]); }
+
+
+RestOfPatternStartingWithSegments
+=   head:Segment+   tail:RestOfPatternStartingWithGlobstar?   { return [].concat([head], tail ? tail.slice(1) : []); }
+
+
+Globstar
+=   "/**"   { return ''; }
+/   "/{..."   id:IDENTIFIER   "}"   { return id; }
+
+
 Segment
-=   !GlobCapture   "/"   pre:LITERAL_CHAR*   star:StarCapture?   post:LITERAL_CHAR*
-    {
-        if (star) {
-            return { type: 'capture', name: star.id };
-        }
-        else {
-            return { type: 'literal', text: [].concat(pre, post).join('') };
-        }
-    }
+=   "/"   rest:(RestOfSegmentStartingWithStar / RestOfSegmentStartingWithAffix)   { return rest; }
 
 
-StarCapture
-=   "*"   !"*"   { return {id: null}; }
-/   "{"   id:IDENTIFIER   "}"   { return {id}; }
+RestOfSegmentStartingWithStar
+=   head:Star   tail:RestOfSegmentStartingWithAffix?   { return [].concat('', {'*':head}, tail ? tail : ''); }
 
 
-GlobCapture
-=   "/**"   { return {id: null}; }
-/   "/{..."   id:IDENTIFIER   "}"   { return {id}; }
+RestOfSegmentStartingWithAffix
+=   head:Affix   tail:RestOfSegmentStartingWithStar?   { return [].concat(head, tail ? tail.slice(1) : []); }
 
 
+Star
+=   "*"   !"*"   { return ''; }
+/   "{"   id:IDENTIFIER   "}"   { return id; }
 
 
+Affix
+=   LITERAL_CHAR+   { return text(); }
 
 
 //================================================================================
 //=                                  TERMINALS                                   =
 //================================================================================
-
 LITERAL_CHAR    = [a-z0-9._-]i
 IDENTIFIER      = [a-z_$]i   [a-z0-9_$]i*   { return text(); }
 _ 'whitespace'  = [ \t]+   ("#" .*)?   { return text(); }

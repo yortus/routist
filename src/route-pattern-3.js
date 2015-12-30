@@ -1,5 +1,5 @@
 'use strict';
-debugger;
+//debugger;
 var assert = require('assert');
 var Segment = (function () {
     function Segment(text) {
@@ -9,7 +9,8 @@ var Segment = (function () {
     return Segment;
 })();
 exports.Segment = Segment;
-var r = intersectSegments(new Segment('a*m*n*z'), new Segment('a*n*p*z'));
+// TODO: BUG: a*m*n*z   ∩   a*n*m*z   ==>   a*m*n*m*z (WRONG!)
+var r = intersectSegments(new Segment('*m*n*'), new Segment('*n*m*'));
 console.log(r);
 // TODO: validation:
 // - valid tokens: /, a-z, A-Z, 0-9, _, ., -, *, ** (plus named captures eg {$name})

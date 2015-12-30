@@ -1,9 +1,14 @@
 'use strict';
-debugger;
+//debugger;
 
 
 import assert = require('assert');
 
+
+type PatternAST = Array<SegmentAST[] | { '**': string }>;
+
+
+type SegmentAST = Array<string | { '*': string }>;
 
 
 export class Segment {
@@ -19,7 +24,8 @@ export class Segment {
 interface TermList extends Array<string> { }
 
 
-let r = intersectSegments(new Segment('a*m*n*z'), new Segment('a*n*p*z'));
+// TODO: BUG: *m*n*   ∩   *n*m*   ==>   *m*n*m* (WRONG!)
+let r = intersectSegments(new Segment('*m*n*'), new Segment('*n*m*'));
 console.log(r);
 
 
