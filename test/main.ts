@@ -19,8 +19,16 @@ describe('it', () => {
             'f*o*o*baz ∩ foo*z',
             'ab*b ∩ a*bc',
             'ab*b ∩ a*bc*',
+            'a*b ∩ ab*ab',
+            'a*b ∩ ba*ab',
             '*m*n* ∩ *n*m*',
-            '*m*n* ∩ *n*m*n*'
+            '*m*n* ∩ *n*m*n*',
+            ' ∩ ',
+            ' ∩ *',
+            '* ∩ *',
+            '* ∩ ',
+            'f ∩ ',
+            ' ∩ f'
         ];        
 
         tests.forEach(test => {
@@ -52,51 +60,25 @@ describe('it', () => {
 
 
 function getUnifications(a: string, b: string): string[] {
-    const EMPTY = [];
-    let aHead = a.charAt(0);
-    let bHead = b.charAt(0);
-    let aTail = a.slice(1);
-    let bTail = b.slice(1);
-
-    if (aHead === '') {
-        if (bHead === '') {
-            return [''];
-        }
-        else if (bHead === '*') {
-            return bTail ? EMPTY : [''];
-        }
-        else /* bHead === some literal char */ {
-            return EMPTY;
-        }
+    if (a === '' || b === '') {
+        let ab = a + b;
+        return ab === '' || ab === '*' ? [''] : [];
     }
-    else if (aHead === '*') {
-        if (bHead === '') {
-            return aTail ? EMPTY : [''];
+    else if (a[0] === '*') {
+        let result: string[] = [];
+        for (let n = 0; n <= b.length; ++n) {
+            let bFirst = b.slice(0, n);
+            let bRest = (b[n - 1] === '*' ? '*' : '') + b.slice(n);
+            let more = getUnifications(a.slice(1), bRest).map(u => bFirst + u);
+            result.push.apply(result, more);
         }
-        // else if (bHead === '*') {
-        //     return getUnifications(a, bTail).map(u => '*' + u);
-        // }
-        else /* bHead === some literal char */ {
-            let result: string[] = [];
-            for (let n = 0; n <= b.length; ++n) {
-                let bh = b.slice(0, n), bt = b.slice(n);
-                if (bh.slice(-1) === '*') bt = '*' + bt;
-                let more = getUnifications(aTail, bt).map(u => bh + u);
-                result.push.apply(result, more);
-            }
-            return result;
-        }
+        return result;
     }
-    else /* aHead === some literal char */ {
-        if (bHead === '') {
-            return EMPTY;
-        }
-        else if (bHead === '*') {
-            return getUnifications(b, a);
-        }
-        else /* bHead === some literal char */ {
-            if (aHead !== bHead) return EMPTY;
-            return getUnifications(aTail, bTail).map(u => aHead + u);
-        }
+    else if (b[0] === '*') {
+        return getUnifications(b, a);
+    }
+    else {
+        if (a[0] !== b[0]) return [];
+        return getUnifications(a.slice(1), b.slice(1)).map(u => a[0] + u);
     }
 }

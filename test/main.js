@@ -12,8 +12,16 @@ describe('it', function () {
             'f*o*o*baz ∩ foo*z',
             'ab*b ∩ a*bc',
             'ab*b ∩ a*bc*',
+            'a*b ∩ ab*ab',
+            'a*b ∩ ba*ab',
             '*m*n* ∩ *n*m*',
-            '*m*n* ∩ *n*m*n*'
+            '*m*n* ∩ *n*m*n*',
+            ' ∩ ',
+            ' ∩ *',
+            '* ∩ *',
+            '* ∩ ',
+            'f ∩ ',
+            ' ∩ f'
         ];
         tests.forEach(function (test) {
             var _a = test.split(' ∩ '), a = _a[0], b = _a[1];
@@ -41,50 +49,27 @@ describe('it', function () {
     });
 });
 function getUnifications(a, b) {
-    var EMPTY = [];
-    var aHead = a.charAt(0);
-    var bHead = b.charAt(0);
-    var aTail = a.slice(1);
-    var bTail = b.slice(1);
-    if (aHead === '') {
-        if (bHead === '') {
-            return [''];
-        }
-        else if (bHead === '*') {
-            return bTail ? EMPTY : [''];
-        }
-        else {
-            return EMPTY;
-        }
+    if (a === '' || b === '') {
+        var ab = a + b;
+        return ab === '' || ab === '*' ? [''] : [];
     }
-    else if (aHead === '*') {
-        if (bHead === '') {
-            return aTail ? [] : [''];
+    else if (a[0] === '*') {
+        var result = [];
+        for (var n = 0; n <= b.length; ++n) {
+            var bFirst = b.slice(0, n);
+            var bRest = (b[n - 1] === '*' ? '*' : '') + b.slice(n);
+            var more = getUnifications(a.slice(1), bRest).map(function (u) { return bFirst + u; });
+            result.push.apply(result, more);
         }
-        else {
-            var result = [];
-            for (var n = 0; n <= b.length; ++n) {
-                var bh = b.slice(0, n), bt = b.slice(n);
-                if (bh.slice(-1) === '*')
-                    bt = '*' + bt;
-                var more = getUnifications(aTail, bt).map(function (u) { return bh + u; });
-                result.push.apply(result, more);
-            }
-            return result;
-        }
+        return result;
+    }
+    else if (b[0] === '*') {
+        return getUnifications(b, a);
     }
     else {
-        if (bHead === '') {
-            return EMPTY;
-        }
-        else if (bHead === '*') {
-            return getUnifications(b, a);
-        }
-        else {
-            if (aHead !== bHead)
-                return EMPTY;
-            return getUnifications(aTail, bTail).map(function (u) { return aHead + u; });
-        }
+        if (a[0] !== b[0])
+            return [];
+        return getUnifications(a.slice(1), b.slice(1)).map(function (u) { return a[0] + u; });
     }
 }
 //# sourceMappingURL=main.js.map
