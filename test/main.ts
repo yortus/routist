@@ -74,7 +74,7 @@ describe('it', () => {
         tests.forEach(test => {
             let pair = test.split(' ∩ '), a = pair[0], b = pair[1];
             let all = getAllIntersections(a, b);
-            let distinct = getDistinctIntersections(all);
+            let distinct = getDistinctPatterns(all);
             let result = distinct.length === 0 ? '∅' : distinct.join(' ∪ ');
             if (a.indexOf('*…') !== -1 || a.indexOf('…*') !== -1 || b.indexOf('*…') !== -1 || b.indexOf('…*') !== -1) distinct = 'INVALID';
             console.log(`${test}   ==>   ${distinct}`);
@@ -83,26 +83,34 @@ describe('it', () => {
 });
 
 
-function getDistinctIntersections(allIntersections: string[]) {
+/**
+ * Returns a subset of the given list of patterns, such that no pattern in the
+ * resulting list is a (proper or improper) subset of any other pattern in the list.
+ */
+function getDistinctPatterns(patterns: string[]) {
 
     // Set up a parallel array to flag which patterns are distinct. Start by assuming they all are.
-    let isDistinct = allIntersections.map(u => true);
+    let isDistinct = patterns.map(u => true);
 
     // Compare all patterns pairwise, discarding those that are (proper or improper) subsets of another.
-    for (let i = 0; i < allIntersections.length; ++i) {
+    for (let i = 0; i < patterns.length; ++i) {
         if (!isDistinct[i]) continue;
-        let subsetRecogniser = makeSubsetRecogniser(allIntersections[i]);
-        for (let j = 0; j < allIntersections.length; ++j) {
+        let subsetRecogniser = makeSubsetRecogniser(patterns[i]);
+        for (let j = 0; j < patterns.length; ++j) {
             if (i === j || !isDistinct[j]) continue;
-            isDistinct[j] = !subsetRecogniser.test(allIntersections[j]);
+            isDistinct[j] = !subsetRecogniser.test(patterns[j]);
         }
     }
 
     // Return only the distinct patterns from the original list.
-    return allIntersections.filter((_, i) => isDistinct[i]);
+    return patterns.filter((_, i) => isDistinct[i]);
 }
 
 
+/**
+ * Returns a regular expression that matches all pattern strings
+ * that are (proper or improper) subsets of `pattern`.
+ */
 function makeSubsetRecogniser(pattern: string) {
     let re = pattern.split('').map(c => {
         if (c === '*') return '[^\\/…]*';
