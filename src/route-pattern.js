@@ -23,12 +23,14 @@ class RoutePattern {
         let ast = parsePattern(pattern);
         this.canonical = ast.canonical;
         this.captureNames = ast.captureNames;
+        this.recogniser = makePathnameRecogniser(ast.canonical);
     }
     /**
      * Returns a new RoutePattern instance that matches all the pathnames that are
      * matched by *both* `this` and `other`. Returns NEVER_MATCH if there are no
      * such pathnames. Throws an error if the intersection cannot be expressed as a
      * single pattern.
+     * NB: The operation is case-sensitive.
      */
     intersectWith(other) {
         let allIntersections = getAllIntersections(this.canonical, other.canonical);
@@ -39,7 +41,24 @@ class RoutePattern {
             return new RoutePattern(distinctIntersections[0]);
         throw new Error(`Intersection of ${this} and ${other} cannot be expressed as a single pattern`);
     }
-    //TODO: method to match against pathname...
+    /**
+     * Attempts to match the given pathname against the pattern. If the match
+     * is successful, returns a hash containing the name/value pairs for each
+     * named capture in the pattern. If the match fails, returns null.
+     * NB: The operation is case-sensitive.
+     */
+    match(pathname) {
+        let matches = pathname.match(this.recogniser);
+        if (!matches)
+            return null;
+        let result = this.captureNames.reduce((result, name, i) => {
+            if (name !== '?')
+                result[name] = matches[i + 1];
+            return result;
+        }, {});
+        return result;
+    }
+    /** The string representation of a pattern is its canonical form. */
     toString() {
         return this.canonical;
     }
@@ -66,6 +85,22 @@ function parsePattern(pattern) {
         let msg = `${ex.message}:\n${pattern}\n${indicator}`;
         throw new Error(msg);
     }
+}
+/**
+ * Constructs a regular expression that matches all pathnames recognised by the given pattern.
+ * Each globstar/wildcard in the pattern corresponds to a capture group in the regular expression.
+ */
+function makePathnameRecogniser(pattern) {
+    let re = pattern.split('').map(c => {
+        if (c === '*')
+            return '([^\\/]*)';
+        if (c === '…')
+            return '(.*)';
+        if (['/._-'].indexOf(c) !== -1)
+            return `\\${c}`;
+        return c;
+    }).join('');
+    return new RegExp(`^${re}$`);
 }
 /**
  * Returns a subset of the given list of patterns, such that no pattern in the

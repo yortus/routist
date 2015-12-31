@@ -2,8 +2,14 @@
 //import routist = require('..');
 var chai_1 = require('chai');
 var RoutePattern = require('../src/route-pattern');
-describe('it', () => {
-    it('works', () => {
+describe('a RoutePattern instance', () => {
+    it('performs matches on pathnames', () => {
+        let rp = new RoutePattern('/f*o/bar/{baz}z/{...rest}.html');
+        let m = rp.match('/foo/bar/baz/some/more/stuff.html');
+        chai_1.expect(m).to.deep.equal({ baz: 'ba', rest: 'some/more/stuff' });
+        // TODO: more examples...
+    });
+    it('intersects with other RoutePattern instances', () => {
         var tests = [
             '… ∩ ∅ = ∅',
             ' ∩ ∅ = ∅',
