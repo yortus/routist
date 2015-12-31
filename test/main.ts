@@ -72,6 +72,7 @@ describe('it', () => {
             let [a, b] = test.split(' ∩ ');
             let unifications = getUnifications(a, b);
             let result = reduceUnifications(unifications);
+            if (a.indexOf('*…') !== -1 || a.indexOf('…*') !== -1 || b.indexOf('*…') !== -1 || b.indexOf('…*') !== -1) result = 'INVALID';
             console.log(`${test}   ==>   ${result}`);
         });
     });
@@ -82,13 +83,10 @@ function reduceUnifications(unifications: string[]): string {
     let isEliminated = unifications.map(u => false);
     for (let i = 0; i < unifications.length; ++i) {
         if (isEliminated[i]) continue;
-        let u = unifications[i];
-        let re = toRegex(u);
+        let re = toRegex(unifications[i]);
         for (let j = 0; j < unifications.length; ++j) {
-            if (i === j) continue;
-            if (isEliminated[j]) continue;
-            let v = unifications[j];
-            isEliminated[j] = re.test(v);
+            if (i === j || isEliminated[j]) continue;
+            isEliminated[j] = re.test(unifications[j]);
         }
     }
 
@@ -113,28 +111,33 @@ function getUnifications(a: string, b: string): string[] {
         let ab = a + b;
         return ab === '' || ab === '*' || ab === '…' ? [''] : [];
     }
-    else if ('…*'.indexOf(a[0]) === -1 && '…*'.indexOf(b[0]) !== -1) {
-        return getUnifications(b, a);
-    }
-    else if (a[0] !== '…' && b[0] === '…') {
-        return getUnifications(b, a);
-    }
-    else if (a[0] === '…' || a[0] === '*') {
+    else if (a[0] === '…' || (a[0] === '*' && b[0] !== '…')) {
         let result: string[] = [];
-        for (let n = 0; n <= b.length; ++n) {
-            let bFirst = b.slice(0, n);
-            if (a[0] === '*' && bFirst.indexOf('/') !== -1) break;
-            if (a[0] === '*' && bFirst.indexOf('…') !== -1) break;
-            let bTip = b[n - 1];
-            let bRest = b.slice(n);
-            if (bTip === '…' || bTip === '*') bRest = bTip + bRest;
-            let more = getUnifications(a.slice(1), bRest).map(u => bFirst + u);
+        for (let bSplitIndex = 0; bSplitIndex <= b.length; ++bSplitIndex) {
+
+            let bTip = b[bSplitIndex - 1];
+            if (bTip === '…' || bTip === '*') continue;
+
+            let bLeftPart = b.slice(0, bSplitIndex);
+            if (a[0] === '*' && bLeftPart.indexOf('/') !== -1) break;
+            if (a[0] === '*' && bLeftPart.indexOf('…') !== -1) break;
+            let bRightPart = b.slice(bSplitIndex);
+
+            bTip = bRightPart[0];
+            if (bTip === '…' || bTip === '*') bLeftPart += bTip;
+
+            let more = getUnifications(a.slice(1), bRightPart).map(u => bLeftPart + u);
             result.push.apply(result, more);
         }
         return result;
     }
-    else {
-        if (a[0] !== b[0]) return [];
+    else if (b[0] === '…' || b[0] === '*') {
+         return getUnifications(b, a);
+    }
+    else if (a[0] === b[0]) {
         return getUnifications(a.slice(1), b.slice(1)).map(u => a[0] + u);
+    }
+    else {
+        return [];
     }
 }
