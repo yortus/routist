@@ -1,10 +1,10 @@
 'use strict';
 var parser = require('./route-pattern-dsl');
-var parse = parser.parse;
 // TODO: doc...
 class RoutePattern {
+    /** Create a new RoutePattern instance from the given pattern string. */
     constructor(pattern) {
-        let ast = parse(pattern); // TODO: wrap thrown errors
+        let ast = parsePattern(pattern);
         this.canonical = ast.canonical;
         this.captureNames = ast.captureNames;
     }
@@ -28,6 +28,22 @@ class RoutePattern {
 RoutePattern.ALWAYS_MATCH = { canonical: '…', toString: () => '…' }; // U+2026 HORIZONTAL ELLIPSIS
 /** Sentinel value for a pattern that matches no URLs. */
 RoutePattern.NEVER_MATCH = { canonical: '∅', toString: () => '∅' }; // U+2205 EMPTY SET
+// TODO: doc...
+function parsePattern(pattern) {
+    try {
+        let ast = parser.parse(pattern);
+        return ast;
+    }
+    catch (ex) {
+        let startCol = ex.location.start.column;
+        let endCol = ex.location.end.column;
+        if (endCol <= startCol)
+            endCol = startCol + 1;
+        let indicator = Array(startCol).join(' ') + Array(endCol - startCol + 1).join('^');
+        let msg = `${ex.message}:\n${pattern}\n${indicator}`;
+        throw new Error(msg);
+    }
+}
 /**
  * Returns a subset of the given list of patterns, such that no pattern in the
  * resulting list is a (proper or improper) subset of any other pattern in the list.

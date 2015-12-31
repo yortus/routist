@@ -1,16 +1,14 @@
 'use strict';
-
-
 var parser = require('./route-pattern-dsl');
-var parse: (pattern: string) => { canonical: string, captureNames: string[] } = parser.parse;
 export = RoutePattern;
 
 
 // TODO: doc...
 class RoutePattern {
 
+    /** Create a new RoutePattern instance from the given pattern string. */
     constructor(pattern: string) {
-        let ast = parse(pattern); // TODO: wrap thrown errors
+        let ast = parsePattern(pattern);
         this.canonical = ast.canonical;
         this.captureNames = ast.captureNames;
     }
@@ -40,6 +38,23 @@ class RoutePattern {
     canonical: string;
 
     captureNames: string[];
+}
+
+
+// TODO: doc...
+function parsePattern(pattern: string) {
+    try {
+        let ast: { canonical: string, captureNames: string[] } = parser.parse(pattern);
+        return ast;
+    }
+    catch (ex) {
+        let startCol = ex.location.start.column;
+        let endCol = ex.location.end.column;
+        if (endCol <= startCol) endCol = startCol + 1;
+        let indicator = Array(startCol).join(' ') + Array(endCol - startCol + 1).join('^');
+        let msg = `${ex.message}:\n${pattern}\n${indicator}`;
+        throw new Error(msg);
+    }
 }
 
 
