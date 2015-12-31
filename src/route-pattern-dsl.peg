@@ -1,10 +1,11 @@
 Pattern
-=   elems:Element*
+=   !"∅"   elems:Element*
     {
         var canonical = elems.map(elem => elem[0]).join('');
         var captureNames = elems.map(elem => elem[1]).filter(name => !!name);
         return { canonical, captureNames };
     }
+/   "∅"   { return { canonical: "∅", captureNames: [] }; }
 
 Element
 =   Globstar

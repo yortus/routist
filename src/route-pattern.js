@@ -1,34 +1,57 @@
 'use strict';
 var parser = require('./route-pattern-dsl');
-// TODO: doc...
+/**
+ * A RoutePattern matches a particular set of pathnames that conform to a textual pattern.
+ */
 class RoutePattern {
-    /** Create a new RoutePattern instance from the given pattern string. */
+    /**
+     * Creates a new RoutePattern instance from the given pattern string.
+     * The pattern string consists of a sequence of the following elements:
+     * - literal characters (alphanumerics, underscore, period and hyphen)
+     * - globstar captures ('**' or '…' for anonymous capture, or '{...name}' for named capture)
+     * - wildcard captures ('*' for anonymous capture, or '{name}' for named capture)
+     * - path separator ('/')
+     * Additional rules:
+     * - a globstar capture matches 0..M characters, each of which which may be anything
+     * - a wildcard capture matches 0..M characters, each of which which may be anything except '/'
+     * - captures may not be directly adjacent to one another in a pattern
+     * - path separators may not be directly adjacent to one another in a pattern
+     * - the single character '∅' is a valid pattern representing the set containing no pathnames
+     * - the single character '…' is a valid pattern representing the set containing all pathnames
+     */
     constructor(pattern) {
         let ast = parsePattern(pattern);
         this.canonical = ast.canonical;
         this.captureNames = ast.captureNames;
     }
+    /**
+     * Returns a new RoutePattern instance that matches all the pathnames that are
+     * matched by *both* `this` and `other`. Returns NEVER_MATCH if there are no
+     * such pathnames. Throws an error if the intersection cannot be expressed as a
+     * single pattern.
+     */
     intersectWith(other) {
         let allIntersections = getAllIntersections(this.canonical, other.canonical);
         let distinctIntersections = getDistinctPatterns(allIntersections);
         if (distinctIntersections.length === 0)
-            return RoutePattern.NEVER_MATCH;
-        // TODO: how to handle multiple matches? throw? return NEVER_MATCH?
-        if (distinctIntersections.length >= 2)
-            return RoutePattern.NEVER_MATCH;
-        return new RoutePattern(distinctIntersections[0]);
+            return RoutePattern.NONE;
+        if (distinctIntersections.length === 1)
+            return new RoutePattern(distinctIntersections[0]);
+        throw new Error(`Intersection of ${this} and ${other} cannot be expressed as a single pattern`);
     }
     //TODO: method to match against pathname...
     toString() {
         return this.canonical;
     }
 }
-//TODO: review...
-/** Sentinel value for a pattern that matches all URLs. */
-RoutePattern.ALWAYS_MATCH = { canonical: '…', toString: () => '…' }; // U+2026 HORIZONTAL ELLIPSIS
-/** Sentinel value for a pattern that matches no URLs. */
-RoutePattern.NEVER_MATCH = { canonical: '∅', toString: () => '∅' }; // U+2205 EMPTY SET
-// TODO: doc...
+/** Sentinel value for a pattern that matches all pathnames. */
+RoutePattern.ALL = new RoutePattern('…');
+/** Sentinel value for a pattern that matches no pathnames. */
+RoutePattern.NONE = new RoutePattern('∅');
+/**
+ * Verifies that `pattern` has a valid format, and returns metadata about the pattern.
+ * Throws an error if `pattern` is invalid.
+ */
 function parsePattern(pattern) {
     try {
         let ast = parser.parse(pattern);
