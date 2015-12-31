@@ -2,57 +2,52 @@ export function main(): Promise<any>;
 
 
 /**
- * A route pattern represents a set of URLs by describing the constraints
- * that any given URL must satisfy in order to match the pattern.
+ * A RoutePattern matches a particular set of pathnames that conform to a textual pattern.
  */
 export class RoutePattern {
 
+    /**
+     * Creates a new RoutePattern instance from the given pattern string.
+     * The pattern string consists of a sequence of the following elements:
+     * - literal characters (alphanumerics, underscore, period and hyphen)
+     * - globstar captures ('**' or '…' for anonymous capture, or '{...name}' for named capture)
+     * - wildcard captures ('*' for anonymous capture, or '{name}' for named capture)
+     * - path separator ('/')
+     * Additional rules:
+     * - a globstar capture matches 0..M characters, each of which which may be anything
+     * - a wildcard capture matches 0..M characters, each of which which may be anything except '/'
+     * - captures may not be directly adjacent to one another in a pattern
+     * - path separators may not be directly adjacent to one another in a pattern
+     * - the single character '∅' is a valid pattern representing the set containing no pathnames
+     * - the single character '…' is a valid pattern representing the set containing all pathnames
+     */
+    constructor(pattern: string);
 
-    /** Construct a new RoutePattern instance. */
-    constructor(source: string);
+    /** Sentinel value for a pattern that matches all pathnames. */
+    static ALL: RoutePattern;
 
+    /** Sentinel value for a pattern that matches no pathnames. */
+    static NONE: RoutePattern;
 
-    /** Sentinel value for a pattern that matches all URLs. */
-    static UNIVERSAL: RoutePattern;
+    /**
+     * Returns a new RoutePattern instance that matches all the pathnames that are
+     * matched by *both* `this` and `other`. Returns NEVER_MATCH if there are no
+     * such pathnames. Throws an error if the intersection cannot be expressed as a
+     * single pattern.
+     * NB: The operation is case-sensitive.
+     */
+    intersectWith(other: RoutePattern): RoutePattern;
 
+    /**
+     * Attempts to match the given pathname against the pattern. If the match
+     * is successful, returns a hash containing the name/value pairs for each
+     * named capture in the pattern. If the match fails, returns null.
+     * NB: The operation is case-sensitive.
+     */
+    match(pathname: string): { [name: string]: string; };
 
-    /** Sentinel value for a pattern that matches no URLs. */
-    static EMPTY: RoutePattern;
-
-
-    /** The expected HTTP method. Always upper-case. May be null to indicate no expectation. */
-    method: string;
-
-
-    /** Array of 0:M formal segments that URLs are expected to have. */
-    segments: Array<{
-
-        /**
-         * Segment type. Either 'literal' or 'capture':
-         * - 'literal' segments define text that must match that found in the corresponding segment of the URL.
-         * - 'capture' segments match any text found in the corresponding segment of the URL.
-         */
-        type: string;
-
-        /** For 'literal' segments, the expected text of the URL's segment. Case-sensitive. */
-        text?: string;
-
-        /** For 'capture' segments, the name to which to bind the captured text. May be null. */
-        name?: string;
-    }>;
-
-
-    /** If not null, the pattern matches URLs with zero or more segments after the formal segments. */
-    rest: {
-
-        /** The name to which to bind the captured text of the 'rest' segments. May be null. */
-        name: string;
-    };
-
-
-    /** The expected extension. Case-sensitive. May be null to indicate no expectation. */
-    extension: string;
-
+    /** The string representation of a pattern is its canonical form. */
+    toString(): string;
 
     /**
      * The canonical textual representation of the pattern.
@@ -60,25 +55,9 @@ export class RoutePattern {
      */
     canonical: string;
 
+    /** Array of names corresponding to the pattern's captures in order. Anonymous captures have the name '?'. */
+    captureNames: string[];
 
-    /**
-     * A pattern may be thought of as shorthand for describing the set of URL paths
-     * that match the pattern. The intersection of two patterns is thus the set of
-     * URL paths that match both patterns. This function returns a pattern describing
-     * this intersection set for any two given patterns.
-     */
-    intersectWith(other: RoutePattern): RoutePattern;
-
-
-    /**
-     * Attempts to match the given request specifics against the pattern. If the
-     * match is successful, returns a hash containing the name/value pairs for each
-     * named capture in the pattern. If the match fails, returns null. The operation
-     * is case-sensitive.
-     */
-    match(method: string, pathname: string): { [name: string]: string; };
-
-
-    /** The string representation of a pattern is its canonical form. */
-    toString(): string;
+    /** Regex matching all pathnames recognised by this RoutePattern instance. */
+    recogniser: RegExp;
 }

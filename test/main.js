@@ -1,10 +1,9 @@
 'use strict';
-//import routist = require('..');
 var chai_1 = require('chai');
-var RoutePattern = require('../src/route-pattern');
+var __1 = require('..');
 describe('a RoutePattern instance', () => {
     it('performs matches on pathnames', () => {
-        let rp = new RoutePattern('/f*o/bar/{baz}z/{...rest}.html');
+        let rp = new __1.RoutePattern('/f*o/bar/{baz}z/{...rest}.html');
         let m = rp.match('/foo/bar/baz/some/more/stuff.html');
         chai_1.expect(m).to.deep.equal({ baz: 'ba', rest: 'some/more/stuff' });
         // TODO: more examples...
@@ -77,8 +76,8 @@ describe('a RoutePattern instance', () => {
             let actual;
             try {
                 actual = 'ERROR';
-                let a = new RoutePattern(lhs);
-                let b = new RoutePattern(rhs);
+                let a = new __1.RoutePattern(lhs);
+                let b = new __1.RoutePattern(rhs);
                 actual = a.intersectWith(b).canonical;
             }
             catch (ex) { }

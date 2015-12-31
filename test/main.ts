@@ -1,9 +1,8 @@
 'use strict';
 
 
-//import routist = require('..');
 import {expect} from 'chai';
-import RoutePattern = require('../src/route-pattern');
+import {RoutePattern} from '..';
 
 
 describe('a RoutePattern instance', () => {

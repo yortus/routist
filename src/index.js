@@ -1,5 +1,5 @@
 var asyncawait_1 = require('asyncawait');
-exports.RoutePattern = require('./route-pattern-2');
+exports.RoutePattern = require('./route-pattern');
 function delay(ms) {
     return new Promise(resolve => {
         setTimeout(resolve, ms);
