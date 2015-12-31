@@ -1,53 +1,30 @@
-// TODO: restore 'method'
-
-
 Pattern
-=   "/"   !.   { return []; }
-/   RestOfPatternStartingWithGlobstar / RestOfPatternStartingWithSegments;
+=   elems:Element*
+    {
+        var canonical = elems.map(elem => elem[0]).join('');
+        var captureNames = elems.map(elem => elem[1]).filter(name => !!name);
+        return { canonical, captureNames };
+    }
 
+Element
+=   Globstar
+/   Wildcard
+/   PathSeparator
+/   Literal
 
-Method
-=   "ANY"i   { return null; }
-/   ("GET"i / "POST"i / "PUT"i / "DELETE"i)
+Globstar 'globstar'
+=   ("**" / "…")   !"*"   !"…"   { return ['…', '?']; }
+/   "{..."   id:IDENTIFIER   "}"   { return ['…', id]; }
 
+Wildcard 'wildcard'
+=   "*"   !"*"   !"…"   { return ['*', '?']; }
+/   "{"   id:IDENTIFIER   "}"   { return ['*', id]; }
 
-RestOfPatternStartingWithGlobstar
-=   head:Globstar   tail:RestOfPatternStartingWithSegments?   { return [].concat([[]], {'**':head}, tail ? tail : [[]]); }
+PathSeparator 'path separator'
+=   "/"   !"/"   { return ['/', null]; }
 
+Literal 'literal'
+=   c:[a-zA-Z0-9._-]   { return [c, null]; }
 
-RestOfPatternStartingWithSegments
-=   head:Segment+   tail:RestOfPatternStartingWithGlobstar?   { return [].concat([head], tail ? tail.slice(1) : []); }
-
-
-Globstar
-=   "/**"   { return ''; }
-/   "/{..."   id:IDENTIFIER   "}"   { return id; }
-
-
-Segment
-=   "/"   rest:(RestOfSegmentStartingWithStar / RestOfSegmentStartingWithAffix)   { return rest; }
-
-
-RestOfSegmentStartingWithStar
-=   head:Star   tail:RestOfSegmentStartingWithAffix?   { return [].concat('', {'*':head}, tail ? tail : ''); }
-
-
-RestOfSegmentStartingWithAffix
-=   head:Affix   tail:RestOfSegmentStartingWithStar?   { return [].concat(head, tail ? tail.slice(1) : []); }
-
-
-Star
-=   "*"   !"*"   { return ''; }
-/   "{"   id:IDENTIFIER   "}"   { return id; }
-
-
-Affix
-=   LITERAL_CHAR+   { return text(); }
-
-
-//================================================================================
-//=                                  TERMINALS                                   =
-//================================================================================
-LITERAL_CHAR    = [a-z0-9._-]i
-IDENTIFIER      = [a-z_$]i   [a-z0-9_$]i*   { return text(); }
-_ 'whitespace'  = [ \t]+   ("#" .*)?   { return text(); }
+IDENTIFIER
+=   [a-z_$]i   [a-z0-9_$]i*   { return text(); }

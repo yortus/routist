@@ -1,148 +1,114 @@
-// TODO: add missing features:
-// 1. [ ] support segments AFTER the rest/globstar (in addition to segments BEFORE it)
-// 2. [ ] remove distinct handling of extensions
-// 3. [ ] support segments with BOTH literal AND capture parts, not just either-or (and pre- and post- literal parts). This also adds back extension support.
-var dsl = require('./route-pattern-dsl');
-/**
- * A route pattern represents a set of URLs by describing the constraints
- * that any given URL must satisfy in order to match the pattern.
- */
+'use strict';
+var parser = require('./route-pattern-dsl');
+var parse = parser.parse;
+// TODO: doc...
 class RoutePattern {
-    /** Construct a new RoutePattern instance. */
-    constructor(source) {
-        var parts = dsl.parse(source);
-        this.method = parts.method ? parts.method.toUpperCase() : null;
-        this.segments = parts.segments;
-        this.rest = parts.rest;
-        this.canonical = getCanonicalForm(parts);
-        ensureNoDuplicateCaptureNames(this);
+    constructor(pattern) {
+        let ast = parse(pattern); // TODO: wrap thrown errors
+        this.canonical = ast.canonical;
+        this.captureNames = ast.captureNames;
     }
-    /**
-     * A pattern may be thought of as shorthand for describing the set of URL paths
-     * that match the pattern. The intersection of two patterns is thus the set of
-     * URL paths that match both patterns. This function returns a pattern describing
-     * this intersection set for any two given patterns.
-     */
     intersectWith(other) {
-        return computeIntersection(this, other);
+        let allIntersections = getAllIntersections(this.canonical, other.canonical);
+        let distinctIntersections = getDistinctPatterns(allIntersections);
+        if (distinctIntersections.length === 0)
+            return RoutePattern.NEVER_MATCH;
+        // TODO: how to handle multiple matches? throw? return NEVER_MATCH?
+        if (distinctIntersections.length >= 2)
+            return RoutePattern.NEVER_MATCH;
+        return new RoutePattern(distinctIntersections[0]);
     }
-    /**
-     * Attempts to match the given request specifics against the pattern. If the
-     * match is successful, returns a hash containing the name/value pairs for each
-     * named capture in the pattern. If the match fails, returns null. The operation
-     * is case-sensitive.
-     */
-    match(method, pathname) {
-        return matchRequestAgainstPattern(this, method, pathname);
-    }
-    /** The string representation of a pattern is its canonical form. */
+    //TODO: method to match against pathname...
     toString() {
         return this.canonical;
     }
 }
+//TODO: review...
 /** Sentinel value for a pattern that matches all URLs. */
-RoutePattern.UNIVERSAL = { canonical: 'U', toString: () => 'U' };
+RoutePattern.ALWAYS_MATCH = { canonical: '…', toString: () => '…' }; // U+2026 HORIZONTAL ELLIPSIS
 /** Sentinel value for a pattern that matches no URLs. */
-RoutePattern.EMPTY = { canonical: 'E', toString: () => 'E' };
+RoutePattern.NEVER_MATCH = { canonical: '∅', toString: () => '∅' }; // U+2205 EMPTY SET
 /**
- * Return the canonical textual representation of the pattern.
- * Equivalent patterns are guaranteed to return the same result.
+ * Returns a subset of the given list of patterns, such that no pattern in the
+ * resulting list is a (proper or improper) subset of any other pattern in the list.
  */
-function getCanonicalForm(parts) {
-    // Put all the pattern parts together canonically.
-    var cf = (parts.method || 'ANY') + ' ';
-    for (var i = 0; i < parts.segments.length; ++i) {
-        if (parts.rest && i === parts.rest.index)
-            cf += '/**';
-        var s = parts.segments[i];
-        cf += '/' + (s.type === 'literal' ? s.text : '*');
-    }
-    if (parts.rest && parts.rest.index === parts.segments.length)
-        cf += '/**';
-    return cf;
-}
-/** Private helper function for RoutePattern constructor. */
-function ensureNoDuplicateCaptureNames(pattern) {
-    var names = pattern.segments.filter(s => s.type === 'capture').map(s => s.name);
-    if (pattern.rest && pattern.rest.name)
-        names.push(pattern.rest.name);
-    for (var i = 0; i < names.length; ++i) {
-        if (names.indexOf(names[i], i + 1) === -1)
+function getDistinctPatterns(patterns) {
+    // Set up a parallel array to flag which patterns are distinct. Start by assuming they all are.
+    let isDistinct = patterns.map(u => true);
+    // Compare all patterns pairwise, discarding those that are (proper or improper) subsets of another.
+    for (let i = 0; i < patterns.length; ++i) {
+        if (!isDistinct[i])
             continue;
-        throw new Error("Duplicate capture name '" + names[i] + "' in route pattern '" + pattern.toString() + "'");
+        let subsetRecogniser = makeSubsetRecogniser(patterns[i]);
+        for (let j = 0; j < patterns.length; ++j) {
+            if (i === j || !isDistinct[j])
+                continue;
+            isDistinct[j] = !subsetRecogniser.test(patterns[j]);
+        }
     }
+    // Return only the distinct patterns from the original list.
+    return patterns.filter((_, i) => isDistinct[i]);
 }
-/** Private helper function for RoutePattern#intersectWith. */
-function computeIntersection(a, b) {
-    // Handle identity cases.
-    if (a === RoutePattern.UNIVERSAL || b === RoutePattern.EMPTY)
-        return b;
-    if (b === RoutePattern.UNIVERSAL || a === RoutePattern.EMPTY)
-        return a;
-    // Compute the intersection of the methods.
-    if (a.method && b.method && a.method !== b.method)
-        return RoutePattern.EMPTY;
-    var method = a.method || b.method;
-    // Compute the intersection of the formal segments. If one pattern has more formal segments
-    // than the other, the excess formal segments are considered in a subsequent step.
-    var longestCommonCount = Math.min(a.segments.length, b.segments.length);
-    var segments = [];
-    for (var i = 0; i < longestCommonCount; ++i) {
-        var segmentA = a.segments[i];
-        var segmentB = b.segments[i];
-        if (segmentA.type === 'literal' && segmentB.type === 'literal' && segmentA.text !== segmentB.text)
-            return RoutePattern.EMPTY;
-        var segment = segmentA.type === 'literal' ? segmentA : segmentB;
-        segments.push(segment);
-    }
-    // Compute the intersection of the excess formal segments excluded from the previous step.
-    if (Math.max(a.segments.length, b.segments.length) > longestCommonCount) {
-        if (a.segments.length > longestCommonCount) {
-            if (!b.rest)
-                return RoutePattern.EMPTY;
-            segments = segments.concat(a.segments.slice(longestCommonCount));
-        }
-        else {
-            if (!a.rest)
-                return RoutePattern.EMPTY;
-            segments = segments.concat(b.segments.slice(longestCommonCount));
-        }
-    }
-    // Compute the intersection of the 'rest' segment(s).
-    var rest = a.rest && b.rest ? { index: 0, name: null } : null;
-    // Return the result.
-    return new RoutePattern(getCanonicalForm({ method, segments, rest }));
+/**
+ * Returns a regular expression that matches all pattern strings
+ * that are (proper or improper) subsets of `pattern`.
+ */
+function makeSubsetRecogniser(pattern) {
+    let re = pattern.split('').map(c => {
+        if (c === '*')
+            return '[^\\/…]*';
+        if (c === '…')
+            return '.*';
+        if (['/._-'].indexOf(c) !== -1)
+            return `\\${c}`;
+        return c;
+    }).join('');
+    return new RegExp(`^${re}$`);
 }
-/** Private helper function for RoutePattern#match. */
-function matchRequestAgainstPattern(pattern, method, pathname) {
-    var result = {};
-    // Match the method.
-    if (pattern.method && pattern.method !== method.toUpperCase())
-        return null;
-    // Match the formal segments.
-    var pathSegments = pathname.slice(1).split('/').map(decodeURIComponent);
-    if (pathSegments.length < pattern.segments.length)
-        return null;
-    if (pathSegments.length > pattern.segments.length && !pattern.rest)
-        return null;
-    for (var i = 0; i < pattern.segments.length; ++i) {
-        var patternSegment = pattern.segments[i];
-        var pathSegment = pathSegments[i];
-        if (patternSegment.type === 'literal') {
-            if (patternSegment.text !== pathSegments[i])
-                return null;
-        }
-        else {
-            if (patternSegment.name)
-                result[patternSegment.name] = pathSegments[i];
-        }
+/**
+ * Computes all patterns that may be formed by unifying wildcards from
+ * one pattern with substitutable substrings of the other pattern such that
+ * all characters from both patterns are present and in order in the result.
+ * All the patterns computed in this way represent valid intersections of A
+ * and B, however some may be duplicates or subsets of others.
+ */
+function getAllIntersections(a, b) {
+    // An empty pattern intersects only with another empty pattern or a single wildcard.
+    if (a === '' || b === '') {
+        let other = a || b;
+        return other === '' || other === '*' || other === '…' ? [''] : [];
     }
-    // Match the pattern's 'rest' segment(s).
-    if (pattern.rest && pattern.rest.name) {
-        var rest = pathSegments.slice(pattern.segments.length).join('/');
-        result[pattern.rest.name] = rest;
+    else if (a[0] === '…' || (a[0] === '*' && b[0] !== '…')) {
+        return getAllPatternSplits(b)
+            .filter(pair => a[0] === '…' || (!pair[0].includes('/') && !pair[0].includes('…')))
+            .map(pair => getAllIntersections(a.slice(1), pair[1]).map(u => pair[0] + u))
+            .reduce((ar, el) => (ar.push.apply(ar, el), ar), []);
     }
-    // All done.
+    else if (b[0] === '…' || b[0] === '*') {
+        return getAllIntersections(b, a);
+    }
+    else if (a[0] === b[0]) {
+        return getAllIntersections(a.slice(1), b.slice(1)).map(u => a[0] + u);
+    }
+    // The intersection of A and B is empty.
+    return [];
+}
+/**
+ * Returns an array of all the [prefix, suffix] pairs into which `pattern` may be split.
+ * Splits that occur on a wildcard character have the wildcard on both sides of the split
+ * (i.e. as the last character of the prefix and the first character of the suffix).
+ * E.g., 'ab*c' splits into ['', 'ab*c'], ['a', 'b*c'], ['ab*', '*c'], and ['ab*c', ''].
+ */
+function getAllPatternSplits(pattern) {
+    let result = [];
+    for (let i = 0; i <= pattern.length; ++i) {
+        let pair = [pattern.substring(0, i), pattern.substring(i)];
+        if (pattern[i] === '*' || pattern[i] === '…') {
+            pair[0] += pattern[i];
+            ++i; // skip next iteration
+        }
+        result.push(pair);
+    }
     return result;
 }
 module.exports = RoutePattern;
