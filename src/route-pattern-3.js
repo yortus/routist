@@ -1,16 +1,15 @@
 'use strict';
 //debugger;
 var assert = require('assert');
-var Segment = (function () {
-    function Segment(text) {
+class Segment {
+    constructor(text) {
         // TODO: Validate...
-        this.terms = ("^" + text + "$").split('*');
+        this.terms = `^${text}$`.split('*');
     }
-    return Segment;
-})();
+}
 exports.Segment = Segment;
 // TODO: BUG: *m*n*   ∩   *n*m*   ==>   *m*n*m* (WRONG!)
-var r = intersectSegments(new Segment('*m*n*'), new Segment('*n*m*'));
+let r = intersectSegments(new Segment('*m*n*'), new Segment('*n*m*'));
 console.log(r);
 // TODO: validation:
 // - valid tokens: /, a-z, A-Z, 0-9, _, ., -, *, ** (plus named captures eg {$name})
@@ -47,14 +46,14 @@ function unifyRest(a, b) {
         return unifyOne(a, b);
     }
     else {
-        for (var n = 2; n <= a.length; ++n) {
-            var head = unifyOne(a.slice(0, n), b.slice(0, 2));
+        for (let n = 2; n <= a.length; ++n) {
+            let head = unifyOne(a.slice(0, n), b.slice(0, 2));
             if (head === null)
                 continue;
-            var tail = unifyRest(a.slice(n - 1), b.slice(1));
+            let tail = unifyRest(a.slice(n - 1), b.slice(1));
             if (tail === null)
                 continue;
-            var overlap = head.pop();
+            let overlap = head.pop();
             assert(overlap === tail[0]);
             return head.concat(tail);
         }
@@ -63,24 +62,24 @@ function unifyRest(a, b) {
 }
 function unifyOne(a, b) {
     assert(a.length >= 2 && b.length === 2);
-    var la = a[0], lb = b[0];
-    var ra = a[a.length - 1], rb = b[1];
-    var l = contains(la, lb) ? la : contains(lb, la) ? lb : null;
+    let la = a[0], lb = b[0];
+    let ra = a[a.length - 1], rb = b[1];
+    let l = contains(la, lb) ? la : contains(lb, la) ? lb : null;
     if (l === null)
         return null;
-    var r = contains(ra, rb) ? ra : contains(rb, ra) ? rb : null;
+    let r = contains(ra, rb) ? ra : contains(rb, ra) ? rb : null;
     if (r === null)
         return null;
-    var overlap = longestOverlap(l, r); // TODO: BUG if n > 1
+    let overlap = longestOverlap(l, r); // TODO: BUG if n > 1
     if (overlap.length > 0)
         return null; // TODO: over-restrictive; relax through more specific checks
-    return [l].concat(a.slice(1, -1), [r]);
+    return [l, ...a.slice(1, -1), r];
 }
 function contains(a, b) {
     return a.indexOf(b) !== -1;
 }
 function longestOverlap(lhs, rhs) {
-    return (lhs + "/" + rhs).match(/(.*)\/\1/)[1];
+    return `${lhs}/${rhs}`.match(/(.*)\/\1/)[1];
 }
 function toRegExp(t) {
 }

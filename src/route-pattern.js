@@ -7,9 +7,9 @@ var dsl = require('./route-pattern-dsl');
  * A route pattern represents a set of URLs by describing the constraints
  * that any given URL must satisfy in order to match the pattern.
  */
-var RoutePattern = (function () {
+class RoutePattern {
     /** Construct a new RoutePattern instance. */
-    function RoutePattern(source) {
+    constructor(source) {
         var parts = dsl.parse(source);
         this.method = parts.method ? parts.method.toUpperCase() : null;
         this.segments = parts.segments;
@@ -23,28 +23,27 @@ var RoutePattern = (function () {
      * URL paths that match both patterns. This function returns a pattern describing
      * this intersection set for any two given patterns.
      */
-    RoutePattern.prototype.intersectWith = function (other) {
+    intersectWith(other) {
         return computeIntersection(this, other);
-    };
+    }
     /**
      * Attempts to match the given request specifics against the pattern. If the
      * match is successful, returns a hash containing the name/value pairs for each
      * named capture in the pattern. If the match fails, returns null. The operation
      * is case-sensitive.
      */
-    RoutePattern.prototype.match = function (method, pathname) {
+    match(method, pathname) {
         return matchRequestAgainstPattern(this, method, pathname);
-    };
+    }
     /** The string representation of a pattern is its canonical form. */
-    RoutePattern.prototype.toString = function () {
+    toString() {
         return this.canonical;
-    };
-    /** Sentinel value for a pattern that matches all URLs. */
-    RoutePattern.UNIVERSAL = { canonical: 'U', toString: function () { return 'U'; } };
-    /** Sentinel value for a pattern that matches no URLs. */
-    RoutePattern.EMPTY = { canonical: 'E', toString: function () { return 'E'; } };
-    return RoutePattern;
-})();
+    }
+}
+/** Sentinel value for a pattern that matches all URLs. */
+RoutePattern.UNIVERSAL = { canonical: 'U', toString: () => 'U' };
+/** Sentinel value for a pattern that matches no URLs. */
+RoutePattern.EMPTY = { canonical: 'E', toString: () => 'E' };
 /**
  * Return the canonical textual representation of the pattern.
  * Equivalent patterns are guaranteed to return the same result.
@@ -64,7 +63,7 @@ function getCanonicalForm(parts) {
 }
 /** Private helper function for RoutePattern constructor. */
 function ensureNoDuplicateCaptureNames(pattern) {
-    var names = pattern.segments.filter(function (s) { return s.type === 'capture'; }).map(function (s) { return s.name; });
+    var names = pattern.segments.filter(s => s.type === 'capture').map(s => s.name);
     if (pattern.rest && pattern.rest.name)
         names.push(pattern.rest.name);
     for (var i = 0; i < names.length; ++i) {
@@ -112,7 +111,7 @@ function computeIntersection(a, b) {
     // Compute the intersection of the 'rest' segment(s).
     var rest = a.rest && b.rest ? { index: 0, name: null } : null;
     // Return the result.
-    return new RoutePattern(getCanonicalForm({ method: method, segments: segments, rest: rest }));
+    return new RoutePattern(getCanonicalForm({ method, segments, rest }));
 }
 /** Private helper function for RoutePattern#match. */
 function matchRequestAgainstPattern(pattern, method, pathname) {

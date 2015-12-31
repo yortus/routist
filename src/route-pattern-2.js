@@ -8,8 +8,8 @@
 //   ADDED 27/12/2015:
 // - maximum two '*' per segment (supports "starts with", "ends with", and "contains")
 // - maximum two '**' per pattern (analogous logic as above)
-var RoutePattern = (function () {
-    function RoutePattern(source) {
+class RoutePattern {
+    constructor(source) {
         this.source = source;
         this.canonical = source
             .replace(/\/\*\*/g, '…')
@@ -17,18 +17,17 @@ var RoutePattern = (function () {
             .replace(/\{[a-zA-Z0-9_$]+\}/g, '*');
     }
     // TODO: doc...
-    RoutePattern.prototype.intersectWith = function (other) {
+    intersectWith(other) {
         return new RoutePattern(intersect(this.canonical, other.canonical));
-    };
-    /** Sentinel value for a pattern that matches all URLs. */
-    RoutePattern.EVERYTHING = { canonical: '…', toString: function () { return '…'; } }; // U+2026 HORIZONTAL ELLIPSIS
-    /** Sentinel value for a pattern that matches no URLs. */
-    RoutePattern.NOTHING = { canonical: '∅', toString: function () { return '∅'; } }; // U+2205 EMPTY SET
-    return RoutePattern;
-})();
+    }
+}
+/** Sentinel value for a pattern that matches all URLs. */
+RoutePattern.EVERYTHING = { canonical: '…', toString: () => '…' }; // U+2026 HORIZONTAL ELLIPSIS
+/** Sentinel value for a pattern that matches no URLs. */
+RoutePattern.NOTHING = { canonical: '∅', toString: () => '∅' }; // U+2205 EMPTY SET
 function intersectSegment(a, b) {
-    var aInfo = analyzeSegment(a);
-    var bInfo = analyzeSegment(b);
+    let aInfo = analyzeSegment(a);
+    let bInfo = analyzeSegment(b);
     // isAnything
     if (aInfo.isAnything) {
         return b;
@@ -52,10 +51,10 @@ function analyzeSegment(s) {
     if (s.indexOf('*') === -1) {
         return { isExactly: s };
     }
-    var result = {};
+    let result = {};
     var subsegments = s.split('*');
     if (subsegments.length > 3) {
-        throw new Error("RoutePattern: segment too complex: '" + s + "'");
+        throw new Error(`RoutePattern: segment too complex: '${s}'`);
     }
     result.startsWith = subsegments[0] || null;
     result.endsWith = subsegments[subsegments.length - 1] || null;
@@ -65,8 +64,8 @@ function analyzeSegment(s) {
 /** TODO: doc... NB a and b are both assumed to be canonical forms of valid patterns */
 function intersect(a, b) {
     // Declare short local aliases for the identity patterns in their canonical form.
-    var NOTHING = RoutePattern.NOTHING.canonical;
-    var EVERYTHING = RoutePattern.EVERYTHING.canonical;
+    const NOTHING = RoutePattern.NOTHING.canonical;
+    const EVERYTHING = RoutePattern.EVERYTHING.canonical;
     // If either pattern matches no strings, then their intersection matches no strings.
     if (a === NOTHING || b === NOTHING) {
         return NOTHING;
@@ -84,14 +83,14 @@ function intersect(a, b) {
             return NOTHING;
         }
         // Compute the patterns formed by removing the first segment of A and of B.
-        var a_rest = a.substr(1);
-        var i = b.indexOf('/', b[0] === '…' ? 0 : 1);
-        var b_rest = i === -1 ? '' : b.substr(i);
-        var b_first = b.substr(0, b.length - b_rest.length);
+        let a_rest = a.substr(1);
+        let i = b.indexOf('/', b[0] === '…' ? 0 : 1);
+        let b_rest = i === -1 ? '' : b.substr(i);
+        let b_first = b.substr(0, b.length - b_rest.length);
         // Search for a non-empty intersection of A/Arest against B/Brest. This is
         // a recursive search that is guaranteed to halt. It corresponds to trying
         // to unify A's globstar with 0..M complete segments of B.
-        var rest = intersect(a_rest, b);
+        let rest = intersect(a_rest, b);
         if (rest !== NOTHING) {
             return b[0] === '…' ? concat('…', rest) : rest;
         }
@@ -111,9 +110,9 @@ function intersect(a, b) {
         if (b[0] === '/') {
             return intersect(a.substr(1), b);
         }
-        var a_rest = a.substr(1);
-        var b_rest = b.substr(1);
-        var rest = NOTHING;
+        let a_rest = a.substr(1);
+        let b_rest = b.substr(1);
+        let rest = NOTHING;
         if (rest === NOTHING)
             rest = intersect(a_rest, b_rest);
         if (rest === NOTHING)
@@ -133,7 +132,7 @@ function intersect(a, b) {
 }
 // TODO: doc...
 function concat(a, b) {
-    var NOTHING = RoutePattern.NOTHING.canonical;
+    const NOTHING = RoutePattern.NOTHING.canonical;
     return a === NOTHING || b === NOTHING ? NOTHING : (a + b);
 }
 module.exports = RoutePattern;

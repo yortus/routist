@@ -1,3 +1,6 @@
+'use strict';
+
+
 //import routist = require('..');
 import {expect} from 'chai';
 
@@ -69,75 +72,102 @@ describe('it', () => {
         ];
 
         tests.forEach(test => {
-            let [a, b] = test.split(' ∩ ');
-            let unifications = getUnifications(a, b);
-            let result = reduceUnifications(unifications);
-            if (a.indexOf('*…') !== -1 || a.indexOf('…*') !== -1 || b.indexOf('*…') !== -1 || b.indexOf('…*') !== -1) result = 'INVALID';
-            console.log(`${test}   ==>   ${result}`);
+            let pair = test.split(' ∩ '), a = pair[0], b = pair[1];
+            let all = getAllIntersections(a, b);
+            let distinct = getDistinctIntersections(all);
+            let result = distinct.length === 0 ? '∅' : distinct.join(' ∪ ');
+            if (a.indexOf('*…') !== -1 || a.indexOf('…*') !== -1 || b.indexOf('*…') !== -1 || b.indexOf('…*') !== -1) distinct = 'INVALID';
+            console.log(`${test}   ==>   ${distinct}`);
         });
     });
 });
 
 
-function reduceUnifications(unifications: string[]): string {
-    let isEliminated = unifications.map(u => false);
-    for (let i = 0; i < unifications.length; ++i) {
-        if (isEliminated[i]) continue;
-        let re = toRegex(unifications[i]);
-        for (let j = 0; j < unifications.length; ++j) {
-            if (i === j || isEliminated[j]) continue;
-            isEliminated[j] = re.test(unifications[j]);
+function getDistinctIntersections(allIntersections: string[]) {
+
+    // Set up a parallel array to flag which patterns are distinct. Start by assuming they all are.
+    let isDistinct = allIntersections.map(u => true);
+
+    // Compare all patterns pairwise, discarding those that are (proper or improper) subsets of another.
+    for (let i = 0; i < allIntersections.length; ++i) {
+        if (!isDistinct[i]) continue;
+        let subsetRecogniser = makeSubsetRecogniser(allIntersections[i]);
+        for (let j = 0; j < allIntersections.length; ++j) {
+            if (i === j || !isDistinct[j]) continue;
+            isDistinct[j] = !subsetRecogniser.test(allIntersections[j]);
         }
     }
 
-    unifications = unifications.filter((_, i) => !isEliminated[i]);
-    let result = unifications.length === 0 ? '∅' : unifications.join(' ∪ ');
-    return result;
-
-    function toRegex(s: string) {
-        let text = s.split('').map(c => {
-            if (c === '*') return '[^\\/…]*';
-            if (c === '…') return '.*';
-            if (['/'].indexOf(c) !== -1) return `\\${c}`;
-            return c;
-        }).join('');
-        return new RegExp(`^${text}$`);
-    }
+    // Return only the distinct patterns from the original list.
+    return allIntersections.filter((_, i) => isDistinct[i]);
 }
 
 
-function getUnifications(a: string, b: string): string[] {
+function makeSubsetRecogniser(pattern: string) {
+    let re = pattern.split('').map(c => {
+        if (c === '*') return '[^\\/…]*';
+        if (c === '…') return '.*';
+        if (['/'].indexOf(c) !== -1) return `\\${c}`;
+        return c;
+    }).join('');
+    return new RegExp(`^${re}$`);
+}
+
+
+/**
+ * Computes all patterns that may be formed by unifying wildcards from
+ * one pattern with substitutable substrings of the other pattern such that
+ * all characters from both patterns are present and in order in the result.
+ * All the patterns computed in this way represent valid intersections of A
+ * and B, however some may be duplicates or subsets of others.
+ */
+function getAllIntersections(a: string, b: string): string[] {
+
+    // An empty pattern intersects only with another empty pattern or a single wildcard.
     if (a === '' || b === '') {
-        let ab = a + b;
-        return ab === '' || ab === '*' || ab === '…' ? [''] : [];
+        let other = a || b;
+        return other === '' || other === '*' || other === '…' ? [''] : [];
     }
+
+    // A starts with a wildcard. Generate all possible intersections by unifying
+    // the wildcard with all substitutable prefixes of B, and intersecting the remainders.
     else if (a[0] === '…' || (a[0] === '*' && b[0] !== '…')) {
-        let result: string[] = [];
-        for (let bSplitIndex = 0; bSplitIndex <= b.length; ++bSplitIndex) {
-
-            let bTip = b[bSplitIndex - 1];
-            if (bTip === '…' || bTip === '*') continue;
-
-            let bLeftPart = b.slice(0, bSplitIndex);
-            if (a[0] === '*' && bLeftPart.indexOf('/') !== -1) break;
-            if (a[0] === '*' && bLeftPart.indexOf('…') !== -1) break;
-            let bRightPart = b.slice(bSplitIndex);
-
-            bTip = bRightPart[0];
-            if (bTip === '…' || bTip === '*') bLeftPart += bTip;
-
-            let more = getUnifications(a.slice(1), bRightPart).map(u => bLeftPart + u);
-            result.push.apply(result, more);
-        }
-        return result;
+        return getAllPatternSplits(b)
+            .filter(pair => a[0] === '…' || (!pair[0].includes('/') && !pair[0].includes('…')))
+            .map(pair => getAllIntersections(a.slice(1), pair[1]).map(u => pair[0] + u))
+            .reduce((ar, el) => (ar.push.apply(ar, el), ar), []);
     }
+
+    // B starts with a wildcard. Delegate to previous case (intersection is commutative).
     else if (b[0] === '…' || b[0] === '*') {
-         return getUnifications(b, a);
+         return getAllIntersections(b, a);
     }
+
+    // Both patterns start with the same literal. Intersect their remainders recursively.
     else if (a[0] === b[0]) {
-        return getUnifications(a.slice(1), b.slice(1)).map(u => a[0] + u);
+        return getAllIntersections(a.slice(1), b.slice(1)).map(u => a[0] + u);
     }
-    else {
-        return [];
+
+    // The intersection of A and B is empty.
+    return [];
+}
+
+
+/**
+ * Returns an array of all the [prefix, suffix] pairs into which `pattern` may be split.
+ * Splits that occur on a wildcard character have the wildcard on both sides of the split
+ * (i.e. as the last character of the prefix and the first character of the suffix).
+ * E.g., 'ab*c' splits into ['', 'ab*c'], ['a', 'b*c'], ['ab*', '*c'], and ['ab*c', ''].
+ */
+function getAllPatternSplits(pattern: string): [string, string][] {
+    let result = [];
+    for (let i = 0; i <= pattern.length; ++i) {
+        let pair = [pattern.substring(0, i), pattern.substring(i)];
+        if (pattern[i] === '*' || pattern[i] === '…') {
+            pair[0] += pattern[i];
+            ++i; // skip next iteration
+        }
+        result.push(pair);
     }
+    return result;
 }
