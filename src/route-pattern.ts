@@ -1,12 +1,15 @@
 'use strict';
 var parser = require('./route-pattern-dsl');
-export = RoutePattern;
+
+
+
 
 
 /**
  * A RoutePattern matches a particular set of pathnames that conform to a textual pattern.
  */
-class RoutePattern {
+export default class RoutePattern {
+
 
     /**
      * Creates a new RoutePattern instance from the given pattern string.
@@ -30,11 +33,14 @@ class RoutePattern {
         this.recogniser = makePathnameRecogniser(ast.canonical);
     }
 
+
     /** Sentinel value for a pattern that matches all pathnames. */
     static ALL = new RoutePattern('…');
 
+
     /** Sentinel value for a pattern that matches no pathnames. */
     static NONE = new RoutePattern('∅');
+
 
     /**
      * Returns a new RoutePattern instance that matches all the pathnames that are
@@ -43,13 +49,37 @@ class RoutePattern {
      * single pattern.
      * NB: The operation is case-sensitive.
      */
-    intersectWith(other: RoutePattern) {
+    intersect(other: RoutePattern) {
         let allIntersections = getAllIntersections(this.canonical, other.canonical);
         let distinctIntersections = getDistinctPatterns(allIntersections);
         if (distinctIntersections.length === 0) return RoutePattern.NONE;
         if (distinctIntersections.length === 1) return new RoutePattern(distinctIntersections[0]);
         throw new Error(`Intersection of ${this} and ${other} cannot be expressed as a single pattern`);
     }
+
+
+    /**
+     * Computes the relationship between this RoutePattern instance and another
+     * RoutePattern instance in terms of the sets of pathnames each one matches.
+     * The possible relations are:
+     * - Equal: both instances match the same set of pathnames
+     * - Subset: every pathname matched by `this` is also matched by `other`
+     * - Superset: every pathname matched by `other` is also matched by `this`
+     * - Disjoint: no pathname is matched by both `this` and `other`
+     * - Overlapping: none of the other four relationships are true.
+     */
+    compare(other: RoutePattern) {
+        if (this.canonical === other.canonical) {
+            return RoutePatternRelation.Equal;
+        }
+        switch (this.intersect(other).canonical) {
+            case RoutePattern.NONE.canonical: return RoutePatternRelation.Disjoint;
+            case this.canonical: return RoutePatternRelation.Subset;
+            case other.canonical: return RoutePatternRelation.Superset;
+            default: return RoutePatternRelation.Overlapping;
+        }
+    }
+
 
     /**
      * Attempts to match the given pathname against the pattern. If the match
@@ -69,10 +99,12 @@ class RoutePattern {
         
     }
 
+
     /** The string representation of a pattern is its canonical form. */
     toString() {
         return this.canonical;
     }
+
 
     /**
      * The canonical textual representation of the pattern.
@@ -80,12 +112,30 @@ class RoutePattern {
      */
     canonical: string;
 
+
     /** Array of names corresponding to the pattern's captures in order. Anonymous captures have the name '?'. */
-    captureNames: string[];
+    private captureNames: string[];
+
 
     /** Regex matching all pathnames recognised by this RoutePattern instance. */
-    recogniser: RegExp;
+    private recogniser: RegExp;
 }
+
+
+
+
+
+/** Enumeration for classifying the relationship between two RoutePattern instances. */
+export const enum RoutePatternRelation {
+    Equal = 1,
+    Subset = 2,
+    Superset = 3,
+    Disjoint = 4,
+    Overlapping = 5
+}
+
+
+
 
 
 /**
@@ -108,6 +158,9 @@ function parsePattern(pattern: string) {
 }
 
 
+
+
+
 /**
  * Constructs a regular expression that matches all pathnames recognised by the given pattern.
  * Each globstar/wildcard in the pattern corresponds to a capture group in the regular expression.
@@ -121,6 +174,9 @@ function makePathnameRecogniser(pattern: string) {
     }).join('');
     return new RegExp(`^${re}$`);
 }
+
+
+
 
 
 /**
@@ -147,6 +203,9 @@ function getDistinctPatterns(patterns: string[]) {
 }
 
 
+
+
+
 /**
  * Returns a regular expression that matches all pattern strings
  * that are (proper or improper) subsets of `pattern`.
@@ -160,6 +219,9 @@ function makeSubsetRecogniser(pattern: string) {
     }).join('');
     return new RegExp(`^${re}$`);
 }
+
+
+
 
 
 /**
@@ -199,6 +261,9 @@ function getAllIntersections(a: string, b: string): string[] {
     // The intersection of A and B is empty.
     return [];
 }
+
+
+
 
 
 /**

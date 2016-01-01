@@ -1,5 +1,5 @@
 import {async, await} from 'asyncawait';
-export import RoutePattern = require('./route-pattern');
+export * from './route-pattern';
 
 
 function delay(ms: number) {

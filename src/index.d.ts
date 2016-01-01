@@ -1,10 +1,14 @@
 export function main(): Promise<any>;
 
 
+
+
+
 /**
  * A RoutePattern matches a particular set of pathnames that conform to a textual pattern.
  */
 export class RoutePattern {
+
 
     /**
      * Creates a new RoutePattern instance from the given pattern string.
@@ -23,11 +27,14 @@ export class RoutePattern {
      */
     constructor(pattern: string);
 
+
     /** Sentinel value for a pattern that matches all pathnames. */
     static ALL: RoutePattern;
 
+
     /** Sentinel value for a pattern that matches no pathnames. */
     static NONE: RoutePattern;
+
 
     /**
      * Returns a new RoutePattern instance that matches all the pathnames that are
@@ -36,7 +43,21 @@ export class RoutePattern {
      * single pattern.
      * NB: The operation is case-sensitive.
      */
-    intersectWith(other: RoutePattern): RoutePattern;
+    intersect(other: RoutePattern): RoutePattern;
+
+
+    /**
+     * Computes the relationship between this RoutePattern instance and another
+     * RoutePattern instance in terms of the sets of pathnames each one matches.
+     * The possible relations are:
+     * - Equal: both instances match the same set of pathnames
+     * - Subset: every pathname matched by `this` is also matched by `other`
+     * - Superset: every pathname matched by `other` is also matched by `this`
+     * - Disjoint: no pathname is matched by both `this` and `other`
+     * - Overlapping: none of the other four relationships are true.
+     */
+    compare(other: RoutePattern);
+
 
     /**
      * Attempts to match the given pathname against the pattern. If the match
@@ -46,18 +67,27 @@ export class RoutePattern {
      */
     match(pathname: string): { [name: string]: string; };
 
+
     /** The string representation of a pattern is its canonical form. */
     toString(): string;
+
 
     /**
      * The canonical textual representation of the pattern.
      * Equivalent patterns are guaranteed to have the same value.
      */
     canonical: string;
+}
 
-    /** Array of names corresponding to the pattern's captures in order. Anonymous captures have the name '?'. */
-    captureNames: string[];
 
-    /** Regex matching all pathnames recognised by this RoutePattern instance. */
-    recogniser: RegExp;
+
+
+
+/** Enumeration for classifying the relationship between two RoutePattern instances. */
+export const enum RoutePatternRelation {
+    Equal = 1,
+    Subset = 2,
+    Superset = 3,
+    Disjoint = 4,
+    Overlapping = 5
 }

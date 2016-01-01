@@ -1,5 +1,8 @@
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
 var asyncawait_1 = require('asyncawait');
-exports.RoutePattern = require('./route-pattern');
+__export(require('./route-pattern'));
 function delay(ms) {
     return new Promise(resolve => {
         setTimeout(resolve, ms);

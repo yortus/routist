@@ -1,84 +1,116 @@
-// //import {RoutePattern} from '..';
-// import {expect} from 'chai';
-// import {intersectSegments, Segment} from '../src/route-pattern-3';
-// class RoutePattern {
-//     constructor(public p: string) {
-//     }
-//     canonical = this.p.slice(1);
-//     intersectWith(other: RoutePattern) {
-//         var u = intersectSegments(new Segment(this.p.slice(1)), new Segment(other.p.slice(1)));
-//         return new RoutePattern(`/${u}`);
-//     }
-// }
-// 
-// 
-// describe('A RoutePattern instance', () => {
-// //     it('works', () => {
-// // 
-// //         var p0 = new RoutePattern('GET /api/foo');
-// //         var p1 = new RoutePattern('GET /api/foo/bar');
-// //         var p2 = new RoutePattern('GET /api/foo/**');
-// //         var p3 = new RoutePattern('GET /api/foo/{...rest}');
-// //         var p4 = new RoutePattern('GET /api/f*');
-// //         var p5 = new RoutePattern('GET /api/{fo}o');
-// //         var p6 = new RoutePattern('GET /**/{name}.{ext}');
-// //         var p7 = new RoutePattern('GET /{...path}/{name}.{ext}');
-// // 
-// //         expect(p0.canonical).equals('GET /api/foo');
-// //         expect(p1.canonical).equals('GET /api/foo/bar');
-// //         expect(p2.canonical).equals('GET /api/foo…');
-// //         expect(p3.canonical).equals('GET /api/foo…');
-// //         expect(p4.canonical).equals('GET /api/f*');
-// //         expect(p5.canonical).equals('GET /api/*o');
-// //         expect(p6.canonical).equals('GET …/*.*');
-// //         expect(p7.canonical).equals('GET …/*.*');
-// //     });
-// 
-// 
-//     it('works II', () => {
-// 
-//         // TODO: reinstate HTTP methods, ie 'GET /foo/**'
-// //         var p0 = new RoutePattern('/foo/bar/*');
-// //         var p1 = new RoutePattern('/foo/*/baz');
-// //         var p2 = new RoutePattern('/*/bar/baz');
-// //         var p3 = new RoutePattern('/fozo/*/*');
-// //         var p4 = new RoutePattern('/*/bar/*');
-// //         var p5 = new RoutePattern('/*/*/baz');
-// //         var p6 = new RoutePattern('/*/*/b*');
-// //         var p7 = new RoutePattern('/*/*/*z');
-// //         var p8 = new RoutePattern('/foo/bar/b*');
-// //         var p9 = new RoutePattern('/foo/bar/*z');
-// // 
-// //         var q0 = new RoutePattern('/**');
-// //         var q1 = new RoutePattern('/**/*z');
-// //         var q2 = new RoutePattern('/foo/**/bar/baz');
-// //         var q3 = new RoutePattern('/*o*/**');
-// // 
-//         var p0 = new RoutePattern('/*a*');
-//         var p1 = new RoutePattern('/*a*a*');
-//         var p2 = new RoutePattern('/*aa*');
-//         var p3 = new RoutePattern('/a*');
-//         var p4 = new RoutePattern('/*a');
-// 
-// //         expect(p0.intersectWith(p1).canonical).equals('/foo/bar/baz');
-// //         expect(p1.intersectWith(p7).canonical).equals('/foo/*/baz');
-// //         expect(p6.intersectWith(p9).canonical).equals('/foo/bar/b*z');
-// // 
-// //         expect(q0.intersectWith(q0).canonical).equals('…');
-// //         expect(p0.intersectWith(q0).canonical).equals('/foo/bar/*');
-// //         expect(q0.intersectWith(p0).canonical).equals('/foo/bar/*');
-// //         expect(p0.intersectWith(q1).canonical).equals('/foo/bar/*z');
-// //         expect(p4.intersectWith(q2).canonical).equals('/foo/bar/baz');
-// //         expect(q1.intersectWith(q1).canonical).equals('…/*z');
-// 
-// //         var ps = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, q0, q1, q2, q3];
-//         var ps = [p0, p1, p2, p3, p4];
-//         ps.forEach(pa => {
-//             ps.forEach(pb => {
-//                 var pc = pa.intersectWith(pb);
-//                 console.log(`${pa.canonical} ∩ ${pb.canonical} ≡ ${pc.canonical}`);
-//             })
-//         })
-//     });
-// });
+'use strict';
+var chai_1 = require('chai');
+var __1 = require('..');
+describe('a RoutePattern instance', () => {
+    it('intersects with other RoutePattern instances', () => {
+        var tests = [
+            '… ∩ ∅ = ∅',
+            ' ∩ ∅ = ∅',
+            'a ∩ ∅ = ∅',
+            '∅ ∩ ∅ = ∅',
+            '∅ ∩ a = ∅',
+            '∅ ∩  = ∅',
+            '∅ ∩ * = ∅',
+            '∅ ∩ … = ∅',
+            '* ∩ ∅∅ = ERROR',
+            '/ab* ∩ /*b = ERROR',
+            '/f*o*o*z ∩ /foo*baz = /foo*baz',
+            '/*/f*o*o*baz ∩ /aaa/foo*z = /aaa/foo*baz',
+            '/ab*b ∩ /a*bc = ∅',
+            '/ab*b ∩ /a*bc* = ERROR',
+            '/a*b ∩ /ab*ab = /ab*ab',
+            '/a*b ∩ /ba*ab = ∅',
+            '/*m*n* ∩ /*n*m* = ERROR',
+            '/*m*n* ∩ /*n*m*n* = /*n*m*n*',
+            '/ ∩ / = /',
+            '/ ∩ /* = /',
+            '/* ∩ /* = /*',
+            '/* ∩ / = /',
+            '/f ∩ / = ∅',
+            '/ ∩ /f = ∅',
+            '/a/b ∩ /* = ∅',
+            '/a/b ∩ /*/*c* = ∅',
+            '/a/*b ∩ /*/*c* = /a/*c*b',
+            '/a/*b ∩ /*/*c*/* = ∅',
+            '/foo/* ∩ /*/bar = /foo/bar',
+            '/a/b ∩ /… = /a/b',
+            '/a/b ∩ … = /a/b',
+            '/ ∩ … = /',
+            ' ∩ … = ',
+            '….html ∩ … = ….html',
+            '/foo/….html ∩ … = /foo/….html',
+            '/foo/….html ∩ /foo/bar/*z/* = /foo/bar/*z/*.html',
+            '/foo/….html ∩ /foo/bar/*z/… = /foo/bar/*z/….html',
+            '/* ∩ /… = /*',
+            '/*/* ∩ /… = /*/*',
+            '/… ∩ /… = /…',
+            '/… ∩ /*/* = /*/*',
+            '/…/* ∩ /… = /…/*',
+            '/*/… ∩ /… = /*/…',
+            '/… ∩ /…/* = /…/*',
+            '/… ∩ /*/… = /*/…',
+            '/*/…/* ∩ /… = /*/…/*',
+            '*/… ∩ …/* = ERROR',
+            '*… ∩ …* = ERROR',
+            'a… ∩ …a = ERROR',
+            '*a… ∩ …a* = ERROR',
+            '…a* ∩ *a… = ERROR',
+            '…a* ∩ *z… = *z…a*',
+            '*z… ∩ …a* = *z…a*',
+            '*z* ∩ *a* = ERROR',
+            'a*… ∩ …*a = ERROR',
+            'a…* ∩ *…a = ERROR',
+            'a* ∩ *a = ERROR',
+            'a/… ∩ …/a = ERROR'
+        ];
+        tests.forEach(test => {
+            let expected = test.split(' = ')[1];
+            let lhs = test.split(' = ')[0].split(' ∩ ')[0];
+            let rhs = test.split(' = ')[0].split(' ∩ ')[1];
+            let actual;
+            try {
+                actual = 'ERROR';
+                let a = new __1.RoutePattern(lhs);
+                let b = new __1.RoutePattern(rhs);
+                actual = a.intersect(b).canonical;
+            }
+            catch (ex) { }
+            //console.log(`${test}   ==>   ${actual}`);
+            console.log(`${test}   ==>   ${expected === actual ? 'OK' : 'FAIL'}`);
+            chai_1.expect(actual).equals(expected);
+        });
+    });
+    it('performs matches on pathnames', () => {
+        let rp = new __1.RoutePattern('/f*o/bar/{baz}z/{...rest}.html');
+        let m = rp.match('/foo/bar/baz/some/more/stuff.html');
+        chai_1.expect(m).to.deep.equal({ baz: 'ba', rest: 'some/more/stuff' });
+        // TODO: more examples...
+    });
+    it('compares with other RoutePattern instances', () => {
+        var tests = [
+            '/ab* vs /ab* = ' + 1 /* Equal */,
+            '/ab* vs /*b = ERROR',
+            '/ab* vs /abc* = ' + 3 /* Superset */,
+            '/f*o/**/{name}.html vs /f*/{...rest} = ' + 2 /* Subset */,
+            '/ab* vs /xy* = ' + 4 /* Disjoint */,
+            '/ab* vs /*xy = ' + 5 /* Overlapping */,
+        ];
+        tests.forEach(test => {
+            let expected = test.split(' = ')[1];
+            let lhs = test.split(' = ')[0].split(' vs ')[0];
+            let rhs = test.split(' = ')[0].split(' vs ')[1];
+            let actual;
+            try {
+                actual = 'ERROR';
+                let a = new __1.RoutePattern(lhs);
+                let b = new __1.RoutePattern(rhs);
+                actual = a.compare(b).toString();
+            }
+            catch (ex) { }
+            //console.log(`${test}   ==>   ${actual}`);
+            console.log(`${test}   ==>   ${expected === actual ? 'OK' : 'FAIL'}`);
+            chai_1.expect(actual).equals(expected);
+        });
+    });
+});
 //# sourceMappingURL=route-pattern.js.map

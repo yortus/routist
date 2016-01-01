@@ -32,7 +32,7 @@ class RoutePattern {
      * single pattern.
      * NB: The operation is case-sensitive.
      */
-    intersectWith(other) {
+    intersect(other) {
         let allIntersections = getAllIntersections(this.canonical, other.canonical);
         let distinctIntersections = getDistinctPatterns(allIntersections);
         if (distinctIntersections.length === 0)
@@ -40,6 +40,27 @@ class RoutePattern {
         if (distinctIntersections.length === 1)
             return new RoutePattern(distinctIntersections[0]);
         throw new Error(`Intersection of ${this} and ${other} cannot be expressed as a single pattern`);
+    }
+    /**
+     * Computes the relationship between this RoutePattern instance and another
+     * RoutePattern instance in terms of the sets of pathnames each one matches.
+     * The possible relations are:
+     * - Equal: both instances match the same set of pathnames
+     * - Subset: every pathname matched by `this` is also matched by `other`
+     * - Superset: every pathname matched by `other` is also matched by `this`
+     * - Disjoint: no pathname is matched by both `this` and `other`
+     * - Overlapping: none of the other four relationships are true.
+     */
+    compare(other) {
+        if (this.canonical === other.canonical) {
+            return 1 /* Equal */;
+        }
+        switch (this.intersect(other).canonical) {
+            case RoutePattern.NONE.canonical: return 4 /* Disjoint */;
+            case this.canonical: return 2 /* Subset */;
+            case other.canonical: return 3 /* Superset */;
+            default: return 5 /* Overlapping */;
+        }
     }
     /**
      * Attempts to match the given pathname against the pattern. If the match
@@ -67,6 +88,7 @@ class RoutePattern {
 RoutePattern.ALL = new RoutePattern('…');
 /** Sentinel value for a pattern that matches no pathnames. */
 RoutePattern.NONE = new RoutePattern('∅');
+exports.RoutePattern = RoutePattern;
 /**
  * Verifies that `pattern` has a valid format, and returns metadata about the pattern.
  * Throws an error if `pattern` is invalid.
@@ -185,5 +207,4 @@ function getAllPatternSplits(pattern) {
     }
     return result;
 }
-module.exports = RoutePattern;
 //# sourceMappingURL=route-pattern.js.map
