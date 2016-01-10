@@ -91,3 +91,16 @@ export const enum RoutePatternRelation {
     Disjoint = 4,
     Overlapping = 5
 }
+
+
+
+
+
+// TODO: ...
+export class RouteFamily {
+    constructor(pattern: RoutePattern);
+    pattern: RoutePattern;
+    children: RouteFamily[];
+    add(pattern: RoutePattern);
+    toString(): string;
+}

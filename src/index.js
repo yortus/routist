@@ -3,6 +3,7 @@ function __export(m) {
 }
 var asyncawait_1 = require('asyncawait');
 __export(require('./route-pattern'));
+__export(require('./route-family'));
 function delay(ms) {
     return new Promise(resolve => {
         setTimeout(resolve, ms);

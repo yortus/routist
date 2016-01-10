@@ -1,5 +1,6 @@
 import {async, await} from 'asyncawait';
 export * from './route-pattern';
+export * from './route-family';
 
 
 function delay(ms: number) {
