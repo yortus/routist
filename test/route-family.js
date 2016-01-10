@@ -7,9 +7,13 @@ describe('a RouteFamily instance', () => {
             '/bar',
             '/foo/*.html',
             '/foo/bar',
+            '/bar',
             '/foo/….html',
             '/…o…o….html',
-            '/…o…o…'
+            '/bar',
+            '/…o…o…',
+            '/a/*',
+            '/*/b'
         ];
         let expected = `…
               /bar

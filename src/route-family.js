@@ -27,10 +27,17 @@ function addRouteToFamily(newPattern, family) {
     let overlapping = family.children.filter((_, i) => relations[i] === 5 /* Overlapping */);
     let unrelated = family.children.filter((_, i) => relations[i] === 4 /* Disjoint */);
     // Sanity check. Should be unnecessary due to invariants.
+    assert(equivalent.length <= 1);
+    assert(equivalent.length === 0 || moreGeneral.length === 0);
+    assert(equivalent.length === 0 || moreSpecial.length === 0);
+    assert(equivalent.length === 0 || overlapping.length === 0);
     assert(moreGeneral.length === 0 || moreSpecial.length === 0);
-    if (equivalent.length > 0) {
+    if (equivalent.length === 1) {
         // TODO: bundles etc - just error for now
-        throw new Error(`equivalent: not implemented`);
+        //throw new Error(`equivalent: not implemented`);
+        // TODO: temp testing... Just incr existing and return (no other work due to invariants)        
+        equivalent[0].count += 1;
+        return;
     }
     if (overlapping.length > 0) {
         // TODO: THE BIG CAHUNA - just error for now. But full treatment should be as follows:
@@ -38,7 +45,17 @@ function addRouteToFamily(newPattern, family) {
         // - addRouteToFamily(intersection, newFamily)
         // - addRouteToFamily(intersection, child)
         // - add newFamily to family
-        throw new Error(`overlapping: not implemented`);
+        //throw new Error(`overlapping: not implemented`);
+        // TODO: temp testing...
+        overlapping.forEach(overlap => {
+            let common = newPattern.intersect(overlap.pattern);
+            let newFamily = new RouteFamily(newPattern);
+            newFamily.count = 0;
+            addRouteToFamily(common, overlap);
+            addRouteToFamily(common, newFamily);
+            family.children.push(newFamily);
+        });
+        return;
     }
     if (moreGeneral.length > 1) {
         // TODO: can happen if existing children overlap and new one is in their intersection - just error for now
