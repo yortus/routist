@@ -1,21 +1,9 @@
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-var asyncawait_1 = require('asyncawait');
-__export(require('./route-pattern'));
-__export(require('./route-family'));
-function delay(ms) {
-    return new Promise(resolve => {
-        setTimeout(resolve, ms);
-    });
-}
-exports.main = asyncawait_1.async(() => {
-    console.log(111);
-    asyncawait_1.await(delay(500));
-    console.log(222);
-    asyncawait_1.await(delay(500));
-    console.log(333);
-    asyncawait_1.await(delay(500));
-    return 'done';
-});
+var compare_patterns_1 = require('./compare-patterns');
+exports.comparePatterns = compare_patterns_1.default;
+var intersect_patterns_1 = require('./intersect-patterns');
+exports.intersectPatterns = intersect_patterns_1.default;
+var make_pattern_matcher_1 = require('./make-pattern-matcher');
+exports.makePatternMatcher = make_pattern_matcher_1.default;
+var normalize_pattern_1 = require('./normalize-pattern');
+exports.normalizePattern = normalize_pattern_1.default;
 //# sourceMappingURL=index.js.map

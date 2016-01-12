@@ -4,7 +4,7 @@
   "description": "routist",
   "readmeFilename": "README.md",
   "main": "src/index",
-  "typings": "src/index.d.ts",
+  "typings": "src/index.ts",
   "scripts": {
     "build": "tsc -p . && pegjs src/route-pattern-dsl.peg",
     "prepublish": "npm run build",

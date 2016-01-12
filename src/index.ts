@@ -1,21 +1,4 @@
-import {async, await} from 'asyncawait';
-export * from './route-pattern';
-export * from './route-family';
-
-
-function delay(ms: number) {
-    return new Promise(resolve => {
-        setTimeout(resolve, ms);
-    });
-}
-
-
-export var main = async (() => {
-    console.log(111);
-    await (delay(500));
-    console.log(222);
-    await (delay(500));
-    console.log(333);
-    await (delay(500));
-    return 'done';
-});
+export {default as comparePatterns, PatternRelation} from './compare-patterns';
+export {default as intersectPatterns} from './intersect-patterns';
+export {default as makePatternMatcher} from './make-pattern-matcher';
+export {default as normalizePattern} from './normalize-pattern';

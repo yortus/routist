@@ -1,8 +1,8 @@
 'use strict';
 var chai_1 = require('chai');
 var __1 = require('..');
-describe('a RoutePattern instance', () => {
-    it('intersects with other RoutePattern instances', () => {
+describe('a pattern string', () => {
+    it('intersects with other pattern strings', () => {
         var tests = [
             '… ∩ ∅ = ∅',
             ' ∩ ∅ = ∅',
@@ -70,9 +70,9 @@ describe('a RoutePattern instance', () => {
             let actual;
             try {
                 actual = 'ERROR';
-                let a = new __1.RoutePattern(lhs);
-                let b = new __1.RoutePattern(rhs);
-                actual = a.intersect(b).canonical;
+                let a = __1.normalizePattern(lhs);
+                let b = __1.normalizePattern(rhs);
+                actual = __1.intersectPatterns(a, b);
             }
             catch (ex) { }
             //console.log(`${test}   ==>   ${actual}`);
@@ -80,13 +80,14 @@ describe('a RoutePattern instance', () => {
             chai_1.expect(actual).equals(expected);
         });
     });
-    it('performs matches on pathnames', () => {
-        let rp = new __1.RoutePattern('/f*o/bar/{baz}z/{...rest}.html');
-        let m = rp.match('/foo/bar/baz/some/more/stuff.html');
-        chai_1.expect(m).to.deep.equal({ baz: 'ba', rest: 'some/more/stuff' });
+    it('matches against pathnames', () => {
+        let rp = '/f*o/bar/{baz}z/{...rest}.html';
+        let matchPattern = __1.makePatternMatcher(rp);
+        let matches = matchPattern('/foo/bar/baz/some/more/stuff.html');
+        chai_1.expect(matches).to.deep.equal({ baz: 'ba', rest: 'some/more/stuff' });
         // TODO: more examples...
     });
-    it('compares with other RoutePattern instances', () => {
+    it('compares with other pattern strings', () => {
         var tests = [
             '/ab* vs /ab* = ' + 1 /* Equal */,
             '/ab* vs /*b = ERROR',
@@ -102,9 +103,9 @@ describe('a RoutePattern instance', () => {
             let actual;
             try {
                 actual = 'ERROR';
-                let a = new __1.RoutePattern(lhs);
-                let b = new __1.RoutePattern(rhs);
-                actual = a.compare(b).toString();
+                let a = __1.normalizePattern(lhs);
+                let b = __1.normalizePattern(rhs);
+                actual = __1.comparePatterns(a, b).toString();
             }
             catch (ex) { }
             //console.log(`${test}   ==>   ${actual}`);
