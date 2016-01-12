@@ -7,34 +7,36 @@ import {default as RoutePattern, RoutePatternRelation as Relation} from './route
 
 
 
+type Item = RoutePattern;
+
+
+
+
+
 export default class RouteFamily {
 
 
-    constructor(pattern: RoutePattern) {
-        this.pattern = pattern;
-        this.count = 1;
+    constructor(item: Item) {
+        this.item = item;
         this.children = [];
     }
 
 
-    pattern: RoutePattern;
-
-
-    count: number;
+    item: Item;
 
 
     children: RouteFamily[];
 
 
     /** Inserts the given pattern into the appropriate position in this family. */
-    add(pattern: RoutePattern) {
-        addRouteToFamily(pattern, this);
+    insert(item: Item) {
+        addRouteToFamily(item, this);
     }
     
 
     /** Depicts the route family as a multi-line list of pattern strings, with children indented from their parent. */
     toString(): string {
-        var result = `${this.pattern ? this.pattern.canonical : '<top>'} (${this.count})`;
+        var result = `${this.item.canonical} (${1})`; // TODO: restore count
         result += this.children.map(child => '\n' + child.toString().split('\n').map(line => '  ' + line).join('\n')).join('');
         return result;
     }
@@ -44,10 +46,10 @@ export default class RouteFamily {
 
 
 
-function addRouteToFamily(newPattern: RoutePattern, family: RouteFamily) {
+function addRouteToFamily(item: Item, family: RouteFamily) {
 
     // Compare the new pattern to the pattern of each of the family's existing children.
-    let relations = family.children.map(child => newPattern.compare(child.pattern));
+    let relations = family.children.map(child => item.compare(child.item));
     let equivalent = family.children.filter((_, i) => relations[i] === Relation.Equal);
     let moreGeneral = family.children.filter((_, i) => relations[i] === Relation.Subset);
     let moreSpecial = family.children.filter((_, i) => relations[i] === Relation.Superset);
@@ -66,7 +68,7 @@ function addRouteToFamily(newPattern: RoutePattern, family: RouteFamily) {
         //throw new Error(`equivalent: not implemented`);
 
         // TODO: temp testing... Just incr existing and return (no other work due to invariants)        
-        equivalent[0].count += 1;
+        // TODO: was... restore count... equivalent[0].count += 1;
         return;
     }
     if (overlapping.length > 0) {
@@ -79,8 +81,8 @@ function addRouteToFamily(newPattern: RoutePattern, family: RouteFamily) {
 
         // TODO: temp testing...
         overlapping.forEach(overlap => {
-            let common = newPattern.intersect(overlap.pattern);
-            let newFamily = new RouteFamily(newPattern);
+            let common = item.intersect(overlap.item);
+            let newFamily = new RouteFamily(item);
             addRouteToFamily(common, overlap);
             addRouteToFamily(common, newFamily);
             family.children.push(newFamily);
@@ -96,12 +98,12 @@ function addRouteToFamily(newPattern: RoutePattern, family: RouteFamily) {
     if (moreGeneral.length === 1) {
 
         // TODO: recursively addRouteToFamily to every such child. Assume 0..1 such children for now...
-        addRouteToFamily(newPattern, moreGeneral[0]);
+        addRouteToFamily(item, moreGeneral[0]);
     }
     else if (moreSpecial.length > 0) {
 
         // Make a new RouteFamily instance for the new pattern.
-        let newFamily = new RouteFamily(newPattern);
+        let newFamily = new RouteFamily(item);
 
         // TODO: transfer all such children to become children of newFamily, then add newFamily as child of family
         newFamily.children = moreSpecial;
@@ -110,7 +112,7 @@ function addRouteToFamily(newPattern: RoutePattern, family: RouteFamily) {
     }
     else {
         // TODO: temp testing...
-        family.children.push(new RouteFamily(newPattern));
+        family.children.push(new RouteFamily(item));
     }
 
     // TODO: nothing to do for these...

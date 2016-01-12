@@ -99,8 +99,8 @@ export const enum RoutePatternRelation {
 // TODO: ...
 export class RouteFamily {
     constructor(pattern: RoutePattern);
-    pattern: RoutePattern;
+    item: RoutePattern;
     children: RouteFamily[];
-    add(pattern: RoutePattern);
+    insert(item: RoutePattern);
     toString(): string;
 }

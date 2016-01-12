@@ -26,7 +26,7 @@ describe('a RouteFamily instance', () => {
         let family = new __1.RouteFamily(__1.RoutePattern.ALL);
         patterns.forEach(test => {
             let pattern = new __1.RoutePattern(test);
-            family.add(pattern);
+            family.insert(pattern);
         });
         let actual = family.toString();
         //expect(actual).equals(expected.replace(/\n            /g, '\n'));
