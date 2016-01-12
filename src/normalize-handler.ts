@@ -17,10 +17,17 @@ export default function normalizeHandler(pattern: string, handler: Handler): Can
         let pathname = request.pathname;
         let matches = matchPattern(pathname);
         if (matches === null) {
-                        
+            // TODO: should never get here due to invariants - only gets called if pathname already matched against pattern
+            throw new Error('internal error');
         }
         else {
-            
+
+            // TODO: inject args... ensure all accounted for both ways...
+            let argNames = Object.keys(matches);
+
+
+
+
         }
         
                 
