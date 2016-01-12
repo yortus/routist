@@ -34,7 +34,7 @@ function makePathnameRecogniser(pattern) {
             return '([^\\/]*)';
         if (c === '…')
             return '(.*)';
-        if (['/._-'].indexOf(c) !== -1)
+        if ('/._-'.indexOf(c) !== -1)
             return `\\${c}`;
         return c;
     }).join('');
