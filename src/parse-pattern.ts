@@ -1,5 +1,5 @@
 'use strict';
-var parser = require('./route-pattern-dsl');
+import * as PEG from 'pegjs';
 
 
 /**
@@ -8,7 +8,7 @@ var parser = require('./route-pattern-dsl');
  */
 export default function parsePattern(pattern: string) {
     try {
-        let ast: { canonical: string, captureNames: string[] } = parser.parse(pattern);
+        let ast = parser.parse(pattern);
         return ast;
     }
     catch (ex) {
@@ -20,3 +20,42 @@ export default function parsePattern(pattern: string) {
         throw new Error(msg);
     }
 }
+
+
+// Use a PEG grammar to parse pattern strings.
+var parser: { parse(input: string): { canonical: string, captureNames: string[] }; };
+parser = PEG.buildParser(`
+    // ================================================================================
+    Pattern
+    =   !"∅"   elems:Element*
+        {
+            var canonical = elems.map(elem => elem[0]).join('');
+            var captureNames = elems.map(elem => elem[1]).filter(name => !!name);
+            return { canonical, captureNames };
+        }
+    /   "∅"   { return { canonical: "∅", captureNames: [] }; }
+
+    Element
+    =   Globstar
+    /   Wildcard
+    /   PathSeparator
+    /   Literal
+
+    Globstar 'globstar'
+    =   ("**" / "…")   !"*"   !"…"   { return ['…', '?']; }
+    /   "{..."   id:IDENTIFIER   "}"   { return ['…', id]; }
+
+    Wildcard 'wildcard'
+    =   "*"   !"*"   !"…"   { return ['*', '?']; }
+    /   "{"   id:IDENTIFIER   "}"   { return ['*', id]; }
+
+    PathSeparator 'path separator'
+    =   "/"   !"/"   { return ['/', null]; }
+
+    Literal 'literal'
+    =   c:[a-zA-Z0-9._-]   { return [c, null]; }
+
+    IDENTIFIER
+    =   [a-z_$]i   [a-z0-9_$]i*   { return text(); }
+    // ================================================================================
+`);
