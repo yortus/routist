@@ -40,7 +40,6 @@ function normalizeHandler(pattern, handler) {
 }
 exports.default = normalizeHandler;
 // TODO: doc...
-// TODO: doesn't work for arrow functions...
 // Source: http://stackoverflow.com/a/31194949/1075886
 function getParamNames(func) {
     let result = func.toString()
