@@ -43,11 +43,12 @@ exports.default = normalizeHandler;
 // TODO: doesn't work for arrow functions...
 // Source: http://stackoverflow.com/a/31194949/1075886
 function getParamNames(func) {
-    return (func + '')
-        .replace(/\s+/g, '') // strip spaces
+    let result = func.toString()
+        .replace(/\s+/g, '') // strip all whitespace
         .replace(/[/][*][^/*]*[*][/]/g, '') // strip simple comments
-        .split('){', 1)[0].replace(/^[^(]*[(]/, '') // extract the parameters
+        .split(/\)(?:\{|(?:\=\>))/, 1)[0].replace(/^[^(]*[(]/, '') // extract the parameters
         .replace(/=[^,]+/g, '') // strip any ES6 defaults
         .split(',').filter(Boolean); // split & filter [""]
+    return result;
 }
 //# sourceMappingURL=normalize-handler.js.map

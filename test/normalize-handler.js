@@ -41,8 +41,20 @@ describe('normalization of a handler function', () => {
         }
     ];
     tests.forEach((test, i) => {
-        it(`${test.pattern} WITH (${test.handlerParamNames}) => {...}`, () => {
-            let handler = makeHandlerFunction(test.handlerParamNames);
+        it(`${test.pattern} WITH function (${test.handlerParamNames}) {...}`, () => {
+            let handler = makeHandlerOrdinaryFunction(test.handlerParamNames);
+            let canonicalHandler = normalize_handler_1.default(test.pattern, handler);
+            let request = { pathname: test.pathname };
+            let expectedArgs = test.handlerArgValues;
+            let actualArgs = 'ERROR';
+            try {
+                actualArgs = canonicalHandler(request);
+            }
+            catch (ex) { }
+            chai_1.expect(actualArgs).equals(expectedArgs);
+        });
+        it(`${test.pattern} WITH (${test.handlerParamNames}) => (...)`, () => {
+            let handler = makeHandlerArrowFunction(test.handlerParamNames);
             let canonicalHandler = normalize_handler_1.default(test.pattern, handler);
             let request = { pathname: test.pathname };
             let expectedArgs = test.handlerArgValues;
@@ -54,12 +66,16 @@ describe('normalization of a handler function', () => {
             chai_1.expect(actualArgs).equals(expectedArgs);
         });
     });
-    function makeHandlerFunction(paramNames) {
+    function makeHandlerOrdinaryFunction(paramNames) {
         return eval(`(
             function (${paramNames}) {
-                var args = [].slice.call(arguments);
-                return args.map(arg => arg.toString()).join(', ');
+                return [${paramNames}].map(arg => arg.toString()).join(', ');
             }
+        )`);
+    }
+    function makeHandlerArrowFunction(paramNames) {
+        return eval(`(
+            (${paramNames}) => [${paramNames}].map(arg => arg.toString()).join(', ')
         )`);
     }
 });
