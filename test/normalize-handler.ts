@@ -8,7 +8,7 @@ describe('normalizeHandler', () => {
 
     it('works', () => {
 
-        let h2 = normalizeHandler('/foo/{...path}/{name}.{ext}', <any> (function (path, name, req, ext) {
+        let h2 = normalizeHandler('/foo/{...path}/{name}.{ext}', (function (path, name, req, ext) {
             return null;
         }));
 

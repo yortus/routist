@@ -2,11 +2,15 @@
 var parse_pattern_1 = require('./parse-pattern');
 var make_pattern_matcher_1 = require('./make-pattern-matcher');
 // TODO: doc...
+// TODO: future optimisation: eval a wrapper function that statically passes args from regex captures and from `request`
 function normalizeHandler(pattern, handler) {
+    // TODO: ...
     let patternAST = parse_pattern_1.default(pattern);
     let matchPattern = make_pattern_matcher_1.default(pattern);
     let paramNames = getParamNames(handler);
+    // TODO: ...
     let canonicalHandler = ((request) => {
+        // TODO: ...
         let pathname = request.pathname;
         let matches = matchPattern(pathname);
         if (matches === null) {
@@ -32,7 +36,6 @@ function normalizeHandler(pattern, handler) {
             return result;
         }
     });
-    canonicalHandler.type = handler.type;
     return canonicalHandler;
 }
 exports.default = normalizeHandler;

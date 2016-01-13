@@ -6,17 +6,22 @@ import makePatternMatcher from './make-pattern-matcher';
 
 
 // TODO: doc...
-export default function normalizeHandler(pattern: string, handler: Handler): CanonicalHandler {
+// TODO: future optimisation: eval a wrapper function that statically passes args from regex captures and from `request`
+export default function normalizeHandler(pattern: string, handler: (...args: any[]) => Response): (request: Request) => Response {
 
+    // TODO: ...
     let patternAST = parsePattern(pattern);
     let matchPattern = makePatternMatcher(pattern);
     let paramNames = getParamNames(handler);
 
-    let canonicalHandler: CanonicalHandler = <any> ((request: Request) => {
+    // TODO: ...
+    let canonicalHandler = ((request: Request) => {
 
+        // TODO: ...
         let pathname = request.pathname;
         let matches = matchPattern(pathname);
         if (matches === null) {
+
             // TODO: should never get here due to invariants - only gets called if pathname already matched against pattern
             throw new Error('internal error');
         }
@@ -42,32 +47,9 @@ export default function normalizeHandler(pattern: string, handler: Handler): Can
             let result = handler.apply(null, args);
             return result;
         }
-        
-                
-
-
-
     });
-    canonicalHandler.type = handler.type;
     return canonicalHandler;
 }
-
-
-// TODO: doc...
-interface CanonicalHandler extends Handler {
-    (request: Request): Response;
-}
-
-
-// TODO: doc...
-interface Handler {
-    (...args): Response;
-    type: string; // TODO: enum? consts?
-}
-
-
-
-
 
 
 // TODO: doc...
