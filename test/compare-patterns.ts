@@ -4,7 +4,7 @@ import comparePatterns, {PatternRelation as Relation} from '../src/compare-patte
 import normalizePattern from '../src/normalize-pattern';
 
 
-describe('comparing two pattern strings', () => {
+describe('comparison of two pattern strings', () => {
 
     let tests = [
         '/ab* vs /ab*: Equal',

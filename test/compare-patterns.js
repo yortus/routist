@@ -2,7 +2,7 @@
 var chai_1 = require('chai');
 var compare_patterns_1 = require('../src/compare-patterns');
 var normalize_pattern_1 = require('../src/normalize-pattern');
-describe('comparing two pattern strings', () => {
+describe('comparison of two pattern strings', () => {
     let tests = [
         '/ab* vs /ab*: Equal',
         '/ab* vs /*b: ERROR',

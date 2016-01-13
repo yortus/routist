@@ -2,7 +2,7 @@
 var chai_1 = require('chai');
 var intersect_patterns_1 = require('../src/intersect-patterns');
 var normalize_pattern_1 = require('../src/normalize-pattern');
-describe('intersecting two pattern strings', () => {
+describe('intersection of two pattern strings', () => {
     let tests = [
         '… ∩ ∅ = ∅',
         ' ∩ ∅ = ∅',

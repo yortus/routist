@@ -4,7 +4,7 @@ import intersectPatterns from '../src/intersect-patterns';
 import normalizePattern from '../src/normalize-pattern';
 
 
-describe('intersecting two pattern strings', () => {
+describe('intersection of two pattern strings', () => {
 
     let tests = [
         '… ∩ ∅ = ∅',
