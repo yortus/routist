@@ -3,22 +3,23 @@ var make_route_family_1 = require('../src/make-route-family');
 describe('generating a route family', () => {
     function nullHandler() { return null; }
     let patterns = [
-        '/',
-        '/foo',
-        '/bar',
-        '/baz',
-        '/*',
-        '/foo',
-        '/bar',
-        '/foo/*.html',
-        '/foo/bar',
-        '/bar',
-        '/foo/….html',
-        '/…o…o….html',
-        '/bar',
-        '/…o…o…',
+        //        '/',
+        //        '/foo',
+        //        '/bar',
+        //        '/baz',
+        //        '/*',
+        //        '/foo',
+        //        '/bar',
+        //        '/foo/*.html',
+        //        '/foo/bar',
+        //        '/bar',
+        //        '/foo/….html',
+        //        '/…o…o….html',
+        //        '/bar',
+        //        '/…o…o…',
+        '/a/b',
         '/a/*',
-        '/*/b'
+        '/*/b',
     ];
     it('works', () => {
         let routeList = patterns.map(pattern => ({ pattern, handler: nullHandler }));

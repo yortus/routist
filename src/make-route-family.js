@@ -65,6 +65,7 @@ function insert(route, node) {
         newNode.specializations = moreSpecial;
         node.specializations = node.specializations.filter(spec => moreSpecial.indexOf(spec) === -1);
         node.specializations.push(newNode);
+        return;
     }
     // TODO: simplest case... disjoint with all other specializations... just add it to the list...
     node.specializations.push(makeNode(route));
