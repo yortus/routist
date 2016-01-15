@@ -10,6 +10,9 @@ import intersectPatterns from './intersect-patterns';
  * - 3 (Superset): every pathname matched by `patternB` is also matched by `patternA`
  * - 4 (Disjoint): no pathname is matched by both `patternA` and `patternB`
  * - 5 (Overlapping): none of the other four relationships are true.
+ *
+ * NB: `patternA` and `patternB` are assumed to be in normal form.
+ * NB: The operation is case-sensitive.
  */
 export default function comparePatterns(patternA: string, patternB: string): PatternRelation {
     if (patternA === patternB) {
