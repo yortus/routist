@@ -32,18 +32,43 @@ function insert(pattern: string, tree: Node): void {
     if (relation === Relation.Equal) return; // nothing to do
     assert(relation === Relation.Subset); // assert invariant
 
+    // TODO: doc flags...
+    let equalsExisting = false;
+    let specializesExisting = false;
+    let generalizesExisting = false;
+    let overlapsExisting = false;
+
     // TODO: ...
     let comparands = tree.specializations.slice();
     comparands.forEach((comparand, i) => {
         switch (comparePatterns(pattern, comparand.pattern)) {
+
             case Relation.Equal:
+                equalsExisting = true;
+                break;
+
             case Relation.Subset:
+                // Recursively insert the new node under the existing specialized node of which it is a further specialization.
+                specializesExisting = true;
+                break;
+
             case Relation.Superset:
-            case Relation.Disjoint:
+                // TODO: explain...
+                generalizesExisting = true;
+                break;
+
             case Relation.Overlapping:
+                // TODO: explain...
+                overlapsExisting = true;
+                break;
         }
     });
 
+    // TODO: ...
+    if (!equalsExisting && (generalizesExisting || overlapsExisting || !specializesExisting)) {
+        // TODO: add as direct specialization
+        tree.specializations.push()
+    }        
 
 
 }
@@ -61,7 +86,7 @@ function insertOLD(newNode: Node, dag: Node): void {
     assert(find(newNode.pattern, dag) === null);
     assert(comparePatterns(newNode.pattern, dag.pattern) === Relation.Subset);
 
-    // TODO: doc flag...
+    // TODO: doc flags...
     let specializesExisting = false;
     let generalizesExisting = false;
     let overlapsExisting = false;
