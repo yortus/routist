@@ -15,63 +15,37 @@ export default function makeRouteFamily(routes: Route[]): Node {
     // return root;
 
     // TODO:
-    let nodes = routes.map(route => makeNode(route.pattern, route.handler));
-    let roots = constructDAG(nodes);
-    assert(roots.length > 0);
-    let result: Node;
-    if (roots.length === 1) {
-        result = roots[0];
-    }
-    else {
-        result = makeNode('…');
-        result.specializations = roots;
-    }
-    return result;
+    let patterns = routes.map(route => route.pattern);
+    let tree = makeNode('…');
+    patterns.forEach(pattern => insert(pattern, tree));
+    return tree;
+    
+}
+
+
+
+
+function insert(pattern: string, tree: Node): void {
+
+    let relation = comparePatterns(pattern, tree.pattern);
+    if (relation === Relation.Equal) return; // nothing to do
+    assert(relation === Relation.Subset); // assert invariant
+
+
+
+
+
+
 }
 
 
 
 
 
-// TODO: doc...
-// TODO: doc... returns null if pattern is not a proper subset of searchRoot's pattern.
-function constructDAG(todo: Node[], done?: Node[], roots?: Node[]): Node[] {
-    done = done || [];
-    roots = roots || [];
-
-    // TODO: quit if nothing left to do...
-    if (todo.length === 0) return roots;
-
-    // TODO: get a node that hasn't been added to the DAG yet...
-    let newNode = todo.pop();
-
-    // TODO: add the node to the DAG, or just update it if it's already there
-    let existing = done.find(n => n.pattern === newNode.pattern);
-    if (existing) {
-        // TODO: already there... just update handlers...
-        existing.handlers = existing.handlers.concat(newNode.handlers);
-    }
-    else {
-        // TODO: it's a new node to add... compare to existing roots to find all insertion points...
-
-        roots.push(newNode);
-        
-
-        // TODO: add to done list
-        done.push(newNode);
-    }
-
-    // TODO: Finish recursively...
-    // TODO: recursive tail call! Could grow stack a lot! revise...
-    return constructDAG(todo, done, roots);
-}
-
-
-
 
 
 // TODO: doc...
-function insert(newNode: Node, dag: Node): void {
+function insertOLD(newNode: Node, dag: Node): void {
 
     // TODO: redundant sanity checks... remove...
     assert(find(newNode.pattern, dag) === null);
@@ -233,9 +207,7 @@ interface Route {
 // TODO: doc...
 interface Node {
     pattern: string;
-    handlers: any[];
     specializations: Node[];
-    generalizations: Node[];
 }
 
 
@@ -243,11 +215,9 @@ interface Node {
 
 
 // TODO: doc...
-function makeNode(pattern: string, handler?: (request: Request) => Response): Node {
+function makeNode(pattern: string): Node {
     return {
         pattern,
-        handlers: handler ? [handler] : [],
-        specializations: [],
-        generalizations: []
+        specializations: []
     };
 }
