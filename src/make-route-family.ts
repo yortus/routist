@@ -27,12 +27,22 @@ export default function makeRouteFamily(routes: Route[]): Node {
 
 function insert(pattern: string, tree: Node): void {
 
+    // TODO: ...
     let relation = comparePatterns(pattern, tree.pattern);
     if (relation === Relation.Equal) return; // nothing to do
     assert(relation === Relation.Subset); // assert invariant
 
-
-
+    // TODO: ...
+    let comparands = tree.specializations.slice();
+    comparands.forEach((comparand, i) => {
+        switch (comparePatterns(pattern, comparand.pattern)) {
+            case Relation.Equal:
+            case Relation.Subset:
+            case Relation.Superset:
+            case Relation.Disjoint:
+            case Relation.Overlapping:
+        }
+    });
 
 
 
