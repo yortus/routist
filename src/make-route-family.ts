@@ -10,37 +10,45 @@ import Response from './response';
 
 
 export default function test(patterns: string[]) {
-    return transitiveClosureOverPatternIntersection(patterns);
+    patterns = removeDuplicates(patterns);
+    patterns = transitiveClosureOverPatternIntersection(patterns);
+    return patterns;
 }
+
+
+function removeDuplicates(patterns: string[]): string[] {
+    // TODO: faster method?
+    let obj = {};
+    patterns.forEach(p => obj[p] = true);
+    return Object.keys(obj);
+}
+
 
 
 function transitiveClosureOverPatternIntersection(patterns: string[]): string[] {
-
-    let result = patterns.slice();
-    let minJ = 0;
-    let oldLength = result.length;
+    patterns = patterns.slice(); // don't mutate original
+    let loBound = 0;
+    let hiBound = patterns.length;
 
     while (true) {
-
-        for (let i = 0; i < oldLength; ++i) {
-            let pi = result[i];
-            for (let j = Math.max(i + 1, minJ); j < oldLength; ++j) {
-                let pj = result[j];
+        for (let i = loBound; i <hiBound; ++i) {
+            let pi = patterns[i];
+            for (let j = i + 1; j < hiBound; ++j) {
+                let pj = patterns[j];
 
                 let intersection = intersectPatterns(pi, pj);
                 if (intersection === pi || intersection === pj) continue;
-                if (result.indexOf(intersection) !== -1) continue;
-                result.push(intersection);
+                if (patterns.indexOf(intersection) !== -1) continue;
+                patterns.push(intersection);
             }
         }
-
-        if (result.length === oldLength) break;
-        minJ = oldLength;
-        oldLength = result.length;
+        if (patterns.length === hiBound) return patterns;
+        loBound = hiBound;
+        hiBound = patterns.length;
     }
-
-    return result;
 }
+
+
 
 
 
