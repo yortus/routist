@@ -24,8 +24,8 @@ export default function test(patterns: string[]) {
     map['…'] = makeNode('…');
 
     // TODO: construct the graph...
+    patterns.forEach(pattern => insert(pattern, '…', map));
     let graph = map['…'];
-    patterns.forEach(pattern => insert(pattern, graph, map));
     return graph;
 }
 
@@ -63,46 +63,43 @@ function transitiveClosureOverPatternIntersection(patterns: string[]): string[] 
 }
 
 
-function insert(pattern: string, root: Node, nodePool: {[pattern: string]: Node}) {
+function insert(pattern: string, insertUnder: string, nodePool: {[pattern: string]: Node}) {
 
     // TODO: check invariant
-    assert(comparePatterns(pattern, root.pattern) === Relation.Subset);
+    assert(comparePatterns(pattern, nodePool[insertUnder].pattern) === Relation.Subset);
     assert(pattern !== '∅');
 
     // TODO: ...
-    let patternNode = nodePool[pattern];
 
     // TODO: simple cases: pattern is '∅'; pattern disjoint with all existing; pattern already present as specialisation
     // Nothing to do if pattern is '∅' or is already present as a specialization of root
-    let comparands = Array.from(root.specializations)
+    let comparands = Array.from(nodePool[insertUnder].specializations)
         .map(n => ({ pattern: n.pattern, intersection: intersectPatterns(pattern, n.pattern) }))
         .filter(cmp => cmp.intersection !== '∅');
     if (comparands.length === 0) {
-        root.specializations.add(patternNode);
+        nodePool[insertUnder].specializations.add(nodePool[pattern]);
     }
-    if (root.specializations.has(patternNode)) return;
+    if (nodePool[insertUnder].specializations.has(nodePool[pattern])) return;
 
     // TODO: check invariant - pattern can't be *both* a subset *and* and superset, no duplicates in spec list
     //assert(moreSpecializedThan.length === 0 || lessSpecializedThan.length === 0);
 
     // TODO: ...
     comparands.forEach(cmp => {
-        let intersection = cmp.intersection;
-
-        let specializesExisting = intersection === pattern;
-        let generalizesExisting = intersection === cmp.pattern;
+        let specializesExisting = cmp.intersection === pattern;
+        let generalizesExisting = cmp.intersection === cmp.pattern;
 
         if (generalizesExisting) {
-            root.specializations.delete(nodePool[cmp.pattern]);
+            nodePool[insertUnder].specializations.delete(nodePool[cmp.pattern]);
         }
 
         if (generalizesExisting || !specializesExisting) {
-            root.specializations.add(patternNode);
-            insert(intersection, patternNode, nodePool);
+            nodePool[insertUnder].specializations.add(nodePool[pattern]);
+            insert(cmp.intersection, pattern, nodePool);
         }
 
         if (specializesExisting || !generalizesExisting) {
-            insert(intersection, nodePool[cmp.pattern], nodePool);
+            insert(cmp.intersection, cmp.pattern, nodePool);
         }
     });
 
