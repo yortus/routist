@@ -86,20 +86,21 @@ function insert(pattern: string, root: Node, nodePool: {[pattern: string]: Node}
     // TODO: ...
     root.specializations.forEach(n => {
         let intersection = intersectPatterns(pattern, n.pattern);
+        if (intersection === '∅') return;
         let specializesExisting = intersection === pattern;
         let generalizesExisting = intersection === n.pattern;
-        let overlapsExisting = intersection !== '∅' || specializesExisting || generalizesExisting;
+
 
         if (generalizesExisting) {
             root.specializations.delete(n);
         }
 
-        if (generalizesExisting || (intersection !== '∅' && !specializesExisting)) {
+        if (generalizesExisting || !specializesExisting) {
             addToSpecsA = true;
             insert(intersection, patternNode, nodePool);
         }
 
-        if (specializesExisting || (intersection !== '∅' && !generalizesExisting)) {
+        if (specializesExisting || !generalizesExisting) {
             insert(intersection, n, nodePool);
         }
 

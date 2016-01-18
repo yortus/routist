@@ -68,17 +68,18 @@ function insert(pattern, root, nodePool) {
     // TODO: ...
     root.specializations.forEach(n => {
         let intersection = intersect_patterns_1.default(pattern, n.pattern);
+        if (intersection === '∅')
+            return;
         let specializesExisting = intersection === pattern;
         let generalizesExisting = intersection === n.pattern;
-        let overlapsExisting = intersection !== '∅' || specializesExisting || generalizesExisting;
         if (generalizesExisting) {
             root.specializations.delete(n);
         }
-        if (generalizesExisting || (intersection !== '∅' && !specializesExisting)) {
+        if (generalizesExisting || !specializesExisting) {
             addToSpecsA = true;
             insert(intersection, patternNode, nodePool);
         }
-        if (specializesExisting || (intersection !== '∅' && !generalizesExisting)) {
+        if (specializesExisting || !generalizesExisting) {
             insert(intersection, n, nodePool);
         }
         if (specializesExisting) {
