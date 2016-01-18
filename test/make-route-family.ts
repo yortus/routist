@@ -91,7 +91,9 @@ describe('generating a route family', () => {
 
 function stringify(node: Node): string {
         let result = `${node.pattern}`;// (${node.handlers.length})`;
-        result += node.specializations.map(spec => '\n' + stringify(spec).split('\n').map(line => '  ' + line).join('\n')).join('');
+        let specs = Array.from(node.specializations.values());
+        
+        result += specs.map(spec => '\n' + stringify(spec).split('\n').map(line => '  ' + line).join('\n')).join('');
         return result;
 }
 let dummy = false ? makeRouteFamily([]) : null;

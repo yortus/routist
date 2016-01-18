@@ -65,72 +65,69 @@ function insert(pattern: string, root: Node, nodePool: {[pattern: string]: Node}
     // TODO: check invariant
     assert(comparePatterns(pattern, root.pattern) === Relation.Subset);
 
-    // Nothing to do if pattern is '∅' or is already present as a specialization of root
-    if (pattern === '∅') return;
-    if (root.specializations.find(n => pattern === n.pattern)) return;
-
-    // Compare the pattern to each of the root's specialisations' patterns
-    let intersections = root.specializations.map(spec => intersectPatterns(pattern, spec.pattern));
-
-    let relations = root.specializations.map(spec => comparePatterns(pattern, spec.pattern));
-    let moreSpecializedThan = root.specializations.filter((_, i) => relations[i] === Relation.Subset);
-    let lessSpecializedThan = root.specializations.filter((_, i) => relations[i] === Relation.Superset);
-    let overlappingWith = root.specializations.filter((_, i) => relations[i] === Relation.Overlapping);
-    let disjointWith = root.specializations.filter((_, i) => relations[i] === Relation.Disjoint);
-
-    // TODO: check invariant - pattern can't be *both* a subset *and* and superset, no duplicates in spec list
-    assert(moreSpecializedThan.length === 0 || lessSpecializedThan.length === 0);
-
-    // Form a new specializations list.
+    // TODO: ...
     let patternNode = nodePool[pattern];
 
+    // TODO: simple cases: pattern is '∅'; spec list currently empty; pattern already present as specialisation
+    // Nothing to do if pattern is '∅' or is already present as a specialization of root
+    if (pattern === '∅') return;
+    if (root.specializations.size === 0) root.specializations.add(patternNode);
+    if (root.specializations.has(patternNode)) return;
+
+    // TODO: check invariant - pattern can't be *both* a subset *and* and superset, no duplicates in spec list
+    //assert(moreSpecializedThan.length === 0 || lessSpecializedThan.length === 0);
 
     // TODO: ...
-//     assert(lessSpecializedThan.length <= 1);
-//     if (lessSpecializedThan.length === 1) {
-//         root.specializations.filter        
-// 
-// 
-//     }
-// 
-
-    // TODO: ...
+    assert(root.specializations.size > 0);
     let addToSpecsA = false;
     let addToSpecsB = true;
+    let subsetCount = 0;
 
     // TODO: ...
-    root.specializations.forEach((n, i) => {
-        let intersection = intersections[i];
+    root.specializations.forEach(n => {
+        let intersection = intersectPatterns(pattern, n.pattern);
+        let specializesExisting = intersection === pattern;
+        let generalizesExisting = intersection === n.pattern;
+        let overlapsExisting = intersection !== '∅';
 
+        if (generalizesExisting) {
+            root.specializations.delete(n);
+        }
 
-
-        if (intersection === n.pattern || !(intersection === pattern || intersection === '∅')) {
+        if (generalizesExisting || (overlapsExisting && !specializesExisting)) {
             addToSpecsA = true;
             insert(intersection, patternNode, nodePool);
         }
 
-        if (intersection === pattern || !(intersection === n.pattern || intersection === '∅')) {
+        if (specializesExisting || (overlapsExisting && !generalizesExisting)) {
             insert(intersection, n, nodePool);
         }
 
-        if (intersection === pattern) {
+        if (specializesExisting) {
+            ++subsetCount;
             addToSpecsB = false;
         }
     });
 
     // TODO: ...
     //if (lessSpecializedThan.length > 0 || overlappingWith.length > 0 || moreSpecializedThan.length === 0) {
+    let specs = Array.from(root.specializations).map(n => n.pattern);
     if (addToSpecsA || addToSpecsB) {
-        root.specializations.push(patternNode);
+    //if (addToSpecsA) {
+        // if (subsetCount === specs.length) {
+        //     debugger;
+        // }
+        root.specializations.add(patternNode);
     }
-
-    if (lessSpecializedThan.length > 0) {
-        root.specializations = root.specializations.filter(n => lessSpecializedThan.indexOf(n) === -1);
+    else {
+        // if (subsetCount < specs.length) {
+        //     debugger;
+        // }
     }
         
 
     // TODO: check invariants...
-    assert(root.specializations.every(n => root.specializations.filter(n2 => n === n2).length === 1));
+    //assert(root.specializations.every(n => root.specializations.filter(n2 => n === n2).length === 1));
 }
 
 
@@ -170,7 +167,7 @@ interface Route {
 // TODO: doc...
 interface Node {
     pattern: string;
-    specializations: Node[];
+    specializations: Set<Node>;
 }
 
 
@@ -181,6 +178,6 @@ interface Node {
 function makeNode(pattern: string): Node {
     return {
         pattern,
-        specializations: []
+        specializations: new Set()
     };
 }

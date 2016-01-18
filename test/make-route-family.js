@@ -83,7 +83,8 @@ describe('generating a route family', () => {
 });
 function stringify(node) {
     let result = `${node.pattern}`; // (${node.handlers.length})`;
-    result += node.specializations.map(spec => '\n' + stringify(spec).split('\n').map(line => '  ' + line).join('\n')).join('');
+    let specs = Array.from(node.specializations.values());
+    result += specs.map(spec => '\n' + stringify(spec).split('\n').map(line => '  ' + line).join('\n')).join('');
     return result;
 }
 let dummy = false ? make_route_family_1.default([]) : null;
