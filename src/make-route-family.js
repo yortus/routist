@@ -54,6 +54,7 @@ function insert(pattern, root, nodePool) {
     if (root.specializations.find(n => pattern === n.pattern))
         return;
     // Compare the pattern to each of the root's specialisations' patterns
+    let intersections = root.specializations.map(spec => intersect_patterns_1.default(pattern, spec.pattern));
     let relations = root.specializations.map(spec => compare_patterns_1.default(pattern, spec.pattern));
     let moreSpecializedThan = root.specializations.filter((_, i) => relations[i] === 2 /* Subset */);
     let lessSpecializedThan = root.specializations.filter((_, i) => relations[i] === 3 /* Superset */);
@@ -62,36 +63,42 @@ function insert(pattern, root, nodePool) {
     // TODO: check invariant - pattern can't be *both* a subset *and* and superset, no duplicates in spec list
     assert(moreSpecializedThan.length === 0 || lessSpecializedThan.length === 0);
     // Form a new specializations list.
-    let newSpecializations = [];
     let patternNode = nodePool[pattern];
     // TODO: ...
-    if (lessSpecializedThan.length > 0 || overlappingWith.length > 0 || moreSpecializedThan.length === 0) {
-        newSpecializations.push(patternNode);
+    //     assert(lessSpecializedThan.length <= 1);
+    //     if (lessSpecializedThan.length === 1) {
+    //         root.specializations.filter        
+    // 
+    // 
+    //     }
+    // 
+    // TODO: ...
+    let addToSpecsA = false;
+    let addToSpecsB = true;
+    // TODO: ...
+    root.specializations.forEach((n, i) => {
+        let intersection = intersections[i];
+        if (intersection === n.pattern || !(intersection === pattern || intersection === '∅')) {
+            addToSpecsA = true;
+            insert(intersection, patternNode, nodePool);
+        }
+        if (intersection === pattern || !(intersection === n.pattern || intersection === '∅')) {
+            insert(intersection, n, nodePool);
+        }
+        if (intersection === pattern) {
+            addToSpecsB = false;
+        }
+    });
+    // TODO: ...
+    //if (lessSpecializedThan.length > 0 || overlappingWith.length > 0 || moreSpecializedThan.length === 0) {
+    if (addToSpecsA || addToSpecsB) {
+        root.specializations.push(patternNode);
     }
-    // TODO: ...
-    lessSpecializedThan.forEach(n => {
-        insert(n.pattern, patternNode, nodePool);
-    });
-    // TODO: ...
-    moreSpecializedThan.forEach(n => {
-        newSpecializations.push(n);
-        insert(pattern, n, nodePool);
-    });
-    // TODO: ...
-    overlappingWith.forEach(n => {
-        newSpecializations.push(n);
-        let intersection = intersect_patterns_1.default(pattern, n.pattern);
-        insert(intersection, patternNode, nodePool);
-        insert(intersection, n, nodePool);
-    });
-    // TODO: ...
-    disjointWith.forEach(n => {
-        newSpecializations.push(n);
-    });
+    if (lessSpecializedThan.length > 0) {
+        root.specializations = root.specializations.filter(n => lessSpecializedThan.indexOf(n) === -1);
+    }
     // TODO: check invariants...
-    assert(newSpecializations.every(n => newSpecializations.filter(n2 => n === n2).length === 1));
-    // TODO: ...
-    root.specializations = newSpecializations;
+    assert(root.specializations.every(n => root.specializations.filter(n2 => n === n2).length === 1));
 }
 // TODO: doc...
 function makeNode(pattern) {

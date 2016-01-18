@@ -22,58 +22,58 @@ describe('generating a route family', () => {
         '/*z/b',
     ];
     let expected = `…
-  *m*z
-    a*m*z
+  a*
+    a*m*
+      a*m*z
+    a*z
+      a*m*z
+  *m*
+    a*m*
+      a*m*z
+    *m*z
+      a*m*z
   *z
     a*z
       a*m*z
     *m*z
       a*m*z
-  *m*
-    *m*z
-      a*m*z
-    a*m*
-      a*m*z
-  a*z
-    a*m*z
-  a*
-    a*z
-      a*m*z
-    a*m*
-      a*m*z
-  a*m*
-    a*m*z
-  /*/b
-    /*z/b
-      /*o*o*z/b
+  /*
+    /bar
+    /*o*o*
+      /foo
+      /*o*o*.html
+  /…o…o…
+    /*o*o*
+      /foo
+      /*o*o*.html
+    /…o…o….html
+      /*o*o*.html
+      /foo/*.html
+      /a/*o*o*.html
+    /a/*o*o*
+      /a/*o*o*.html
     /*o*o*/b
       /*o*o*z/b
-    /a/b
   /a/*
     /a/*o*o*
       /a/*o*o*.html
     /a/b
-  /*o*o*/b
-    /*o*o*z/b
-  /…o…o…
+  /*/b
     /*o*o*/b
       /*o*o*z/b
-    /…o…o….html
-      /a/*o*o*.html
-      /*o*o*.html
-      /foo/*.html
-    /a/*o*o*
-      /a/*o*o*.html
-    /*o*o*
-      /foo
-      /*o*o*.html
+    /a/b
+    /*z/b
+      /*o*o*z/b
   /*z/b
     /*o*o*z/b
-  /*
-    /*o*o*
-      /foo
-      /*o*o*.html
-    /bar`;
+  a*m*
+    a*m*z
+  a*z
+    a*m*z
+  *m*z
+    a*m*z
+  /*o*o*/b
+    /*o*o*z/b`;
     it('works', () => {
         let family = make_route_family_1.default(patterns);
         let actual = stringify(family);
