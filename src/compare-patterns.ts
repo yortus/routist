@@ -19,9 +19,9 @@ export default function comparePatterns(patternA: string, patternB: string): Pat
         return PatternRelation.Equal;
     }
     switch (intersectPatterns(patternA, patternB)) {
-        case '∅': return PatternRelation.Disjoint;
         case patternA: return PatternRelation.Subset;
         case patternB: return PatternRelation.Superset;
+        case '∅': return PatternRelation.Disjoint;
         default: return PatternRelation.Overlapping;
     }
 }

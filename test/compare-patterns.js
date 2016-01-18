@@ -12,7 +12,19 @@
 //         '/ab* vs /abc*: Superset',
 //         '/f*o/**/{name}.html vs /f*/{...rest}: Subset',
 //         '/ab* vs /xy*: Disjoint',
-//         '/ab* vs /*xy: Overlapping'
+//         '/ab* vs /*xy: Overlapping',
+//         '… vs /foo/bar: Superset',
+//         '… vs /*/bar/…: Superset',
+//         '… vs …: Equal',
+//         '… vs ∅: Superset',
+//         '∅ vs /foo/bar: Subset',
+//         '∅ vs /*/bar/…: Subset',
+//         '∅ vs …: Subset',
+//         '∅ vs ∅: Equal',
+//         '/foo/bar vs …: Subset',
+//         '/*/bar/… vs …: Subset',
+//         '/foo/bar vs ∅: Superset',
+//         '/*/bar/… vs ∅: Superset',
 //     ];
 // 
 //     let relMap = {

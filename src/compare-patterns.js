@@ -17,9 +17,9 @@ function comparePatterns(patternA, patternB) {
         return 1 /* Equal */;
     }
     switch (intersect_patterns_1.default(patternA, patternB)) {
-        case '∅': return 4 /* Disjoint */;
         case patternA: return 2 /* Subset */;
         case patternB: return 3 /* Superset */;
+        case '∅': return 4 /* Disjoint */;
         default: return 5 /* Overlapping */;
     }
 }
