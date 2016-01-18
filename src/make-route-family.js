@@ -62,9 +62,9 @@ function insert(pattern, root, nodePool) {
     //assert(moreSpecializedThan.length === 0 || lessSpecializedThan.length === 0);
     // TODO: ...
     assert(root.specializations.size > 0);
-    let addToSpecsA = false;
-    let addToSpecsB = true;
-    let subsetCount = 0;
+    let generalizesOrOverlapsExisting = false;
+    let allDisjoint = true;
+    let specializesTheFollowing = [];
     // TODO: ...
     root.specializations.forEach(n => {
         let intersection = intersect_patterns_1.default(pattern, n.pattern);
@@ -72,32 +72,39 @@ function insert(pattern, root, nodePool) {
             return;
         let specializesExisting = intersection === pattern;
         let generalizesExisting = intersection === n.pattern;
+        allDisjoint = false;
         if (generalizesExisting) {
             root.specializations.delete(n);
         }
         if (generalizesExisting || !specializesExisting) {
-            addToSpecsA = true;
+            generalizesOrOverlapsExisting = true;
             insert(intersection, patternNode, nodePool);
         }
         if (specializesExisting || !generalizesExisting) {
             insert(intersection, n, nodePool);
         }
         if (specializesExisting) {
-            ++subsetCount;
-            addToSpecsB = false;
+            specializesTheFollowing.push(n.pattern);
         }
     });
     // TODO: ...
-    //if (lessSpecializedThan.length > 0 || overlappingWith.length > 0 || moreSpecializedThan.length === 0) {
     let specs = Array.from(root.specializations).map(n => n.pattern);
-    if (addToSpecsA || addToSpecsB) {
-        //if (addToSpecsA) {
-        // if (subsetCount === specs.length) {
+    let intrs = specs.map(spec => intersect_patterns_1.default(pattern, spec));
+    if (!allDisjoint && !generalizesOrOverlapsExisting) {
+        // EXISTS(moreSpec, lessSpec or overlapping) AND !EXISTS(moreSpec or overlapping)
+        // EXISTS(lessSpec)
+        if (specializesTheFollowing.length === 0) {
+            debugger;
+        }
+    }
+    else {
+        // !EXISTS(spec, gen or overlapping) OR EXISTS(gen or overlapping)
+        // EXISTS(spec)
+        // === NONE are spec
+        // if (specializesTheFollowing.length > 0) {
         //     debugger;
         // }
         root.specializations.add(patternNode);
-    }
-    else {
     }
     // TODO: check invariants...
     //assert(root.specializations.every(n => root.specializations.filter(n2 => n === n2).length === 1));
