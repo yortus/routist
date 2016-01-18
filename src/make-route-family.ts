@@ -16,6 +16,9 @@ export default function test(patterns: string[]) {
     patterns = removeDuplicates(patterns);
     patterns = transitiveClosureOverPatternIntersection(patterns);
 
+    // Remove useless '∅' if present
+    patterns = patterns.filter(p => p !== '∅');
+
     // Make a node for each pattern, including '…', and put all into a map keyed by pattern.
     let map = patterns.reduce((map, pat) => (map[pat] = makeNode(pat), map), <{[pattern: string]: Node}> {});
     map['…'] = makeNode('…');
@@ -64,73 +67,44 @@ function insert(pattern: string, root: Node, nodePool: {[pattern: string]: Node}
 
     // TODO: check invariant
     assert(comparePatterns(pattern, root.pattern) === Relation.Subset);
+    assert(pattern !== '∅');
 
     // TODO: ...
     let patternNode = nodePool[pattern];
 
-    // TODO: simple cases: pattern is '∅'; spec list currently empty; pattern already present as specialisation
+    // TODO: simple cases: pattern is '∅'; pattern disjoint with all existing; pattern already present as specialisation
     // Nothing to do if pattern is '∅' or is already present as a specialization of root
-    if (pattern === '∅') return;
-    if (root.specializations.size === 0) root.specializations.add(patternNode);
+    let comparands = Array.from(root.specializations)
+        .map(n => ({ pattern: n.pattern, intersection: intersectPatterns(pattern, n.pattern) }))
+        .filter(cmp => cmp.intersection !== '∅');
+    if (comparands.length === 0) {
+        root.specializations.add(patternNode);
+    }
     if (root.specializations.has(patternNode)) return;
 
     // TODO: check invariant - pattern can't be *both* a subset *and* and superset, no duplicates in spec list
     //assert(moreSpecializedThan.length === 0 || lessSpecializedThan.length === 0);
 
     // TODO: ...
-    assert(root.specializations.size > 0);
-    let generalizesOrOverlapsExisting = false;
-    let allDisjoint = true;
-    let specializesTheFollowing: string[] = [];
+    comparands.forEach(cmp => {
+        let intersection = cmp.intersection;
 
-    // TODO: ...
-    root.specializations.forEach(n => {
-        let intersection = intersectPatterns(pattern, n.pattern);
-        if (intersection === '∅') return;
         let specializesExisting = intersection === pattern;
-        let generalizesExisting = intersection === n.pattern;
-        allDisjoint = false;
-
+        let generalizesExisting = intersection === cmp.pattern;
 
         if (generalizesExisting) {
-            root.specializations.delete(n);
+            root.specializations.delete(nodePool[cmp.pattern]);
         }
 
         if (generalizesExisting || !specializesExisting) {
-            generalizesOrOverlapsExisting = true;
+            root.specializations.add(patternNode);
             insert(intersection, patternNode, nodePool);
         }
 
         if (specializesExisting || !generalizesExisting) {
-            insert(intersection, n, nodePool);
+            insert(intersection, nodePool[cmp.pattern], nodePool);
         }
-
-        if (specializesExisting) {
-            specializesTheFollowing.push(n.pattern);
-        }        
     });
-
-    // TODO: ...
-    let specs = Array.from(root.specializations).map(n => n.pattern);
-    let intrs = specs.map(spec => intersectPatterns(pattern, spec));
-
-    if (!allDisjoint && !generalizesOrOverlapsExisting) {
-        // EXISTS(moreSpec, lessSpec or overlapping) AND !EXISTS(moreSpec or overlapping)
-        // EXISTS(lessSpec)
-        if (specializesTheFollowing.length === 0) {
-            debugger;
-        }
-    }
-    else {
-        // !EXISTS(spec, gen or overlapping) OR EXISTS(gen or overlapping)
-        // EXISTS(spec)
-        // === NONE are spec
-        // if (specializesTheFollowing.length > 0) {
-        //     debugger;
-        // }
-        root.specializations.add(patternNode);
-    }
-        
 
     // TODO: check invariants...
     //assert(root.specializations.every(n => root.specializations.filter(n2 => n === n2).length === 1));
