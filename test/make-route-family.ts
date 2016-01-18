@@ -12,6 +12,7 @@ describe('generating a route family', () => {
         'a*',
         '*m*',
         '*z',
+        '…',
         '/bar',
         '/*',
         '/foo',
@@ -22,19 +23,68 @@ describe('generating a route family', () => {
         'a*',
         '/a/*',
         '/*/b',
-        '/a*/*',
         '/*z/b',
     ];
+
+    let expected = `…
+  *m*z
+    a*m*z
+  *z
+    a*z
+      a*m*z
+    *m*z
+      a*m*z
+  *m*
+    *m*z
+      a*m*z
+    a*m*
+      a*m*z
+  a*z
+    a*m*z
+  a*
+    a*z
+      a*m*z
+    a*m*
+      a*m*z
+  a*m*
+    a*m*z
+  /*/b
+    /*z/b
+      /*o*o*z/b
+    /*o*o*/b
+      /*o*o*z/b
+    /a/b
+  /a/*
+    /a/*o*o*
+      /a/*o*o*.html
+    /a/b
+  /*o*o*/b
+    /*o*o*z/b
+  /…o…o…
+    /*o*o*/b
+      /*o*o*z/b
+    /…o…o….html
+      /a/*o*o*.html
+      /*o*o*.html
+      /foo/*.html
+    /a/*o*o*
+      /a/*o*o*.html
+    /*o*o*
+      /foo
+      /*o*o*.html
+  /*z/b
+    /*o*o*z/b
+  /*
+    /*o*o*
+      /foo
+      /*o*o*.html
+    /bar`;    
     
     it('works', () => {
-
-        let ps = makeRouteFamily(patterns);
-        console.log(stringify(ps));
-        //ps.forEach(p => console.log(p));
-        
-        // let routeList = patterns.map(pattern => ({ pattern, handler: nullHandler}));
-        // let root = makeRouteFamily(routeList);
-        // console.log(stringify(root));
+        let family = makeRouteFamily(patterns);
+        let actual = stringify(family);
+        console.log(actual);
+        expect(actual).equals(expected);
     });
 });
 
