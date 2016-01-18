@@ -62,13 +62,18 @@
 //         'a… ∩ …a = ERROR',
 //         '*a… ∩ …a* = ERROR',
 //         '…a* ∩ *a… = ERROR',
-//         '…a* ∩ *z… = *z…a*',
-//         '*z… ∩ …a* = *z…a*',
-//         '*z* ∩ *a* = ERROR',
+//         '…a* ∩ *z… = ERROR', // *a*z*, *z…a*
+//         '*z… ∩ …a* = ERROR', // *a*z*, *z…a*
+//         '*z* ∩ *a* = ERROR', // *a*z*, *z*a*
 //         'a*… ∩ …*a = ERROR',
 //         'a…* ∩ *…a = ERROR',
 //         'a* ∩ *a = ERROR',
-//         'a/… ∩ …/a = ERROR'
+//         'a/… ∩ …/a = ERROR',
+// 
+//         '/o… ∩ /*z = /o*z',
+//         '/o…o… ∩ /*z = /o*o*z',
+//         '/o…o… ∩ /*z/b = /o*o*z/b',
+//         '/…o…o… ∩ /*z/b = /*o*o*z/b'
 //     ];
 // 
 //     tests.forEach(test => {

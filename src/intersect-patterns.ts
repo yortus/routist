@@ -36,7 +36,14 @@ function getAllIntersections(a: string, b: string): string[] {
     // A starts with a wildcard. Generate all possible intersections by unifying
     // the wildcard with all substitutable prefixes of B, and intersecting the remainders.
     else if (a[0] === '…' || (a[0] === '*' && b[0] !== '…')) {
-        return getAllPatternSplits(b)
+
+        // Obtain all splits. When unifying splits against '*', do strength
+        // reduction on split prefixes containing '…' (ie replace '…' with '*')
+        let splits = getAllPatternSplits(b);
+        if (a[0] === '*') splits.forEach(pair => pair[0] = pair[0].replace(/…/g, '*'));
+
+        // Compute and return intersections for all valid unifications.
+        return splits
             .filter(pair => a[0] === '…' || (!pair[0].includes('/') && !pair[0].includes('…')))
             .map(pair => getAllIntersections(a.slice(1), pair[1]).map(u => pair[0] + u))
             .reduce((ar, el) => (ar.push.apply(ar, el), ar), []);
@@ -61,13 +68,13 @@ function getAllIntersections(a: string, b: string): string[] {
  * Returns an array of all the [prefix, suffix] pairs into which `pattern` may be split.
  * Splits that occur on a wildcard character have the wildcard on both sides of the split
  * (i.e. as the last character of the prefix and the first character of the suffix).
- * E.g., 'ab*c' splits into ['', 'ab*c'], ['a', 'b*c'], ['ab*', '*c'], and ['ab*c', ''].
+ * E.g., 'ab…c' splits into: ['','ab…c'], ['a','b…c'], ['ab…','…c'], and ['ab…c',''].
  */
 function getAllPatternSplits(pattern: string): [string, string][] {
     let result = [];
     for (let i = 0; i <= pattern.length; ++i) {
         let pair = [pattern.substring(0, i), pattern.substring(i)];
-        if (pattern[i] === '*' || pattern[i] === '…') {
+        if (pattern[i] === '…' || pattern[i] === '*') {
             pair[0] += pattern[i];
             ++i; // skip next iteration
         }
