@@ -22,17 +22,17 @@ describe('generating a route family', () => {
     ];
     it('works', () => {
         let ps = make_route_family_1.default(patterns);
-        ps.forEach(p => console.log(p));
+        console.log(stringify(ps));
+        //ps.forEach(p => console.log(p));
         // let routeList = patterns.map(pattern => ({ pattern, handler: nullHandler}));
         // let root = makeRouteFamily(routeList);
         // console.log(stringify(root));
     });
 });
-//function stringify(node: Node): string {
-//        let result = `${node.pattern} (${node.handlers.length})`;
-//        result += node.specializations.map(spec => '\n' + stringify(spec).split('\n').map(line => '  ' + line).join('\n')).join('');
-//        return result;
-//}
-//let dummy = false ? makeRouteFamily([]) : null;
-//type Node = typeof dummy;
+function stringify(node) {
+    let result = `${node.pattern}`; // (${node.handlers.length})`;
+    result += node.specializations.map(spec => '\n' + stringify(spec).split('\n').map(line => '  ' + line).join('\n')).join('');
+    return result;
+}
+let dummy = false ? make_route_family_1.default([]) : null;
 //# sourceMappingURL=make-route-family.js.map
