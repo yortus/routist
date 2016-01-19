@@ -16,6 +16,7 @@ export default function normalizeHandler(pattern: string, handler: (...args: any
     let captureNames = matchPattern.captureNames;
     
     // Ensure capture names are legal. In particular, check for reserved names.
+    // TODO: also disallow any name that might be on the Object prototype...
     let reservedNames = ['request', 'req', 'rq', 'handle'];
     reservedNames.forEach(reservedName => {
         if (captureNames.indexOf(reservedName) !== -1) {
@@ -67,11 +68,12 @@ function getParamNames(func: Function) {
 // TODO: doc precond - capture name cannot be any of: ['request', 'req', 'rq', 'handle']
 function makeCanonicalHandler(rawHandler: Function, paramNames: string[], matchPattern: MatchFunction): Handler {
     
+    let isDecorator = paramNames.indexOf('handle') !== -1;
+
     return (request: Request, traverseInnerHandlers: (request?: Request) => Response) => {
 
         // TODO: ...
-        let pathname = request.pathname;
-        let paramBindings: any = matchPattern(pathname);
+        let paramBindings: any = matchPattern(request.pathname);
         if (paramBindings === null) return null;
 
         // TODO: ...
@@ -80,26 +82,55 @@ function makeCanonicalHandler(rawHandler: Function, paramNames: string[], matchP
         let argValues = paramNames.map(name => paramBindings[name]);
 
         // TODO: ...
-        if (paramNames.indexOf('handle') !== -1) {
-            
-            // TODO: decorator processing...
-            let response = rawHandler.apply(null, argValues);
-            return response;
-        }
-        else {
-
-            // TODO: normal handler processing...
-            // TODO: only attempt running rawHandler if the inner handlers don't handle the request...
-            let response = traverseInnerHandlers(request);
+        let response: Response = null;
+        if (!isDecorator) {
+            response = traverseInnerHandlers(request);
             if (response !== null) return response;
-
-            // TODO: run this handler...
-            response = rawHandler.apply(null, argValues);
-            return response;
         }
+        response = rawHandler.apply(null, argValues);
+        return response;
     };
 }
 
 
 var dummy = false ? makePatternMatcher('') : null;
 type MatchFunction = typeof dummy;
+
+
+
+
+
+function makeCanonicalHandler2(rawHandler: Function, paramNames: string[], matchPattern: MatchFunction): Handler {
+
+
+    let isDecorator = paramNames.indexOf('handle') !== -1;
+    let paramMappings = {
+        request: 'request',
+        req: 'request',
+        rq: 'request',
+        handle: 'handle'
+    };
+    paramNames.forEach(name => paramMappings[name] = `paramBindings.${name}`);
+
+
+    let source = `(function (request, traverseInnerHandlers) {
+
+        let handle = ...
+
+        let paramBindings: any = matchPattern(request.pathname);
+        if (paramBindings === null) return null;
+
+        var response;
+        ${isDecorator ? '' : `
+            response = traverseInnerHandlers(request);
+            if (response !== null) return response;
+        `}
+
+        response = rawHandler(${paramNames.map(name => paramMappings[name])});
+        return response;
+    })`;
+    
+
+    debugger;
+    return <any> source;
+}
