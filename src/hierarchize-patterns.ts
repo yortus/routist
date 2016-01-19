@@ -28,14 +28,19 @@ import intersectPatterns from './intersect-patterns';
  */
 export default function hierarchizePatterns(patterns: string[]) {
 
-    // 
+    // Create the nodeFor() function to return nodes from a single associative array
+    // of patterns, creating them on demand if they don't exist. This ensures every
+    // request for the same pattern gets the same singleton node.
     let map: Node = {};
-    let nodeFor = (pattern: string) => map[pattern] || (map[pattern] = <Node> {});
+    let nodeFor = (pattern: string) => map[pattern] || (map[pattern] = {});
 
-    // TODO: construct the graph...
-    patterns = patterns.filter(p => p !== '…' && p !== '∅');
-    patterns.forEach(pattern => insert(pattern, '…', nodeFor));
-    return {'…': map['…']};
+    // Insert each of the given patterns (except '…' and '∅') into a DAG rooted at '…'.
+    patterns
+        .filter(p => p !== '…' && p !== '∅')
+        .forEach(pattern => insert(pattern, '…', nodeFor));
+
+    // Return a top-level node with the single key '…'.
+    return {'…': nodeFor('…')};
 }
 
 

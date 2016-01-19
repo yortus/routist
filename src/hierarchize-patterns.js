@@ -24,13 +24,17 @@ var intersect_patterns_1 = require('./intersect-patterns');
  * @returns {Object} A node object, whose keys are patterns and whose values are node objects.
  */
 function hierarchizePatterns(patterns) {
-    // 
+    // Create the nodeFor() function to return nodes from a single associative array
+    // of patterns, creating them on demand if they don't exist. This ensures every
+    // request for the same pattern gets the same singleton node.
     let map = {};
     let nodeFor = (pattern) => map[pattern] || (map[pattern] = {});
-    // TODO: construct the graph...
-    patterns = patterns.filter(p => p !== '…' && p !== '∅');
-    patterns.forEach(pattern => insert(pattern, '…', nodeFor));
-    return { '…': map['…'] };
+    // Insert each of the given patterns (except '…' and '∅') into a DAG rooted at '…'.
+    patterns
+        .filter(p => p !== '…' && p !== '∅')
+        .forEach(pattern => insert(pattern, '…', nodeFor));
+    // Return a top-level node with the single key '…'.
+    return { '…': nodeFor('…') };
 }
 exports.default = hierarchizePatterns;
 /**
