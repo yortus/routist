@@ -1,6 +1,5 @@
 'use strict';
-// TODO: more...
-class Response {
+class ResponseObject {
 }
-exports.Response = Response;
+exports.ResponseObject = ResponseObject;
 //# sourceMappingURL=response.js.map

@@ -6,77 +6,98 @@ describe('normalization of a handler function', () => {
         {
             pattern: '/api/{...rest}',
             pathname: '/api/foo/bar/baz.html',
-            handlerParamNames: 'rest',
-            handlerArgValues: 'foo/bar/baz.html'
+            handler: (rest) => `${rest}`,
+            innerHandlers: (rq) => null,
+            response: 'foo/bar/baz.html'
         },
         {
             pattern: '/api/{...rest}',
             pathname: '/api/foo/bar/baz.html',
-            handlerParamNames: 'req, rq, rest',
-            handlerArgValues: '[object Object], [object Object], foo/bar/baz.html'
-        },
-        {
-            pattern: '/api/…',
-            pathname: '/api/foo/bar/baz.html',
-            handlerParamNames: '',
-            handlerArgValues: ''
+            handler: (rest) => `${rest}`,
+            innerHandlers: (rq) => 'inner',
+            response: 'inner'
         },
         {
             pattern: '/api/{...rest}',
             pathname: '/api/foo/bar/baz.html',
-            handlerParamNames: '',
-            handlerArgValues: 'ERROR'
+            handler: (req, rq, rest) => `${req}, ${rq}, ${rest}`,
+            innerHandlers: (rq) => null,
+            response: '[object Object], [object Object], foo/bar/baz.html'
         },
         {
             pattern: '/api/…',
             pathname: '/api/foo/bar/baz.html',
-            handlerParamNames: 'rest',
-            handlerArgValues: 'ERROR'
+            handler: () => '',
+            innerHandlers: (rq) => null,
+            response: '',
+        },
+        {
+            pattern: '/api/{...rest}',
+            pathname: '/api/foo/bar/baz.html',
+            handler: () => '',
+            innerHandlers: (rq) => null,
+            response: 'ERROR: Unused captures...'
+        },
+        {
+            pattern: '/api/…',
+            pathname: '/api/foo/bar/baz.html',
+            handler: (rest) => `${rest}`,
+            innerHandlers: (rq) => null,
+            response: 'ERROR: Unsatisfied parameter...'
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
             pathname: '/foo/bar/baz.html',
-            handlerParamNames: 'path, name, req, ext',
-            handlerArgValues: 'bar, baz, [object Object], html'
-        }
+            handler: (path, ext, request, name) => `${path}, ${ext}, ${request}, ${name}`,
+            innerHandlers: (rq) => null,
+            response: 'bar, html, [object Object], baz'
+        },
+        {
+            pattern: '/api/{...request}',
+            pathname: '/api/foo/bar/baz.html',
+            handler: (request) => `${request}`,
+            innerHandlers: (rq) => null,
+            response: 'ERROR: Reserved name...'
+        },
+        {
+            pattern: '/api/{...rest}',
+            pathname: '/api/foo/bar/baz.html',
+            handler: (rest, rq, handle) => `${handle(rq)}-${rest.slice(4, 7)}`,
+            innerHandlers: (rq) => `${rq.pathname.slice(5, 8)}`,
+            response: 'foo-bar'
+        },
+        {
+            pattern: '/api/{...rest}',
+            pathname: '/api/foo/bar/baz.html',
+            handler: (rest, handle) => `${handle()}-${rest.slice(4, 7)}`,
+            innerHandlers: (rq) => `${rq.pathname.slice(5, 8)}`,
+            response: 'foo-bar'
+        },
+        {
+            pattern: '/api/{...rest}',
+            pathname: '/api/foo/bar/baz.html',
+            handler: (rest, handle) => handle() || 'outer',
+            innerHandlers: (rq) => null,
+            response: 'outer'
+        },
     ];
     tests.forEach((test, i) => {
-        it(`${test.pattern} WITH function (${test.handlerParamNames}) {...}`, () => {
-            let handler = makeHandlerOrdinaryFunction(test.handlerParamNames);
-            let expectedArgs = test.handlerArgValues;
-            let actualArgs = 'ERROR';
+        it(`${test.pattern} WITH ${test.handler}`, () => {
+            let expectedResponse = test.response;
             try {
-                let canonicalHandler = normalize_handler_1.default(test.pattern, handler);
+                let canonicalHandler = normalize_handler_1.default(test.pattern, test.handler);
                 let request = { pathname: test.pathname };
-                actualArgs = canonicalHandler(request);
+                let actualResponse = canonicalHandler(request, test.innerHandlers);
+                chai_1.expect(actualResponse).equals(expectedResponse);
             }
-            catch (ex) { }
-            chai_1.expect(actualArgs).equals(expectedArgs);
-        });
-        it(`${test.pattern} WITH (${test.handlerParamNames}) => (...)`, () => {
-            let handler = makeHandlerArrowFunction(test.handlerParamNames);
-            let expectedArgs = test.handlerArgValues;
-            let actualArgs = 'ERROR';
-            try {
-                let canonicalHandler = normalize_handler_1.default(test.pattern, handler);
-                let request = { pathname: test.pathname };
-                actualArgs = canonicalHandler(request);
+            catch (ex) {
+                let actualResponse = `ERROR: ${ex.message}`;
+                if (expectedResponse.slice(-3) === '...') {
+                    actualResponse = actualResponse.slice(0, expectedResponse.length - 3) + '...';
+                }
+                chai_1.expect(actualResponse).equals(expectedResponse);
             }
-            catch (ex) { }
-            chai_1.expect(actualArgs).equals(expectedArgs);
         });
     });
-    function makeHandlerOrdinaryFunction(paramNames) {
-        return eval(`(
-            function (${paramNames}) {
-                return [${paramNames}].map(arg => arg.toString()).join(', ');
-            }
-        )`);
-    }
-    function makeHandlerArrowFunction(paramNames) {
-        return eval(`(
-            (${paramNames}) => [${paramNames}].map(arg => arg.toString()).join(', ')
-        )`);
-    }
 });
 //# sourceMappingURL=normalize-handler.js.map
