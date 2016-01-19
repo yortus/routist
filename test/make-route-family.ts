@@ -70,14 +70,6 @@ describe('generating a route family', () => {
     /*z/b
       /*o*o*z/b
   /*z/b
-    /*o*o*z/b
-  a*m*
-    a*m*z
-  a*z
-    a*m*z
-  *m*z
-    a*m*z
-  /*o*o*/b
     /*o*o*z/b`;    
     
     it('works', () => {
