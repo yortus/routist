@@ -28,7 +28,7 @@ function normalizeHandler(pattern, handler) {
         throw new Error(`Unsatisfied parameters: ${unsatisfiedParams.join(', ')}`); // TODO: improve error message
     }
     // Create and return an equivalent handler in normalized form.
-    let canonicalHandler = makeCanonicalHandler(handler, paramNames, matchPattern);
+    let canonicalHandler = makeCanonicalHandler2(handler, paramNames, matchPattern);
     return canonicalHandler;
 }
 exports.default = normalizeHandler;
@@ -70,18 +70,17 @@ function makeCanonicalHandler(rawHandler, paramNames, matchPattern) {
 var dummy = false ? make_pattern_matcher_1.default('') : null;
 function makeCanonicalHandler2(rawHandler, paramNames, matchPattern) {
     let isDecorator = paramNames.indexOf('handle') !== -1;
-    let paramMappings = {
-        request: 'request',
-        req: 'request',
-        rq: 'request',
-        handle: 'handle'
-    };
+    let paramMappings = {};
     paramNames.forEach(name => paramMappings[name] = `paramBindings.${name}`);
+    paramMappings['request'] = paramMappings['req'] = paramMappings['rq'] = 'request';
+    paramMappings['handle'] = 'handle';
     let source = `(function (request, traverseInnerHandlers) {
 
-        let handle = ...
+        ${isDecorator ? `
+        var handle = rq => traverseInnerHandlers(rq || request);
+        ` : ''}
 
-        let paramBindings: any = matchPattern(request.pathname);
+        let paramBindings = matchPattern(request.pathname);
         if (paramBindings === null) return null;
 
         var response;
@@ -93,7 +92,7 @@ function makeCanonicalHandler2(rawHandler, paramNames, matchPattern) {
         response = rawHandler(${paramNames.map(name => paramMappings[name])});
         return response;
     })`;
-    debugger;
-    return source;
+    let canonicalHandler = eval(source);
+    return canonicalHandler;
 }
 //# sourceMappingURL=normalize-handler.js.map

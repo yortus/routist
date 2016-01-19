@@ -37,7 +37,7 @@ export default function normalizeHandler(pattern: string, handler: (...args: any
     }
 
     // Create and return an equivalent handler in normalized form.
-    let canonicalHandler = makeCanonicalHandler(handler, paramNames, matchPattern);
+    let canonicalHandler = makeCanonicalHandler2(handler, paramNames, matchPattern);
     return canonicalHandler;
 }
 
@@ -102,22 +102,20 @@ type MatchFunction = typeof dummy;
 
 function makeCanonicalHandler2(rawHandler: Function, paramNames: string[], matchPattern: MatchFunction): Handler {
 
-
     let isDecorator = paramNames.indexOf('handle') !== -1;
-    let paramMappings = {
-        request: 'request',
-        req: 'request',
-        rq: 'request',
-        handle: 'handle'
-    };
+    let paramMappings = {};
     paramNames.forEach(name => paramMappings[name] = `paramBindings.${name}`);
+    paramMappings['request'] = paramMappings['req'] = paramMappings['rq'] = 'request';
+    paramMappings['handle'] = 'handle';
 
 
     let source = `(function (request, traverseInnerHandlers) {
 
-        let handle = ...
+        ${isDecorator ? `
+        var handle = rq => traverseInnerHandlers(rq || request);
+        ` : ''}
 
-        let paramBindings: any = matchPattern(request.pathname);
+        let paramBindings = matchPattern(request.pathname);
         if (paramBindings === null) return null;
 
         var response;
@@ -129,8 +127,8 @@ function makeCanonicalHandler2(rawHandler: Function, paramNames: string[], match
         response = rawHandler(${paramNames.map(name => paramMappings[name])});
         return response;
     })`;
-    
 
-    debugger;
-    return <any> source;
+
+    let canonicalHandler = eval(source);
+    return canonicalHandler;
 }
