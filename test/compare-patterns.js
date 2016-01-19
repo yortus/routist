@@ -1,3 +1,4 @@
+//TODO: comparePatterns is deprecated - remove this file...
 // 'use strict';
 // import {expect} from 'chai';
 // import comparePatterns, {PatternRelation as Relation} from '../src/compare-patterns';

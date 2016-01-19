@@ -1,27 +1,39 @@
-'use strict';
-var intersect_patterns_1 = require('./intersect-patterns');
-/**
- * Computes the relationship between `patternA` and `patternB` in terms of the sets
- * of pathnames each one matches. The possible relations are:
- * - 1 (Equal): both patterns match the same set of pathnames
- * - 2 (Subset): every pathname matched by `patternA` is also matched by `patternB`
- * - 3 (Superset): every pathname matched by `patternB` is also matched by `patternA`
- * - 4 (Disjoint): no pathname is matched by both `patternA` and `patternB`
- * - 5 (Overlapping): none of the other four relationships are true.
- *
- * NB: `patternA` and `patternB` are assumed to be in normal form.
- * NB: The operation is case-sensitive.
- */
-function comparePatterns(patternA, patternB) {
-    if (patternA === patternB) {
-        return 1 /* Equal */;
-    }
-    switch (intersect_patterns_1.default(patternA, patternB)) {
-        case patternA: return 2 /* Subset */;
-        case patternB: return 3 /* Superset */;
-        case '∅': return 4 /* Disjoint */;
-        default: return 5 /* Overlapping */;
-    }
-}
-exports.default = comparePatterns;
+//TODO: comparePatterns is deprecated - remove this file...
+// 'use strict';
+// import intersectPatterns from './intersect-patterns';
+// 
+// 
+// /**
+//  * Computes the relationship between `patternA` and `patternB` in terms of the sets
+//  * of pathnames each one matches. The possible relations are:
+//  * - 1 (Equal): both patterns match the same set of pathnames
+//  * - 2 (Subset): every pathname matched by `patternA` is also matched by `patternB`
+//  * - 3 (Superset): every pathname matched by `patternB` is also matched by `patternA`
+//  * - 4 (Disjoint): no pathname is matched by both `patternA` and `patternB`
+//  * - 5 (Overlapping): none of the other four relationships are true.
+//  *
+//  * NB: `patternA` and `patternB` are assumed to be in normal form.
+//  * NB: The operation is case-sensitive.
+//  */
+// export default function comparePatterns(patternA: string, patternB: string): PatternRelation {
+//     if (patternA === patternB) {
+//         return PatternRelation.Equal;
+//     }
+//     switch (intersectPatterns(patternA, patternB)) {
+//         case patternA: return PatternRelation.Subset;
+//         case patternB: return PatternRelation.Superset;
+//         case '∅': return PatternRelation.Disjoint;
+//         default: return PatternRelation.Overlapping;
+//     }
+// }
+// 
+// 
+// /** Enumeration for classifying the relationship between two RoutePattern instances. */
+// export const enum PatternRelation {
+//     Equal = 1,
+//     Subset = 2,
+//     Superset = 3,
+//     Disjoint = 4,
+//     Overlapping = 5
+// }
 //# sourceMappingURL=compare-patterns.js.map

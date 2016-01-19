@@ -1,5 +1,4 @@
-var compare_patterns_1 = require('./compare-patterns');
-exports.comparePatterns = compare_patterns_1.default;
+// TODO: remove... export {default as comparePatterns, PatternRelation} from './compare-patterns';
 var intersect_patterns_1 = require('./intersect-patterns');
 exports.intersectPatterns = intersect_patterns_1.default;
 var make_pattern_matcher_1 = require('./make-pattern-matcher');
