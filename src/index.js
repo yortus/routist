@@ -1,4 +1,3 @@
-// TODO: remove... export {default as comparePatterns, PatternRelation} from './compare-patterns';
 var hierarchize_patterns_1 = require('./hierarchize-patterns');
 exports.hierarchizePatterns = hierarchize_patterns_1.default;
 var intersect_patterns_1 = require('./intersect-patterns');
