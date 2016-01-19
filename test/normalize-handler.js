@@ -43,11 +43,11 @@ describe('normalization of a handler function', () => {
     tests.forEach((test, i) => {
         it(`${test.pattern} WITH function (${test.handlerParamNames}) {...}`, () => {
             let handler = makeHandlerOrdinaryFunction(test.handlerParamNames);
-            let canonicalHandler = normalize_handler_1.default(test.pattern, handler);
-            let request = { pathname: test.pathname };
             let expectedArgs = test.handlerArgValues;
             let actualArgs = 'ERROR';
             try {
+                let canonicalHandler = normalize_handler_1.default(test.pattern, handler);
+                let request = { pathname: test.pathname };
                 actualArgs = canonicalHandler(request);
             }
             catch (ex) { }
@@ -55,11 +55,11 @@ describe('normalization of a handler function', () => {
         });
         it(`${test.pattern} WITH (${test.handlerParamNames}) => (...)`, () => {
             let handler = makeHandlerArrowFunction(test.handlerParamNames);
-            let canonicalHandler = normalize_handler_1.default(test.pattern, handler);
-            let request = { pathname: test.pathname };
             let expectedArgs = test.handlerArgValues;
             let actualArgs = 'ERROR';
             try {
+                let canonicalHandler = normalize_handler_1.default(test.pattern, handler);
+                let request = { pathname: test.pathname };
                 actualArgs = canonicalHandler(request);
             }
             catch (ex) { }

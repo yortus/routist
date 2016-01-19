@@ -7,48 +7,36 @@ import makePatternMatcher from './make-pattern-matcher';
 
 // TODO: doc...
 // TODO: future optimisation: eval a wrapper function that statically passes args from regex captures and from `request`
-export default function normalizeHandler(pattern: string, handler: (...args: any[]) => Response): (request: Request) => Response {
+export default function normalizeHandler(pattern: string, handler: (...args: any[]) => Response): Handler {
 
     // TODO: ...
     let patternAST = parsePattern(pattern);
     let matchPattern = makePatternMatcher(pattern);
     let paramNames = getParamNames(handler);
+    let captureNames = matchPattern.captureNames;
+
+    // TODO: find captures with no matching param...
+    let unusedCaptures = captureNames.filter(name => paramNames.indexOf(name) === -1);
+    if (unusedCaptures.length > 0) {
+        throw new Error(`Unused captures: ${unusedCaptures.join(', ')}`); // TODO: improve error message
+    }
+
+    // TODO: find params with no matching capture...
+    let unsatisfiedParams = paramNames.filter(name => ['request', 'req', 'rq'].indexOf(name) === -1 && captureNames.indexOf(name) === -1);
+    if (unsatisfiedParams.length > 0) {
+        throw new Error(`Unsatisfied Parameters: ${unsatisfiedParams.join(', ')}`); // TODO: improve error message
+    }
 
     // TODO: ...
-    let canonicalHandler = ((request: Request) => {
-
-        // TODO: ...
-        let pathname = request.pathname;
-        let matches = matchPattern(pathname);
-        if (matches === null) {
-
-            // TODO: should never get here due to invariants - only gets called if pathname already matched against pattern
-            throw new Error('internal error');
-        }
-        else {
-
-            // TODO: inject args... ensure all accounted for both ways...
-            let argNames = Object.keys(matches);
-
-            // TODO: find captures with no matching param...
-            let unusedCaptures = argNames.filter(name => paramNames.indexOf(name) === -1);
-            if (unusedCaptures.length > 0) {
-                throw new Error(`Unused captures: ${unusedCaptures.join(', ')}`); // TODO: improve error message
-            }
-
-            // TODO: find params with no matching capture...
-            let unsatisfiedParams = paramNames.filter(name => ['request', 'req', 'rq'].indexOf(name) === -1 && argNames.indexOf(name) === -1);
-            if (unsatisfiedParams.length > 0) {
-                throw new Error(`Unsatisfied Parameters: ${unsatisfiedParams.join(', ')}`); // TODO: improve error message
-            }
-
-            // TODO: ...
-            let args = paramNames.map(name => ['request', 'req', 'rq'].indexOf(name) !== -1 ? request : matches[name]);
-            let result = handler.apply(null, args);
-            return result;
-        }
-    });
+    let canonicalHandler = makeCanonicalHandler(handler, paramNames, matchPattern);
     return canonicalHandler;
+}
+
+
+// TODO: doc...
+export interface Handler {
+    (request: Request): Response;
+    //TODO: should be:...(request: Request, traverseInnerHandlers: (request: Request) => Response): Response;
 }
 
 
@@ -62,4 +50,55 @@ function getParamNames(func: Function) {
         .replace(/=[^,]+/g, '') // strip any ES6 defaults
         .split(',').filter(Boolean); // split & filter [""]
     return result;
+}
+
+
+
+
+
+
+function makeCanonicalHandler(rawHandler: Function, paramNames: string[], matchPattern: MatchFunction): Handler {
+    
+    return (request) => {
+
+        // TODO: ...
+        let pathname = request.pathname;
+        let matches = matchPattern(pathname);
+        if (matches === null) return null;
+
+        // TODO: inject args... ensure all accounted for both ways...
+        let argNames = Object.keys(matches);
+
+        // TODO: ...
+        let argValues = paramNames.map(name => ['request', 'req', 'rq'].indexOf(name) !== -1 ? request : matches[name]);
+        let result = rawHandler.apply(null, argValues);
+        return result;
+    };
+}
+
+
+var dummy = false ? makePatternMatcher('') : null;
+type MatchFunction = typeof dummy;
+
+
+
+
+
+
+
+
+
+
+
+
+
+function makeOrdinaryHandler(rawHandler) {
+
+
+    `(function (request, traverseInnerHandlers) {
+
+                
+        
+    })`;
+    
 }

@@ -20,6 +20,13 @@ describe('unification of a pattern with a pathname', () => {
             let matchPattern = make_pattern_matcher_1.default(pattern);
             let actualCaptures = matchPattern(pathname);
             chai_1.expect(actualCaptures).to.deep.equal(expectedCaptures);
+            if (!isMatch)
+                return;
+            // Check matchFunc.captureNames too.
+            let expectedCaptureNames = Object.keys(expectedCaptures);
+            let actualCaptureNames = matchPattern.captureNames;
+            chai_1.expect(actualCaptureNames).to.include.members(expectedCaptureNames);
+            chai_1.expect(expectedCaptureNames).to.include.members(actualCaptureNames);
         });
     });
 });

@@ -6,13 +6,16 @@ import parsePattern from './parse-pattern';
  * Returns a function that attempts to match a given pathname against `pattern`.
  * For successful matches, the returned function returns a hash containing the
  * name/value pairs for each named capture in the pattern. For failed matches,
- * the returned function returns null.
+ * the returned function returns null. The returned function has a property
+ * `captureNames` that contains an array of the capture names present in the
+ * pattern. For example, the pattern '{...path}/*.{ext}' will result in a matcher
+ * function with a `captureNames` property with the value ['path', 'ext'].
  * NB: Pattern matching is case-sensitive.
  */
 export default function makePatternMatcher(pattern: string) {
     let patternAST = parsePattern(pattern);
     let recogniser = makePathnameRecogniser(patternAST.canonical);
-    function match(pathname: string): { [name: string]: string; } {
+    var match: MatchFunction = <any> ((pathname: string) => {
         let matches = pathname.match(recogniser);
         if (!matches) return null;
         let result = patternAST.captureNames.reduce((result, name, i) => {
@@ -20,10 +23,17 @@ export default function makePatternMatcher(pattern: string) {
             return result;
         }, <any> {});
         return result;
-    }
+    });
+    match.captureNames = patternAST.captureNames.filter(n => n !== '?');
     return match;
 }
 
+
+/** Describes the signature of the function returned by makePatternMatcher. */
+interface MatchFunction {
+    (pathname: string): {[name: string]: string};
+    captureNames: string[];
+}
 
 /**
  * Constructs a regular expression that matches all pathnames recognised by the given pattern.

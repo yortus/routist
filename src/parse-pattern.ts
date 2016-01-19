@@ -4,7 +4,11 @@ import * as PEG from 'pegjs';
 
 /**
  * Verifies that `pattern` has a valid format, and returns metadata about the pattern.
- * Throws an error if `pattern` is invalid.
+ * Throws an error if `pattern` is invalid. The returned metadata is as follows:
+ * - canonical: the pattern in its normalized form.
+ * - captureNames: an array of strings, with one element per wildcard/capture in the pattern.
+ *                 Each element holds the name of its corresponding capture, or '?'
+ *                 if the corresponding capture is anonymous (ie an '*' or '…' wildcard).
  */
 export default function parsePattern(pattern: string) {
     try {

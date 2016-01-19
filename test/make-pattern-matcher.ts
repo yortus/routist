@@ -24,6 +24,13 @@ describe('unification of a pattern with a pathname', () => {
             let matchPattern = makePatternMatcher(pattern);
             let actualCaptures = matchPattern(pathname);
             expect(actualCaptures).to.deep.equal(expectedCaptures);
+            if (!isMatch) return;
+
+            // Check matchFunc.captureNames too.
+            let expectedCaptureNames = Object.keys(expectedCaptures);
+            let actualCaptureNames = matchPattern.captureNames;
+            expect(actualCaptureNames).to.include.members(expectedCaptureNames);
+            expect(expectedCaptureNames).to.include.members(actualCaptureNames);
         });
     });
 });
