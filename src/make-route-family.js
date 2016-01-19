@@ -3,8 +3,8 @@ var assert = require('assert');
 var intersect_patterns_1 = require('./intersect-patterns');
 function test(patterns) {
     // TODO: construct the nodeFor() function
-    let map = new Map();
-    let nodeFor = (pattern) => map[pattern] || (map[pattern] = { pattern, specializations: new Set });
+    let map = {};
+    let nodeFor = (pattern) => map[pattern] || (map[pattern] = { pattern, specializations: {} });
     // TODO: construct the graph...
     patterns = patterns.filter(p => p !== '…' && p !== '∅');
     patterns.forEach(pattern => insert(pattern, '…', nodeFor));
@@ -17,13 +17,13 @@ function insert(pattern, insertUnder, nodeFor) {
     assert(intersect_patterns_1.default(pattern, nodeFor(insertUnder).pattern) === pattern);
     assert(pattern !== '∅');
     // TODO: simple cases: pattern disjoint with all existing patterns; pattern already present
-    let nonDisjointComparands = Array.from(nodeFor(insertUnder).specializations)
-        .map(n => ({ pattern: n.pattern, intersection: intersect_patterns_1.default(pattern, n.pattern) }))
+    let nonDisjointComparands = Object.keys(nodeFor(insertUnder).specializations)
+        .map(p => ({ pattern: p, intersection: intersect_patterns_1.default(pattern, p) }))
         .filter(cmp => cmp.intersection !== '∅');
     if (nonDisjointComparands.length === 0) {
-        nodeFor(insertUnder).specializations.add(nodeFor(pattern));
+        nodeFor(insertUnder).specializations[pattern] = nodeFor(pattern);
     }
-    if (nodeFor(insertUnder).specializations.has(nodeFor(pattern)))
+    if (nodeFor(insertUnder).specializations[pattern])
         return;
     // TODO: ...
     nonDisjointComparands.forEach(cmp => {
@@ -31,10 +31,10 @@ function insert(pattern, insertUnder, nodeFor) {
         let generalizesExisting = cmp.intersection === cmp.pattern;
         let overlapsExisting = !specializesExisting && !generalizesExisting;
         if (generalizesExisting) {
-            nodeFor(insertUnder).specializations.delete(nodeFor(cmp.pattern));
+            delete nodeFor(insertUnder).specializations[cmp.pattern];
         }
         if (generalizesExisting || overlapsExisting) {
-            nodeFor(insertUnder).specializations.add(nodeFor(pattern));
+            nodeFor(insertUnder).specializations[pattern] = nodeFor(pattern);
             insert(cmp.intersection, pattern, nodeFor);
         }
         if (specializesExisting || overlapsExisting) {

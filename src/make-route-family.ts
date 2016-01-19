@@ -9,8 +9,8 @@ import intersectPatterns from './intersect-patterns';
 export default function test(patterns: string[]) {
 
     // TODO: construct the nodeFor() function
-    let map = new Map<string, Node>();
-    let nodeFor = (pattern: string) => map[pattern] || (map[pattern] = <Node> {pattern, specializations: new Set});
+    let map: {[pattern: string]: Node} = {};
+    let nodeFor = (pattern: string) => map[pattern] || (map[pattern] = <Node> {pattern, specializations: {}});
 
     // TODO: construct the graph...
     patterns = patterns.filter(p => p !== '…' && p !== '∅');
@@ -30,13 +30,13 @@ function insert(pattern: string, insertUnder: string, nodeFor: (pattern: string)
     assert(pattern !== '∅');
 
     // TODO: simple cases: pattern disjoint with all existing patterns; pattern already present
-    let nonDisjointComparands = Array.from(nodeFor(insertUnder).specializations)
-        .map(n => ({ pattern: n.pattern, intersection: intersectPatterns(pattern, n.pattern) }))
+    let nonDisjointComparands = Object.keys(nodeFor(insertUnder).specializations)
+        .map(p => ({ pattern: p, intersection: intersectPatterns(pattern, p) }))
         .filter(cmp => cmp.intersection !== '∅');
     if (nonDisjointComparands.length === 0) {
-        nodeFor(insertUnder).specializations.add(nodeFor(pattern));
+        nodeFor(insertUnder).specializations[pattern] = nodeFor(pattern);
     }
-    if (nodeFor(insertUnder).specializations.has(nodeFor(pattern))) return;
+    if (nodeFor(insertUnder).specializations[pattern]) return;
 
     // TODO: ...
     nonDisjointComparands.forEach(cmp => {
@@ -45,11 +45,11 @@ function insert(pattern: string, insertUnder: string, nodeFor: (pattern: string)
         let overlapsExisting = !specializesExisting && !generalizesExisting;
 
         if (generalizesExisting) {
-            nodeFor(insertUnder).specializations.delete(nodeFor(cmp.pattern));
+            delete nodeFor(insertUnder).specializations[cmp.pattern];
         }
 
         if (generalizesExisting || overlapsExisting) {
-            nodeFor(insertUnder).specializations.add(nodeFor(pattern));
+            nodeFor(insertUnder).specializations[pattern] = nodeFor(pattern);
             insert(cmp.intersection, pattern, nodeFor);
         }
 
@@ -66,5 +66,5 @@ function insert(pattern: string, insertUnder: string, nodeFor: (pattern: string)
 // TODO: doc...
 interface Node {
     pattern: string;
-    specializations: Set<Node>;
+    specializations: {[pattern: string]: Node};
 }
