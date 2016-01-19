@@ -5,7 +5,6 @@ import hierarchizePatterns from '../src/hierarchize-patterns';
 
 describe('hierarchization of a set of patterns', () => {
 
-
     let patterns = [
         'a*',
         '*m*',
@@ -23,7 +22,6 @@ describe('hierarchization of a set of patterns', () => {
         '/*/b',
         '/*z/b',
     ];
-
 
     let expected = {
         "…": {
@@ -95,10 +93,9 @@ describe('hierarchization of a set of patterns', () => {
             }
         }
     };
-    
 
     it('works', () => {
-        let dag = hierarchizePatterns(patterns);
-        expect(dag).deep.equal(expected);
+        let actual = hierarchizePatterns(patterns);
+        expect(actual).deep.equal(expected);
     });
 });

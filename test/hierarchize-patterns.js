@@ -90,8 +90,8 @@ describe('hierarchization of a set of patterns', () => {
         }
     };
     it('works', () => {
-        let dag = hierarchize_patterns_1.default(patterns);
-        chai_1.expect(dag).deep.equal(expected);
+        let actual = hierarchize_patterns_1.default(patterns);
+        chai_1.expect(actual).deep.equal(expected);
     });
 });
 //# sourceMappingURL=hierarchize-patterns.js.map
