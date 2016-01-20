@@ -1,7 +1,7 @@
 'use strict';
 var chai_1 = require('chai');
-var normalize_handler_1 = require('../src/normalize-handler');
-var pattern_1 = require('../src/patterns/pattern');
+var normalize_handler_1 = require('../../src/handlers/normalize-handler');
+var pattern_1 = require('../../src/patterns/pattern');
 describe('Normalizing a handler function', () => {
     let tests = [
         {

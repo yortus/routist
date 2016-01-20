@@ -1,7 +1,7 @@
 'use strict';
-import Request from './request';
-import Response from './response';
-import Pattern from './patterns/pattern';
+import Request from '../request';
+import Response from '../response';
+import Pattern from '../patterns/pattern';
 
 
 

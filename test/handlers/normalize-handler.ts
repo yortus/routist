@@ -1,7 +1,7 @@
 'use strict';
 import {expect} from 'chai';
-import normalizeHandler from '../src/normalize-handler';
-import Pattern from '../src/patterns/pattern';
+import normalizeHandler from '../../src/handlers/normalize-handler';
+import Pattern from '../../src/patterns/pattern';
 
 
 describe('Normalizing a handler function', () => {
