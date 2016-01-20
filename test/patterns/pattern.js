@@ -31,7 +31,9 @@ describe('Constructing a Pattern instance', () => {
         '{ ==> ERROR',
         '} ==> ERROR',
         '{{} ==> ERROR',
-        '{}} ==> ERROR'
+        '{}} ==> ERROR',
+        '{$} ==> * WITH ["$"]',
+        '{...__} ==> … WITH ["__"]'
     ];
     tests.forEach(test => {
         it(test, () => {

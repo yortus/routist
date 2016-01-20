@@ -24,9 +24,9 @@ describe('Normalizing a handler function', () => {
         {
             pattern: '/api/{...rest}',
             pathname: '/api/foo/bar/baz.html',
-            handler: (req, rq, rest) => `${req}, ${rq}, ${rest}`,
+            handler: ($req, rest) => `${$req}, ${rest}`,
             tunnel: rq => null,
-            response: '[object Object], [object Object], foo/bar/baz.html'
+            response: '[object Object], foo/bar/baz.html'
         },
         {
             pattern: '/api/…',
@@ -52,42 +52,49 @@ describe('Normalizing a handler function', () => {
         {
             pattern: '/foo/{...path}/{name}.{ext}',
             pathname: '/foo/bar/baz.html',
-            handler: (path, ext, request, name) => `${path}, ${ext}, ${request}, ${name}`,
+            handler: (path, ext, $req, name) => `${path}, ${ext}, ${$req}, ${name}`,
             tunnel: rq => null,
             response: 'bar, html, [object Object], baz'
         },
         {
-            pattern: '/api/{...request}',
+            pattern: '/foo/{...path}/{name}.{ext}',
+            pathname: '/foo/bar/baz.html',
+            handler: (path, ext, req, name) => `${path}, ${ext}, ${req}, ${name}`,
+            tunnel: rq => null,
+            response: 'ERROR: Unsatisfied parameter...'
+        },
+        {
+            pattern: '/api/{...$req}',
             pathname: '/api/foo/bar/baz.html',
-            handler: (request) => `${request}`,
+            handler: ($req) => `${$req}`,
             tunnel: rq => null,
             response: 'ERROR: Reserved name...'
         },
         {
-            pattern: '/api/{...tunnel}',
+            pattern: '/api/{...req}',
             pathname: '/api/foo/bar/baz.html',
-            handler: (request) => `${request}`,
+            handler: ($req) => `${$req}`,
             tunnel: rq => null,
-            response: 'ERROR: Reserved name...'
+            response: 'ERROR: Unused captures...'
         },
         {
             pattern: '/api/{...rest}',
             pathname: '/api/foo/bar/baz.html',
-            handler: (rest, rq, tunnel) => `${tunnel(rq)}-${rest.slice(4, 7)}`,
+            handler: (rest, $req, $yield) => `${$yield($req)}-${rest.slice(4, 7)}`,
             tunnel: rq => `${rq.pathname.slice(5, 8)}`,
             response: 'foo-bar'
         },
         {
             pattern: '/api/{...rest}',
             pathname: '/api/foo/bar/baz.html',
-            handler: (rest, tunnel) => `${tunnel()}-${rest.slice(4, 7)}`, // NB: no rq this time
+            handler: (rest, $yield) => `${$yield()}-${rest.slice(4, 7)}`, // NB: no rq this time
             tunnel: rq => `${rq.pathname.slice(5, 8)}`,
             response: 'foo-bar'
         },
         {
             pattern: '/api/{...rest}',
             pathname: '/api/foo/bar/baz.html',
-            handler: (rest, tunnel) => tunnel() || '!',
+            handler: (rest, $yield) => $yield() || '!',
             tunnel: rq => null,
             response: '!'
         },

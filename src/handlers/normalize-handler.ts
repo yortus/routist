@@ -18,7 +18,7 @@ export default function normalizeHandler(pattern: Pattern, handler: (...args: an
     
     // Ensure capture names are legal. In particular, check for reserved names.
     // TODO: also disallow any name that might be on the Object prototype...
-    let reservedNames = ['request', 'req', 'rq', 'tunnel'];
+    let reservedNames = ['$req', '$yield'];
     reservedNames.forEach(reservedName => {
         if (captureNames.indexOf(reservedName) !== -1) {
             throw new Error(`Reserved name '${reservedName}' used as capture name in pattern '${pattern}'`);
@@ -65,13 +65,13 @@ export interface CanonicalHandler {
 function makeCanonicalHandler(pattern: Pattern, originalHandler: Function, paramNames: string[]): CanonicalHandler {
 
     // If the original handler has 'tunnel' as a formal parameter, that signifies that it is a decorator.
-    let isDecorator = paramNames.indexOf('tunnel') !== -1;
+    let isDecorator = paramNames.indexOf('$yield') !== -1;
 
     // Precompute a map with keys that match all of the the original function's formal parameter names.
     // The value for each key holds the source code to supply the actual parameter for the corresponding formal parameter.
     let paramMappings = pattern.captureNames.reduce((map, name) => (map[name] = `paramBindings.${name}`, map), {});
-    paramMappings['request'] = paramMappings['req'] = paramMappings['rq'] = 'request';
-    paramMappings['tunnel'] = 'tunnel';
+    paramMappings['$req'] = 'request';
+    paramMappings['$yield'] = 'tunnel';
 
     let source = `(function (request, tunnel) {
 
