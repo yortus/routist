@@ -1,4 +1,5 @@
 'use strict';
+import getFunctionParameters from './get-function-parameters';
 import Request from '../request';
 import Response from '../response';
 import Pattern from '../patterns/pattern';
@@ -13,7 +14,7 @@ export default function normalizeHandler(pattern: Pattern, handler: (...args: an
 
     // Analyze the pattern and the handler.
     let captureNames = pattern.captureNames;
-    let paramNames = getParamNames(handler);
+    let paramNames = getFunctionParameters(handler);
     
     // Ensure capture names are legal. In particular, check for reserved names.
     // TODO: also disallow any name that might be on the Object prototype...
@@ -54,17 +55,6 @@ export interface CanonicalHandler {
 
 
 
-// TODO: doc...
-// Source: http://stackoverflow.com/a/31194949/1075886
-function getParamNames(func: Function) {
-    let result = func.toString()
-        .replace(/\s+/g, '') // strip all whitespace
-        .replace(/[/][*][^/*]*[*][/]/g, '') // strip simple comments
-        .split(/\)(?:\{|(?:\=\>))/,1)[0].replace(/^[^(]*[(]/, '') // extract the parameters
-        .replace(/=[^,]+/g, '') // strip any ES6 defaults
-        .split(',').filter(Boolean); // split & filter [""]
-    return result;
-}
 
 
 

@@ -1,10 +1,11 @@
 'use strict';
+var get_function_parameters_1 = require('./get-function-parameters');
 // TODO: doc...
 // TODO: handle any type for `handler`? ie not just a function?
 function normalizeHandler(pattern, handler) {
     // Analyze the pattern and the handler.
     let captureNames = pattern.captureNames;
-    let paramNames = getParamNames(handler);
+    let paramNames = get_function_parameters_1.default(handler);
     // Ensure capture names are legal. In particular, check for reserved names.
     // TODO: also disallow any name that might be on the Object prototype...
     let reservedNames = ['request', 'req', 'rq', 'tunnel'];
@@ -29,17 +30,6 @@ function normalizeHandler(pattern, handler) {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = normalizeHandler;
-// TODO: doc...
-// Source: http://stackoverflow.com/a/31194949/1075886
-function getParamNames(func) {
-    let result = func.toString()
-        .replace(/\s+/g, '') // strip all whitespace
-        .replace(/[/][*][^/*]*[*][/]/g, '') // strip simple comments
-        .split(/\)(?:\{|(?:\=\>))/, 1)[0].replace(/^[^(]*[(]/, '') // extract the parameters
-        .replace(/=[^,]+/g, '') // strip any ES6 defaults
-        .split(',').filter(Boolean); // split & filter [""]
-    return result;
-}
 // TODO: doc precond - capture name cannot be any of: ['request', 'req', 'rq', 'tunnel']
 function makeCanonicalHandler(pattern, rawHandler, paramNames) {
     let isDecorator = paramNames.indexOf('tunnel') !== -1;
