@@ -1,3 +1,9 @@
+'use strict';
+
+
+
+
+
 /**
  * Returns an array of the `func` function's formal parameter names.
  * Works for both ordinary and arrow functions. Works for parameters
