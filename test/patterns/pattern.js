@@ -1,10 +1,7 @@
 'use strict';
-import {expect} from 'chai';
-import Pattern from '../src/patterns/pattern';
-
-
+var chai_1 = require('chai');
+var pattern_1 = require('../../src/patterns/pattern');
 describe('Constructing a Pattern instance', () => {
-
     let tests = [
         '/api/foo ==> /api/foo WITH []',
         '/api/foo/BAR ==> /api/foo/BAR WITH []',
@@ -18,23 +15,19 @@ describe('Constructing a Pattern instance', () => {
         '/**/{name}.{ext} ==> /…/*.* WITH ["name", "ext"]',
         '/{...aPath}/{name}.{ext} ==> /…/*.* WITH ["aPath", "name", "ext"]'
     ];
-
     tests.forEach(test => {
         it(test, () => {
             let patternSource = test.split(' ==> ')[0];
             let rhs = test.split(' ==> ')[1];
             let expectedSignature = rhs.split(' WITH ')[0];
             let expectedCaptureNames = eval(rhs.split(' WITH ')[1] || '[]');
-            let pattern = new Pattern(patternSource);
-            expect(pattern.signature).equals(expectedSignature);
-            expect(pattern.captureNames).to.deep.equal(expectedCaptureNames);
+            let pattern = new pattern_1.default(patternSource);
+            chai_1.expect(pattern.signature).equals(expectedSignature);
+            chai_1.expect(pattern.captureNames).to.deep.equal(expectedCaptureNames);
         });
     });
 });
-
-
 describe('Matching a pattern against a pathname', () => {
-
     let tests = [
         '* MATCHES abc',
         '* DOES NOT MATCH abc/def',
@@ -65,7 +58,6 @@ describe('Matching a pattern against a pathname', () => {
         '{lhs}/bbb/{...rhs} DOES NOT MATCH /aaa/bbb/ccc/ddd',
         '/f*o/bar/{baz}z/{...rest}.html MATCHES /foo/bar/baz/some/more/stuff.html WITH { baz: "ba", rest: "some/more/stuff" }'
     ];
-
     tests.forEach(test => {
         it(test, () => {
             let isMatch = test.indexOf(' MATCHES ') !== -1;
@@ -74,14 +66,16 @@ describe('Matching a pattern against a pathname', () => {
             let rhs = test.split(split)[1];
             let pathname = rhs.split(' WITH ')[0];
             let expectedCaptures = isMatch ? eval(`(${rhs.split(' WITH ')[1]})`) || {} : null;
-            let pattern = new Pattern(patternSource);
+            let pattern = new pattern_1.default(patternSource);
             let actualCaptures = pattern.match(pathname);
-            expect(actualCaptures).to.deep.equal(expectedCaptures);
-            if (!isMatch) return;
+            chai_1.expect(actualCaptures).to.deep.equal(expectedCaptures);
+            if (!isMatch)
+                return;
             let expectedCaptureNames = Object.keys(expectedCaptures);
             let actualCaptureNames = pattern.captureNames;
-            expect(actualCaptureNames).to.include.members(expectedCaptureNames);
-            expect(expectedCaptureNames).to.include.members(actualCaptureNames);
+            chai_1.expect(actualCaptureNames).to.include.members(expectedCaptureNames);
+            chai_1.expect(expectedCaptureNames).to.include.members(actualCaptureNames);
         });
     });
 });
+//# sourceMappingURL=pattern.js.map

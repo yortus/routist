@@ -1,8 +1,11 @@
 'use strict';
-var chai_1 = require('chai');
-var hierarchize_patterns_1 = require('../src/patterns/hierarchize-patterns');
-var pattern_1 = require('../src/patterns/pattern');
+import {expect} from 'chai';
+import hierarchizePatterns from '../../src/patterns/hierarchize-patterns';
+import Pattern from '../../src/patterns/pattern';
+
+
 describe('Hierarchizing a set of patterns', () => {
+
     let patterns = [
         'a*',
         '*m*',
@@ -20,6 +23,7 @@ describe('Hierarchizing a set of patterns', () => {
         '/*/b',
         '/*z/b',
     ];
+
     let expected = {
         "…": {
             "a*": {
@@ -90,9 +94,9 @@ describe('Hierarchizing a set of patterns', () => {
             }
         }
     };
+
     it('works', () => {
-        let actual = hierarchize_patterns_1.default(patterns.map(p => new pattern_1.default(p)));
-        chai_1.expect(actual).deep.equal(expected);
+        let actual = hierarchizePatterns(patterns.map(p => new Pattern(p)));
+        expect(actual).deep.equal(expected);
     });
 });
-//# sourceMappingURL=hierarchize-patterns.js.map
