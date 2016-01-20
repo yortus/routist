@@ -20,7 +20,18 @@ describe('Constructing a Pattern instance', () => {
         '/foo/{...rest}* ==> ERROR',
         '/foo/{name}{ext} ==> ERROR',
         '/$foo ==> ERROR',
-        '/bar/? ==> ERROR'
+        '/bar/? ==> ERROR',
+        '{} ==> ERROR',
+        '{a...} ==> ERROR',
+        '{...} ==> ERROR',
+        '{..} ==> ERROR',
+        '{..a} ==> ERROR',
+        '{foo-bar} ==> ERROR',
+        '{"foo"} ==> ERROR',
+        '{ ==> ERROR',
+        '} ==> ERROR',
+        '{{} ==> ERROR',
+        '{}} ==> ERROR'
     ];
     tests.forEach(test => {
         it(test, () => {
