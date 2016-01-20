@@ -12,11 +12,18 @@ describe('Constructing a Pattern instance', () => {
         '/api/foo** ==> /api/foo… WITH []',
         '/api/foo/** ==> /api/foo/… WITH []',
         '/api/foo/{...rest} ==> /api/foo/… WITH ["rest"]',
-        '/api/f* ==> /api/f* WITH []',
+        '/API/f* ==> /API/f* WITH []',
         '/api/{foO}O ==> /api/*O WITH ["foO"]',
         '/…/{name}.{ext} ==> /…/*.* WITH ["name", "ext"]',
         '/**/{name}.{ext} ==> /…/*.* WITH ["name", "ext"]',
-        '/{...aPath}/{name}.{ext} ==> /…/*.* WITH ["aPath", "name", "ext"]'
+        '/{...aPath}/{name}.{ext} ==> /…/*.* WITH ["aPath", "name", "ext"]',
+        '/-/./- ==> /-/./-',
+        '/*** ==> ERROR',
+        '/*… ==> ERROR',
+        '/foo/{...rest}* ==> ERROR',
+        '/foo/{name}{ext} ==> ERROR',
+        '/$foo ==> ERROR',
+        '/bar/? ==> ERROR'
     ];
 
     tests.forEach(test => {
@@ -25,9 +32,16 @@ describe('Constructing a Pattern instance', () => {
             let rhs = test.split(' ==> ')[1];
             let expectedSignature = rhs.split(' WITH ')[0];
             let expectedCaptureNames = eval(rhs.split(' WITH ')[1] || '[]');
-            let pattern = new Pattern(patternSource);
-            expect(pattern.signature).equals(expectedSignature);
-            expect(pattern.captureNames).to.deep.equal(expectedCaptureNames);
+            let actualSignature = 'ERROR';
+            let actualCaptureNames = [];
+            try {
+                let pattern = new Pattern(patternSource);
+                actualSignature = pattern.signature;
+                actualCaptureNames = pattern.captureNames;
+            }
+            catch (ex) { }
+            expect(actualSignature).equals(expectedSignature);
+            expect(actualCaptureNames).to.deep.equal(expectedCaptureNames);
         });
     });
 });

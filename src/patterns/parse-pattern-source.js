@@ -1,10 +1,5 @@
 'use strict';
-import * as PEG from 'pegjs';
-
-
-
-
-
+var PEG = require('pegjs');
 /**
  * Verifies that `pattern` has a valid format, and returns metadata about the pattern.
  * Throws an error if `pattern` is invalid. The returned metadata is as follows:
@@ -13,7 +8,7 @@ import * as PEG from 'pegjs';
  *                 Each element holds the name of its corresponding capture, or '?'
  *                 if the corresponding capture is anonymous (ie an '*' or '…' wildcard).
  */
-export default function parsePattern(pattern: string) {
+function parsePatternSource(pattern) {
     try {
         let ast = parser.parse(pattern);
         return ast;
@@ -21,19 +16,17 @@ export default function parsePattern(pattern: string) {
     catch (ex) {
         let startCol = ex.location.start.column;
         let endCol = ex.location.end.column;
-        if (endCol <= startCol) endCol = startCol + 1;
+        if (endCol <= startCol)
+            endCol = startCol + 1;
         let indicator = Array(startCol).join(' ') + Array(endCol - startCol + 1).join('^');
         let msg = `${ex.message}:\n${pattern}\n${indicator}`;
         throw new Error(msg);
     }
 }
-
-
-
-
-
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = parsePatternSource;
 // Use a PEG grammar to parse pattern strings.
-var parser: { parse(input: string): { signature: string, captureNames: string[] }; };
+var parser;
 parser = PEG.buildParser(`
     // ================================================================================
     Pattern
@@ -52,12 +45,12 @@ parser = PEG.buildParser(`
     /   Literal
 
     Globstar 'globstar'
-    =   ("**" / "…")   !"*"   !"…"   { return ['…', '?']; }
-    /   "{..."   id:IDENTIFIER   "}"   { return ['…', id]; }
+    =   ("**" / "…")   !("*" / "…" / "{")   { return ['…', '?']; }
+    /   "{..."   id:IDENTIFIER   "}"   !("*" / "…" / "{")   { return ['…', id]; }
 
     Wildcard 'wildcard'
-    =   "*"   !"*"   !"…"   { return ['*', '?']; }
-    /   "{"   id:IDENTIFIER   "}"   { return ['*', id]; }
+    =   "*"   !("*" / "…" / "{")   { return ['*', '?']; }
+    /   "{"   id:IDENTIFIER   "}"   !("*" / "…" / "{")   { return ['*', id]; }
 
     PathSeparator 'path separator'
     =   "/"   !"/"   { return ['/', null]; }
@@ -69,3 +62,4 @@ parser = PEG.buildParser(`
     =   [a-z_$]i   [a-z0-9_$]i*   { return text(); }
     // ================================================================================
 `);
+//# sourceMappingURL=parse-pattern-source.js.map

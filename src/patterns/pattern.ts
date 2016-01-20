@@ -1,5 +1,5 @@
 'use strict';
-import parsePattern from './parse-pattern';
+import parsePatternSource from './parse-pattern-source';
 
 
 
@@ -17,11 +17,10 @@ export default class Pattern {
      * @param {string} source - the pattern specified as a pattern DSL string.
      */
     constructor(private source: string) {
-        let patternAST = parsePattern(source); // TODO: also validates - should separate this
-        let matcher = makeMatchFunction(source);
+        let patternAST = parsePatternSource(source);
         this.signature = patternAST.signature;
         this.captureNames = patternAST.captureNames.filter(n => n !== '?');
-        this.match = matcher;
+        this.match = makeMatchFunction(source);
     }
 
 
@@ -69,7 +68,7 @@ export default class Pattern {
 function makeMatchFunction(pattern: string) {
 
     // Gather information about the pattern to be matched.
-    let patternAST = parsePattern(pattern);
+    let patternAST = parsePatternSource(pattern);
     let patternSignature = patternAST.signature.replace(/[^*…]+/g, 'A');
     let literalPart = patternAST.signature.replace(/[*…]/g, '');
     let captureName0 = patternAST.captureNames[0];

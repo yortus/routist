@@ -12,8 +12,8 @@ import Pattern from './patterns/pattern';
 export default function normalizeHandler(pattern: Pattern, handler: (...args: any[]) => any): CanonicalHandler {
 
     // Analyze the pattern and the handler.
-    let paramNames = getParamNames(handler);
     let captureNames = pattern.captureNames;
+    let paramNames = getParamNames(handler);
     
     // Ensure capture names are legal. In particular, check for reserved names.
     // TODO: also disallow any name that might be on the Object prototype...

@@ -1,5 +1,5 @@
 'use strict';
-import parsePattern from './parse-pattern';
+import parsePatternSource from './parse-pattern-source';
 import Pattern from './pattern';
 
 
@@ -18,8 +18,8 @@ import Pattern from './pattern';
  * @returns {Pattern} - the pattern that matches all pathnames matched by both `a` and `b`.
  */
 export default function intersectPatterns(a: Pattern|string, b: Pattern|string): Pattern {
-    let p = typeof a === 'string' ? parsePattern(a).signature : a.signature;
-    let q = typeof b === 'string' ? parsePattern(b).signature : b.signature;
+    let p = typeof a === 'string' ? parsePatternSource(a).signature : a.signature;
+    let q = typeof b === 'string' ? parsePatternSource(b).signature : b.signature;
     let allIntersections = getAllIntersections(p, q);
     let distinctIntersections = getDistinctPatterns(allIntersections);
     if (distinctIntersections.length === 0) return Pattern.EMPTY;

@@ -1,5 +1,5 @@
 'use strict';
-var parse_pattern_1 = require('./parse-pattern');
+var parse_pattern_source_1 = require('./parse-pattern-source');
 var pattern_1 = require('./pattern');
 /**
  * Generates a pattern that matches all the pathnames that are matched by *both*
@@ -13,8 +13,8 @@ var pattern_1 = require('./pattern');
  * @returns {Pattern} - the pattern that matches all pathnames matched by both `a` and `b`.
  */
 function intersectPatterns(a, b) {
-    let p = typeof a === 'string' ? parse_pattern_1.default(a).signature : a.signature;
-    let q = typeof b === 'string' ? parse_pattern_1.default(b).signature : b.signature;
+    let p = typeof a === 'string' ? parse_pattern_source_1.default(a).signature : a.signature;
+    let q = typeof b === 'string' ? parse_pattern_source_1.default(b).signature : b.signature;
     let allIntersections = getAllIntersections(p, q);
     let distinctIntersections = getDistinctPatterns(allIntersections);
     if (distinctIntersections.length === 0)

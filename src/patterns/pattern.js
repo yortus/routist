@@ -1,5 +1,5 @@
 'use strict';
-var parse_pattern_1 = require('./parse-pattern');
+var parse_pattern_source_1 = require('./parse-pattern-source');
 /**
  * A pattern recognizes a set of pathnames. It like a RegExp, but tailored
  * specifically to pathname recognition. Patterns are case-sensitive.
@@ -11,11 +11,10 @@ class Pattern {
      */
     constructor(source) {
         this.source = source;
-        let patternAST = parse_pattern_1.default(source); // TODO: also validates - should separate this
-        let matcher = makeMatchFunction(source);
+        let patternAST = parse_pattern_source_1.default(source);
         this.signature = patternAST.signature;
         this.captureNames = patternAST.captureNames.filter(n => n !== '?');
-        this.match = matcher;
+        this.match = makeMatchFunction(source);
     }
     /** Returns the source string with which this instance was constructed. */
     toString() { return this.source; }
@@ -29,7 +28,7 @@ exports.default = Pattern;
 /** Internal function used to create the Pattern#match method. */
 function makeMatchFunction(pattern) {
     // Gather information about the pattern to be matched.
-    let patternAST = parse_pattern_1.default(pattern);
+    let patternAST = parse_pattern_source_1.default(pattern);
     let patternSignature = patternAST.signature.replace(/[^*…]+/g, 'A');
     let literalPart = patternAST.signature.replace(/[*…]/g, '');
     let captureName0 = patternAST.captureNames[0];

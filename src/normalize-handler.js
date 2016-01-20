@@ -3,8 +3,8 @@
 // TODO: handle any type for `handler`? ie not just a function?
 function normalizeHandler(pattern, handler) {
     // Analyze the pattern and the handler.
-    let paramNames = getParamNames(handler);
     let captureNames = pattern.captureNames;
+    let paramNames = getParamNames(handler);
     // Ensure capture names are legal. In particular, check for reserved names.
     // TODO: also disallow any name that might be on the Object prototype...
     let reservedNames = ['request', 'req', 'rq', 'tunnel'];

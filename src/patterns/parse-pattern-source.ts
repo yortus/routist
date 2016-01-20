@@ -1,5 +1,10 @@
 'use strict';
-var PEG = require('pegjs');
+import * as PEG from 'pegjs';
+
+
+
+
+
 /**
  * Verifies that `pattern` has a valid format, and returns metadata about the pattern.
  * Throws an error if `pattern` is invalid. The returned metadata is as follows:
@@ -8,7 +13,7 @@ var PEG = require('pegjs');
  *                 Each element holds the name of its corresponding capture, or '?'
  *                 if the corresponding capture is anonymous (ie an '*' or '…' wildcard).
  */
-function parsePattern(pattern) {
+export default function parsePatternSource(pattern: string) {
     try {
         let ast = parser.parse(pattern);
         return ast;
@@ -16,17 +21,19 @@ function parsePattern(pattern) {
     catch (ex) {
         let startCol = ex.location.start.column;
         let endCol = ex.location.end.column;
-        if (endCol <= startCol)
-            endCol = startCol + 1;
+        if (endCol <= startCol) endCol = startCol + 1;
         let indicator = Array(startCol).join(' ') + Array(endCol - startCol + 1).join('^');
         let msg = `${ex.message}:\n${pattern}\n${indicator}`;
         throw new Error(msg);
     }
 }
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = parsePattern;
+
+
+
+
+
 // Use a PEG grammar to parse pattern strings.
-var parser;
+var parser: { parse(input: string): { signature: string, captureNames: string[] }; };
 parser = PEG.buildParser(`
     // ================================================================================
     Pattern
@@ -45,12 +52,12 @@ parser = PEG.buildParser(`
     /   Literal
 
     Globstar 'globstar'
-    =   ("**" / "…")   !"*"   !"…"   { return ['…', '?']; }
-    /   "{..."   id:IDENTIFIER   "}"   { return ['…', id]; }
+    =   ("**" / "…")   !("*" / "…" / "{")   { return ['…', '?']; }
+    /   "{..."   id:IDENTIFIER   "}"   !("*" / "…" / "{")   { return ['…', id]; }
 
     Wildcard 'wildcard'
-    =   "*"   !"*"   !"…"   { return ['*', '?']; }
-    /   "{"   id:IDENTIFIER   "}"   { return ['*', id]; }
+    =   "*"   !("*" / "…" / "{")   { return ['*', '?']; }
+    /   "{"   id:IDENTIFIER   "}"   !("*" / "…" / "{")   { return ['*', id]; }
 
     PathSeparator 'path separator'
     =   "/"   !"/"   { return ['/', null]; }
@@ -62,4 +69,3 @@ parser = PEG.buildParser(`
     =   [a-z_$]i   [a-z0-9_$]i*   { return text(); }
     // ================================================================================
 `);
-//# sourceMappingURL=parse-pattern.js.map
