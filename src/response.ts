@@ -1,7 +1,13 @@
 'use strict';
 
 // TODO: more...
-export type Response = ResponseObject | string;
+
+
+export default Response;
+
+
+type Response = ResponseObject | string;
+
 
 export class ResponseObject {
 

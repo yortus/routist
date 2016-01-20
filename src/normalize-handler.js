@@ -10,7 +10,7 @@ function normalizeHandler(pattern, handler) {
     let captureNames = matchPattern.captureNames;
     // Ensure capture names are legal. In particular, check for reserved names.
     // TODO: also disallow any name that might be on the Object prototype...
-    let reservedNames = ['request', 'req', 'rq', 'handle'];
+    let reservedNames = ['request', 'req', 'rq', 'tunnel'];
     reservedNames.forEach(reservedName => {
         if (captureNames.indexOf(reservedName) !== -1) {
             throw new Error(`Reserved name '${reservedName}' used as capture name in pattern '${pattern}'`);
@@ -27,7 +27,7 @@ function normalizeHandler(pattern, handler) {
         throw new Error(`Unsatisfied parameters: ${unsatisfiedParams.join(', ')}`); // TODO: improve error message
     }
     // Create and return an equivalent handler in normalized form.
-    let canonicalHandler = makeCanonicalHandler2(handler, paramNames, matchPattern);
+    let canonicalHandler = makeCanonicalHandler(handler, paramNames, matchPattern);
     return canonicalHandler;
 }
 exports.default = normalizeHandler;
@@ -42,53 +42,25 @@ function getParamNames(func) {
         .split(',').filter(Boolean); // split & filter [""]
     return result;
 }
-// TODO: add fast/noDebug case that uses eval...
-// TODO: doc precond - capture name cannot be any of: ['request', 'req', 'rq', 'handle']
-function makeCanonicalHandler(rawHandler, paramNames, matchPattern) {
-    let isDecorator = paramNames.indexOf('handle') !== -1;
-    return (request, traverseInnerHandlers) => {
-        // TODO: ...
-        let paramBindings = matchPattern(request.pathname);
-        if (paramBindings === null)
-            return null;
-        // TODO: ...
-        paramBindings['request'] = paramBindings['req'] = paramBindings['rq'] = request;
-        paramBindings['handle'] = (req) => traverseInnerHandlers(req || request);
-        let argValues = paramNames.map(name => paramBindings[name]);
-        // TODO: ...
-        let response = null;
-        if (!isDecorator) {
-            response = traverseInnerHandlers(request);
-            if (response !== null)
-                return response;
-        }
-        response = rawHandler.apply(null, argValues);
-        return response;
-    };
-}
+// TODO: doc...
 var dummy = false ? make_pattern_matcher_1.default('') : null;
-function makeCanonicalHandler2(rawHandler, paramNames, matchPattern) {
-    let isDecorator = paramNames.indexOf('handle') !== -1;
-    let paramMappings = {};
-    paramNames.forEach(name => paramMappings[name] = `paramBindings.${name}`);
-    paramMappings['request'] = paramMappings['req'] = paramMappings['rq'] = 'request';
-    paramMappings['handle'] = 'handle';
-    let source = `(function (request, traverseInnerHandlers) {
-
-        ${isDecorator ? `
-        var handle = rq => traverseInnerHandlers(rq || request);
-        ` : ''}
+// TODO: doc precond - capture name cannot be any of: ['request', 'req', 'rq', 'tunnel']
+function makeCanonicalHandler(rawHandler, paramNames, matchPattern) {
+    let isDecorator = paramNames.indexOf('tunnel') !== -1;
+    let paramMappings = matchPattern.captureNames.reduce((map, name) => (map[name] = `paramBindings.${name}`, map), {});
+    paramMappings['req'] = paramMappings['rq'] = 'request';
+    let source = `(function (request, tunnel) {
 
         let paramBindings = matchPattern(request.pathname);
         if (paramBindings === null) return null;
 
         var response;
         ${isDecorator ? '' : `
-            response = traverseInnerHandlers(request);
-            if (response !== null) return response;
+        response = tunnel(request);
+        if (response !== null) return response;
         `}
 
-        response = rawHandler(${paramNames.map(name => paramMappings[name])});
+        response = rawHandler(${paramNames.map(name => paramMappings[name] || name).join(', ')});
         return response;
     })`;
     let canonicalHandler = eval(source);

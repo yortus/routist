@@ -1,12 +1,12 @@
 'use strict';
 import Request from './request';
-import {Response} from './response';
+import Response from './response';
 import parsePattern from './parse-pattern';
 import makePatternMatcher from './make-pattern-matcher';
 
 
 // TODO: doc...
-export default function normalizeHandler(pattern: string, handler: (...args: any[]) => Response): Handler {
+export default function normalizeHandler(pattern: string, handler: (...args: any[]) => Response): CanonicalHandler {
 
     // Analyze the pattern and the handler.
     let patternAST = parsePattern(pattern);
@@ -16,7 +16,7 @@ export default function normalizeHandler(pattern: string, handler: (...args: any
     
     // Ensure capture names are legal. In particular, check for reserved names.
     // TODO: also disallow any name that might be on the Object prototype...
-    let reservedNames = ['request', 'req', 'rq', 'handle'];
+    let reservedNames = ['request', 'req', 'rq', 'tunnel'];
     reservedNames.forEach(reservedName => {
         if (captureNames.indexOf(reservedName) !== -1) {
             throw new Error(`Reserved name '${reservedName}' used as capture name in pattern '${pattern}'`);
@@ -36,14 +36,14 @@ export default function normalizeHandler(pattern: string, handler: (...args: any
     }
 
     // Create and return an equivalent handler in normalized form.
-    let canonicalHandler = makeCanonicalHandler2(handler, paramNames, matchPattern);
+    let canonicalHandler = makeCanonicalHandler(handler, paramNames, matchPattern);
     return canonicalHandler;
 }
 
 
 // TODO: doc...
-export interface Handler {
-    (request: Request, traverseInnerHandlers: (request?: Request) => Response): Response;
+export interface CanonicalHandler {
+    (request: Request, tunnel: (request?: Request) => Response): Response;
 }
 
 
@@ -63,35 +63,7 @@ function getParamNames(func: Function) {
 
 
 
-// TODO: add fast/noDebug case that uses eval...
-// TODO: doc precond - capture name cannot be any of: ['request', 'req', 'rq', 'handle']
-function makeCanonicalHandler(rawHandler: Function, paramNames: string[], matchPattern: MatchFunction): Handler {
-    
-    let isDecorator = paramNames.indexOf('handle') !== -1;
-
-    return (request: Request, traverseInnerHandlers: (request?: Request) => Response) => {
-
-        // TODO: ...
-        let paramBindings: any = matchPattern(request.pathname);
-        if (paramBindings === null) return null;
-
-        // TODO: ...
-        paramBindings['request'] = paramBindings['req'] = paramBindings['rq'] = request;
-        paramBindings['handle'] = (req?: Request) => traverseInnerHandlers(req || request);
-        let argValues = paramNames.map(name => paramBindings[name]);
-
-        // TODO: ...
-        let response: Response = null;
-        if (!isDecorator) {
-            response = traverseInnerHandlers(request);
-            if (response !== null) return response;
-        }
-        response = rawHandler.apply(null, argValues);
-        return response;
-    };
-}
-
-
+// TODO: doc...
 var dummy = false ? makePatternMatcher('') : null;
 type MatchFunction = typeof dummy;
 
@@ -99,31 +71,27 @@ type MatchFunction = typeof dummy;
 
 
 
-function makeCanonicalHandler2(rawHandler: Function, paramNames: string[], matchPattern: MatchFunction): Handler {
-
-    let isDecorator = paramNames.indexOf('handle') !== -1;
-    let paramMappings = {};
-    paramNames.forEach(name => paramMappings[name] = `paramBindings.${name}`);
-    paramMappings['request'] = paramMappings['req'] = paramMappings['rq'] = 'request';
-    paramMappings['handle'] = 'handle';
+// TODO: doc precond - capture name cannot be any of: ['request', 'req', 'rq', 'tunnel']
+function makeCanonicalHandler(rawHandler: Function, paramNames: string[], matchPattern: MatchFunction): CanonicalHandler {
 
 
-    let source = `(function (request, traverseInnerHandlers) {
+    let isDecorator = paramNames.indexOf('tunnel') !== -1;
+    let paramMappings = matchPattern.captureNames.reduce((map, name) => (map[name] = `paramBindings.${name}`, map), {});
+    paramMappings['req'] = paramMappings['rq'] = 'request';
 
-        ${isDecorator ? `
-        var handle = rq => traverseInnerHandlers(rq || request);
-        ` : ''}
+
+    let source = `(function (request, tunnel) {
 
         let paramBindings = matchPattern(request.pathname);
         if (paramBindings === null) return null;
 
         var response;
         ${isDecorator ? '' : `
-            response = traverseInnerHandlers(request);
-            if (response !== null) return response;
+        response = tunnel(request);
+        if (response !== null) return response;
         `}
 
-        response = rawHandler(${paramNames.map(name => paramMappings[name])});
+        response = rawHandler(${paramNames.map(name => paramMappings[name] || name).join(', ')});
         return response;
     })`;
 
