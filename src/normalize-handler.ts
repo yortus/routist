@@ -6,7 +6,7 @@ import makePatternMatcher from './make-pattern-matcher';
 
 
 // TODO: doc...
-export default function normalizeHandler(pattern: string, handler: (...args: any[]) => Response): CanonicalHandler {
+export default function normalizeHandler(pattern: string, handler: (...args: any[]) => any): CanonicalHandler {
 
     // Analyze the pattern and the handler.
     let patternAST = parsePattern(pattern);

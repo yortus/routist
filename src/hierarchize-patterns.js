@@ -10,6 +10,8 @@ var intersect_patterns_1 = require('./intersect-patterns');
  * For overlapping patterns, an additional node representing their intersection
  * is added as a descendent of both patterns. The hierarchy is thus a directed
  * acyclic graph (DAG).
+ * NB: The given patterns are assumed to be in normal form.
+ * NB: The operation is case-sensitive.
  *
  * For example, the patterns ['/foo', '/bar', '/f*', '/*o'] result in the DAG:
  * …
