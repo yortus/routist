@@ -1,6 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
-var pattern_1 = require('../src/pattern');
+var pattern_1 = require('../src/patterns/pattern');
 describe('Constructing a Pattern instance', () => {
     let tests = [
         '/api/foo ==> /api/foo WITH []',

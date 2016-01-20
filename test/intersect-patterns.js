@@ -1,6 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
-var intersect_patterns_1 = require('../src/intersect-patterns');
+var intersect_patterns_1 = require('../src/patterns/intersect-patterns');
 describe('Intersecting two pattern strings', () => {
     let tests = [
         '… ∩ ∅ = ∅',

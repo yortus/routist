@@ -1,7 +1,7 @@
 'use strict';
 var chai_1 = require('chai');
-var hierarchize_patterns_1 = require('../src/hierarchize-patterns');
-var pattern_1 = require('../src/pattern');
+var hierarchize_patterns_1 = require('../src/patterns/hierarchize-patterns');
+var pattern_1 = require('../src/patterns/pattern');
 describe('Hierarchizing a set of patterns', () => {
     let patterns = [
         'a*',

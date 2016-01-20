@@ -1,7 +1,7 @@
 'use strict';
 import {expect} from 'chai';
-import hierarchizePatterns from '../src/hierarchize-patterns';
-import Pattern from '../src/pattern';
+import hierarchizePatterns from '../src/patterns/hierarchize-patterns';
+import Pattern from '../src/patterns/pattern';
 
 
 describe('Hierarchizing a set of patterns', () => {

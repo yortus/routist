@@ -1,6 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import intersectPatterns from '../src/intersect-patterns';
+import intersectPatterns from '../src/patterns/intersect-patterns';
 
 
 describe('Intersecting two pattern strings', () => {

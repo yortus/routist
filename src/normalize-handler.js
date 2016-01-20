@@ -1,5 +1,5 @@
 'use strict';
-var pattern_1 = require('./pattern');
+var pattern_1 = require('./patterns/pattern');
 // TODO: doc...
 function normalizeHandler(patternSource, handler) {
     // Analyze the pattern and the handler.
