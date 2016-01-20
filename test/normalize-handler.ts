@@ -3,7 +3,7 @@ import {expect} from 'chai';
 import normalizeHandler from '../src/normalize-handler';
 
 
-describe('normalization of a handler function', () => {
+describe('Normalizing a handler function', () => {
 
     let tests = [
         {

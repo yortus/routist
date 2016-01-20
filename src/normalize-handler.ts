@@ -1,18 +1,17 @@
 'use strict';
 import Request from './request';
 import Response from './response';
-import parsePattern from './parse-pattern';
-import makePatternMatcher from './make-pattern-matcher';
+//import makePatternMatcher from './make-pattern-matcher';
+import Pattern from './pattern';
 
 
 // TODO: doc...
-export default function normalizeHandler(pattern: string, handler: (...args: any[]) => any): CanonicalHandler {
+export default function normalizeHandler(patternSource: string, handler: (...args: any[]) => any): CanonicalHandler {
 
     // Analyze the pattern and the handler.
-    let patternAST = parsePattern(pattern);
-    let matchPattern = makePatternMatcher(pattern);
+    let pattern = new Pattern(patternSource);
     let paramNames = getParamNames(handler);
-    let captureNames = matchPattern.captureNames;
+    let captureNames = pattern.captureNames;
     
     // Ensure capture names are legal. In particular, check for reserved names.
     // TODO: also disallow any name that might be on the Object prototype...
@@ -36,7 +35,7 @@ export default function normalizeHandler(pattern: string, handler: (...args: any
     }
 
     // Create and return an equivalent handler in normalized form.
-    let canonicalHandler = makeCanonicalHandler(handler, paramNames, matchPattern);
+    let canonicalHandler = makeCanonicalHandler(pattern, handler, paramNames);
     return canonicalHandler;
 }
 
@@ -63,26 +62,18 @@ function getParamNames(func: Function) {
 
 
 
-// TODO: doc...
-var dummy = false ? makePatternMatcher('') : null;
-type MatchFunction = typeof dummy;
-
-
-
-
-
 // TODO: doc precond - capture name cannot be any of: ['request', 'req', 'rq', 'tunnel']
-function makeCanonicalHandler(rawHandler: Function, paramNames: string[], matchPattern: MatchFunction): CanonicalHandler {
+function makeCanonicalHandler(pattern: Pattern, rawHandler: Function, paramNames: string[]): CanonicalHandler {
 
 
     let isDecorator = paramNames.indexOf('tunnel') !== -1;
-    let paramMappings = matchPattern.captureNames.reduce((map, name) => (map[name] = `paramBindings.${name}`, map), {});
+    let paramMappings = pattern.captureNames.reduce((map, name) => (map[name] = `paramBindings.${name}`, map), {});
     paramMappings['req'] = paramMappings['rq'] = 'request';
 
 
     let source = `(function (request, tunnel) {
 
-        let paramBindings = matchPattern(request.pathname);
+        let paramBindings = pattern.match(request.pathname);
         if (paramBindings === null) return null;
 
         var response;

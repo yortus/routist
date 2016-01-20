@@ -1,13 +1,12 @@
 'use strict';
-var parse_pattern_1 = require('./parse-pattern');
-var make_pattern_matcher_1 = require('./make-pattern-matcher');
+//import makePatternMatcher from './make-pattern-matcher';
+var pattern_1 = require('./pattern');
 // TODO: doc...
-function normalizeHandler(pattern, handler) {
+function normalizeHandler(patternSource, handler) {
     // Analyze the pattern and the handler.
-    let patternAST = parse_pattern_1.default(pattern);
-    let matchPattern = make_pattern_matcher_1.default(pattern);
+    let pattern = new pattern_1.default(patternSource);
     let paramNames = getParamNames(handler);
-    let captureNames = matchPattern.captureNames;
+    let captureNames = pattern.captureNames;
     // Ensure capture names are legal. In particular, check for reserved names.
     // TODO: also disallow any name that might be on the Object prototype...
     let reservedNames = ['request', 'req', 'rq', 'tunnel'];
@@ -27,9 +26,10 @@ function normalizeHandler(pattern, handler) {
         throw new Error(`Unsatisfied parameters: ${unsatisfiedParams.join(', ')}`); // TODO: improve error message
     }
     // Create and return an equivalent handler in normalized form.
-    let canonicalHandler = makeCanonicalHandler(handler, paramNames, matchPattern);
+    let canonicalHandler = makeCanonicalHandler(pattern, handler, paramNames);
     return canonicalHandler;
 }
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = normalizeHandler;
 // TODO: doc...
 // Source: http://stackoverflow.com/a/31194949/1075886
@@ -42,16 +42,14 @@ function getParamNames(func) {
         .split(',').filter(Boolean); // split & filter [""]
     return result;
 }
-// TODO: doc...
-var dummy = false ? make_pattern_matcher_1.default('') : null;
 // TODO: doc precond - capture name cannot be any of: ['request', 'req', 'rq', 'tunnel']
-function makeCanonicalHandler(rawHandler, paramNames, matchPattern) {
+function makeCanonicalHandler(pattern, rawHandler, paramNames) {
     let isDecorator = paramNames.indexOf('tunnel') !== -1;
-    let paramMappings = matchPattern.captureNames.reduce((map, name) => (map[name] = `paramBindings.${name}`, map), {});
+    let paramMappings = pattern.captureNames.reduce((map, name) => (map[name] = `paramBindings.${name}`, map), {});
     paramMappings['req'] = paramMappings['rq'] = 'request';
     let source = `(function (request, tunnel) {
 
-        let paramBindings = matchPattern(request.pathname);
+        let paramBindings = pattern.match(request.pathname);
         if (paramBindings === null) return null;
 
         var response;

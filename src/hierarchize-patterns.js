@@ -38,6 +38,7 @@ function hierarchizePatterns(patterns) {
     // Return a top-level node with the single key '…'.
     return { '…': nodeFor('…') };
 }
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = hierarchizePatterns;
 /**
  * Inserts `pattern` into the appropriate position in the DAG rooted at `superset`.

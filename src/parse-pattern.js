@@ -23,6 +23,7 @@ function parsePattern(pattern) {
         throw new Error(msg);
     }
 }
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = parsePattern;
 // Use a PEG grammar to parse pattern strings.
 var parser;

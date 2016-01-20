@@ -16,6 +16,7 @@ function intersectPatterns(patternA, patternB) {
         return distinctIntersections[0];
     throw new Error(`Intersection of ${patternA} and ${patternB} cannot be expressed as a single pattern`);
 }
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = intersectPatterns;
 /**
  * Computes all patterns that may be formed by unifying wildcards from

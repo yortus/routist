@@ -2,5 +2,6 @@
 // TODO: more...
 class Request {
 }
-exports.Request = Request;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Request;
 //# sourceMappingURL=request.js.map
