@@ -49,6 +49,7 @@ export default function normalizeHandler(pattern: Pattern, handler: (...args: an
 // TODO: doc...
 export interface CanonicalHandler {
     (request: Request, tunnel: (request?: Request) => Response): Response;
+    isDecorator: boolean;
 }
 
 
@@ -61,13 +62,16 @@ export interface CanonicalHandler {
 
 
 // TODO: doc precond - capture name cannot be any of: ['request', 'req', 'rq', 'tunnel']
-function makeCanonicalHandler(pattern: Pattern, rawHandler: Function, paramNames: string[]): CanonicalHandler {
+function makeCanonicalHandler(pattern: Pattern, originalHandler: Function, paramNames: string[]): CanonicalHandler {
 
-
+    // If the original handler has 'tunnel' as a formal parameter, that signifies that it is a decorator.
     let isDecorator = paramNames.indexOf('tunnel') !== -1;
-    let paramMappings = pattern.captureNames.reduce((map, name) => (map[name] = `paramBindings.${name}`, map), {});
-    paramMappings['req'] = paramMappings['rq'] = 'request';
 
+    // Precompute a map with keys that match all of the the original function's formal parameter names.
+    // The value for each key holds the source code to supply the actual parameter for the corresponding formal parameter.
+    let paramMappings = pattern.captureNames.reduce((map, name) => (map[name] = `paramBindings.${name}`, map), {});
+    paramMappings['request'] = paramMappings['req'] = paramMappings['rq'] = 'request';
+    paramMappings['tunnel'] = 'tunnel';
 
     let source = `(function (request, tunnel) {
 
@@ -80,11 +84,12 @@ function makeCanonicalHandler(pattern: Pattern, rawHandler: Function, paramNames
         if (response !== null) return response;
         `}
 
-        response = rawHandler(${paramNames.map(name => paramMappings[name] || name).join(', ')});
+        response = originalHandler(${paramNames.map(name => paramMappings[name] || '#ILLEGAL!').join(', ')});
         return response;
     })`;
 
 
-    let canonicalHandler = eval(source);
+    let canonicalHandler: CanonicalHandler = eval(source);
+    canonicalHandler.isDecorator = isDecorator;
     return canonicalHandler;
 }
