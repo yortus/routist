@@ -7,16 +7,16 @@ describe('Constructing a Pattern instance', () => {
 
     let tests = [
         '/api/foo ==> /api/foo WITH []',
-        '/api/foo/bar ==> /api/foo/bar WITH []',
+        '/api/foo/BAR ==> /api/foo/BAR WITH []',
         '/api/foo… ==> /api/foo… WITH []',
         '/api/foo** ==> /api/foo… WITH []',
         '/api/foo/** ==> /api/foo/… WITH []',
         '/api/foo/{...rest} ==> /api/foo/… WITH ["rest"]',
         '/api/f* ==> /api/f* WITH []',
-        '/api/{fo}o ==> /api/*o WITH ["fo"]',
+        '/api/{foO}O ==> /api/*O WITH ["foO"]',
         '/…/{name}.{ext} ==> /…/*.* WITH ["name", "ext"]',
         '/**/{name}.{ext} ==> /…/*.* WITH ["name", "ext"]',
-        '/{...path}/{name}.{ext} ==> /…/*.* WITH ["path", "name", "ext"]'
+        '/{...aPath}/{name}.{ext} ==> /…/*.* WITH ["aPath", "name", "ext"]'
     ];
 
     tests.forEach(test => {
@@ -40,7 +40,7 @@ describe('Matching a pattern against a pathname', () => {
         '* DOES NOT MATCH abc/def',
         '… MATCHES abc',
         '… MATCHES abc/def',
-        '{name} MATCHES abc WITH { name: "abc" }',
+        '{Name} MATCHES abc WITH { Name: "abc" }',
         '{name} DOES NOT MATCH abc/def',
         '{...path} MATCHES abc/def WITH { path: "abc/def" }',
         'aaa MATCHES aaa',
@@ -49,6 +49,7 @@ describe('Matching a pattern against a pathname', () => {
         '…bbb MATCHES aaa/bbb',
         '…bbb DOES NOT MATCH bbbabb',
         '{x}/y MATCHES x/y WITH {x: "x"}',
+        '{X}/Y MATCHES X/Y WITH {X: "X"}',
         '/foo/* DOES NOT MATCH /foo',
         '/foo/* MATCHES /foo/bar',
         '/… MATCHES /foo/bar',
@@ -57,6 +58,8 @@ describe('Matching a pattern against a pathname', () => {
         '*aaa* MATCHES aaabbb',
         '*aaa* MATCHES aaaaaa',
         '*bbb* MATCHES aaabbb',
+        '*ab* DOES NOT MATCH AABB',
+        '*AB* DOES NOT MATCH aabb',
         '*bbb* DOES NOT MATCH bb/baaabb',
         '/{lhs}/bbb/{...rhs} MATCHES /aaa/bbb/ccc/ddd WITH {lhs: "aaa", rhs: "ccc/ddd"}',
         '{lhs}/bbb/{...rhs} DOES NOT MATCH /aaa/bbb/ccc/ddd',

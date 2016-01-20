@@ -1,7 +1,7 @@
 'use strict';
 var chai_1 = require('chai');
 var normalize_handler_1 = require('../src/normalize-handler');
-describe('Normalizing of a handler function', () => {
+describe('Normalizing a handler function', () => {
     let tests = [
         {
             pattern: '/api/{...rest}',
