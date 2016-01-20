@@ -1,6 +1,7 @@
 'use strict';
 import {expect} from 'chai';
 import normalizeHandler from '../src/normalize-handler';
+import Pattern from '../src/patterns/pattern';
 
 
 describe('Normalizing a handler function', () => {
@@ -96,7 +97,7 @@ describe('Normalizing a handler function', () => {
         it(`${test.pattern} WITH ${test.handler}`, () => {
             let expectedResponse = test.response;
             try {
-                let canonicalHandler = normalizeHandler(test.pattern, test.handler);
+                let canonicalHandler = normalizeHandler(new Pattern(test.pattern), test.handler);
                 let request = { pathname: test.pathname };
                 let tunnel = (rq?) => test.tunnel(rq || request);
                 let actualResponse = <any> canonicalHandler(request, (rq?) => test.tunnel(rq || request));

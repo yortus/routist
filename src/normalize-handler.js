@@ -1,9 +1,8 @@
 'use strict';
-var pattern_1 = require('./patterns/pattern');
 // TODO: doc...
-function normalizeHandler(patternSource, handler) {
+// TODO: handle any type for `handler`? ie not just a function?
+function normalizeHandler(pattern, handler) {
     // Analyze the pattern and the handler.
-    let pattern = new pattern_1.default(patternSource);
     let paramNames = getParamNames(handler);
     let captureNames = pattern.captureNames;
     // Ensure capture names are legal. In particular, check for reserved names.

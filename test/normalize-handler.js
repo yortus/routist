@@ -1,6 +1,7 @@
 'use strict';
 var chai_1 = require('chai');
 var normalize_handler_1 = require('../src/normalize-handler');
+var pattern_1 = require('../src/patterns/pattern');
 describe('Normalizing a handler function', () => {
     let tests = [
         {
@@ -92,7 +93,7 @@ describe('Normalizing a handler function', () => {
         it(`${test.pattern} WITH ${test.handler}`, () => {
             let expectedResponse = test.response;
             try {
-                let canonicalHandler = normalize_handler_1.default(test.pattern, test.handler);
+                let canonicalHandler = normalize_handler_1.default(new pattern_1.default(test.pattern), test.handler);
                 let request = { pathname: test.pathname };
                 let tunnel = (rq) => test.tunnel(rq || request);
                 let actualResponse = canonicalHandler(request, (rq) => test.tunnel(rq || request));

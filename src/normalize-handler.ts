@@ -8,10 +8,10 @@ import Pattern from './patterns/pattern';
 
 
 // TODO: doc...
-export default function normalizeHandler(patternSource: string, handler: (...args: any[]) => any): CanonicalHandler {
+// TODO: handle any type for `handler`? ie not just a function?
+export default function normalizeHandler(pattern: Pattern, handler: (...args: any[]) => any): CanonicalHandler {
 
     // Analyze the pattern and the handler.
-    let pattern = new Pattern(patternSource);
     let paramNames = getParamNames(handler);
     let captureNames = pattern.captureNames;
     
