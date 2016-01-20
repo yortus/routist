@@ -6,7 +6,6 @@
         "sourceMap": true
     },
     "exclude": [
-        "node_modules",
-        "src/route-family-0.ts"
+        "node_modules"
     ]
 }
