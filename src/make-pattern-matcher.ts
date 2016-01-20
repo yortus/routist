@@ -13,17 +13,75 @@ import parsePattern from './parse-pattern';
  * NB: Pattern matching is case-sensitive.
  */
 export default function makePatternMatcher(pattern: string) {
+
+    // Gather information about the pattern to be matched.
     let patternAST = parsePattern(pattern);
-    let recogniser = makePathnameRecogniser(patternAST.canonical);
-    var match: MatchFunction = <any> ((pathname: string) => {
-        let matches = pathname.match(recogniser);
-        if (!matches) return null;
-        let result = patternAST.captureNames.reduce((result, name, i) => {
-            if (name !== '?') result[name] = matches[i + 1];
-            return result;
-        }, <any> {});
-        return result;
-    });
+    let patternSignature = patternAST.canonical.replace(/[^*…]+/g, 'A');
+    let literalPart = patternAST.canonical.replace(/[*…]/g, '');
+    let captureName0 = patternAST.captureNames[0];
+
+    // Construct the matcher function, using optimizations where possible.
+    // Pattern matching may be done frequently, possibly on a critical path.
+    // For simpler patterns, we can avoid the overhead of using a regex.
+    // The switch block below picks out some simpler cases and provides
+    // specialized matcher functions for them. The default case falls back
+    // to using a regex. Note that all but the default case below could be
+    // commented out with no change in runtime behaviour. The additional cases
+    // are strictly optimizations.
+    let matchFunction: any;
+    switch (patternSignature) {
+        case 'A':
+            matchFunction = (pathname: string) => pathname === pattern ? {} : null;
+            break;
+
+        case '*':
+        case '…':
+            matchFunction = (pathname: string) => {
+                if (patternSignature === '*' && pathname.indexOf('/') !== -1) return null;
+                if (captureName0 === '?') return {};
+                return {[captureName0]: pathname};
+            }
+            break;
+
+        case 'A*':
+        case 'A…':
+            matchFunction = (pathname: string) => {
+                let i = pathname.indexOf(literalPart);
+                if (i !== 0) return null;
+                let captureValue = pathname.slice(literalPart.length);
+                if (patternSignature === 'A*' && captureValue.indexOf('/') !== -1) return null;
+                if (captureName0 === '?') return {};
+                return {[captureName0]: captureValue};
+            };
+            break;
+
+        case '*A':
+        case '…A':
+            matchFunction = (pathname: string) => {
+                let i = pathname.lastIndexOf(literalPart);
+                if (i === -1 || i !== pathname.length - literalPart.length) return null;
+                let captureValue = pathname.slice(0, -literalPart.length);
+                if (patternSignature === '*A' && captureValue.indexOf('/') !== -1) return null;
+                if (captureName0 === '?') return {};
+                return {[captureName0]: captureValue};
+            };
+            break;
+
+        default:
+            let recogniser = makePathnameRecogniser(patternAST.canonical);
+            matchFunction = (pathname: string) => {
+                let matches = pathname.match(recogniser);
+                if (!matches) return null;
+                let result = patternAST.captureNames.reduce((result, name, i) => {
+                    if (name !== '?') result[name] = matches[i + 1];
+                    return result;
+                }, <any> {});
+                return result;
+            };
+    }
+
+    // Return the matcher function.
+    let match: MatchFunction = matchFunction;
     match.captureNames = patternAST.captureNames.filter(n => n !== '?');
     return match;
 }

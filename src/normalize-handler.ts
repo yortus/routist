@@ -6,7 +6,6 @@ import makePatternMatcher from './make-pattern-matcher';
 
 
 // TODO: doc...
-// TODO: future optimisation: eval a wrapper function that statically passes args from regex captures and from `request`
 export default function normalizeHandler(pattern: string, handler: (...args: any[]) => Response): Handler {
 
     // Analyze the pattern and the handler.

@@ -2,7 +2,6 @@
 var parse_pattern_1 = require('./parse-pattern');
 var make_pattern_matcher_1 = require('./make-pattern-matcher');
 // TODO: doc...
-// TODO: future optimisation: eval a wrapper function that statically passes args from regex captures and from `request`
 function normalizeHandler(pattern, handler) {
     // Analyze the pattern and the handler.
     let patternAST = parse_pattern_1.default(pattern);
