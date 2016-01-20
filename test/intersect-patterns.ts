@@ -1,7 +1,6 @@
 'use strict';
 import {expect} from 'chai';
 import intersectPatterns from '../src/intersect-patterns';
-import normalizePattern from '../src/normalize-pattern';
 
 
 describe('Intersecting two pattern strings', () => {
@@ -78,15 +77,13 @@ describe('Intersecting two pattern strings', () => {
 
     tests.forEach(test => {
         it(test, () => {
-            let expected = test.split(' = ')[1];
-            let lhs = test.split(' = ')[0].split(' ∩ ')[0];
-            let rhs = test.split(' = ')[0].split(' ∩ ')[1];
-            let actual: string;
+            let lhsA = test.split(' = ')[0].split(' ∩ ')[0];
+            let lhsB = test.split(' = ')[0].split(' ∩ ')[1];
+            let rhs = test.split(' = ')[1];
+            let actual: string, expected = rhs;
             try {
                 actual = 'ERROR';
-                let a = normalizePattern(lhs);
-                let b = normalizePattern(rhs);
-                actual = intersectPatterns(a, b);
+                actual = intersectPatterns(lhsA, lhsB).signature;
             }
             catch(ex) { }
             expect(actual).equals(expected);

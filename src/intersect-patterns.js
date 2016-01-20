@@ -1,20 +1,27 @@
 'use strict';
+var parse_pattern_1 = require('./parse-pattern');
+var pattern_1 = require('./pattern');
 /**
- * Returns a new pattern that matches all the pathnames that are matched by *both*
- * `patternA` and `patternB`. Returns the empty pattern '∅' if there are no such
- * pathnames. Throws an error if the intersection cannot be expressed as a single
- * pattern.
- * NB: `patternA` and `patternB` are assumed to be in normal form.
- * NB: The operation is case-sensitive.
+ * Generates a pattern that matches all the pathnames that are matched by *both*
+ * patterns `a` and `b`. Returns the empty pattern '∅' if `a` and `b` are disjoint.
+ * Throws an error if the intersection cannot be expressed as a single pattern.
+ * Note that patterns are case-sensitive.
+ * @param {Pattern|string} a - a pattern. It may be provided either as a Pattern
+ *        instance, or as a pattern string.
+ * @param {Pattern|string} b - a pattern. It may be provided either as a Pattern
+ *        instance, or as a pattern string.
+ * @returns {Pattern} - the pattern that matches all pathnames matched by both `a` and `b`.
  */
-function intersectPatterns(patternA, patternB) {
-    let allIntersections = getAllIntersections(patternA, patternB);
+function intersectPatterns(a, b) {
+    let p = typeof a === 'string' ? parse_pattern_1.default(a).signature : a.signature;
+    let q = typeof b === 'string' ? parse_pattern_1.default(b).signature : b.signature;
+    let allIntersections = getAllIntersections(p, q);
     let distinctIntersections = getDistinctPatterns(allIntersections);
     if (distinctIntersections.length === 0)
-        return '∅';
+        return pattern_1.default.EMPTY;
     if (distinctIntersections.length === 1)
-        return distinctIntersections[0];
-    throw new Error(`Intersection of ${patternA} and ${patternB} cannot be expressed as a single pattern`);
+        return new pattern_1.default(distinctIntersections[0]);
+    throw new Error(`Intersection of ${a} and ${b} cannot be expressed as a single pattern`);
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = intersectPatterns;

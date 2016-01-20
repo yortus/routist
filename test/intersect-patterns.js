@@ -1,7 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
 var intersect_patterns_1 = require('../src/intersect-patterns');
-var normalize_pattern_1 = require('../src/normalize-pattern');
 describe('Intersecting two pattern strings', () => {
     let tests = [
         '… ∩ ∅ = ∅',
@@ -69,15 +68,13 @@ describe('Intersecting two pattern strings', () => {
     ];
     tests.forEach(test => {
         it(test, () => {
-            let expected = test.split(' = ')[1];
-            let lhs = test.split(' = ')[0].split(' ∩ ')[0];
-            let rhs = test.split(' = ')[0].split(' ∩ ')[1];
-            let actual;
+            let lhsA = test.split(' = ')[0].split(' ∩ ')[0];
+            let lhsB = test.split(' = ')[0].split(' ∩ ')[1];
+            let rhs = test.split(' = ')[1];
+            let actual, expected = rhs;
             try {
                 actual = 'ERROR';
-                let a = normalize_pattern_1.default(lhs);
-                let b = normalize_pattern_1.default(rhs);
-                actual = intersect_patterns_1.default(a, b);
+                actual = intersect_patterns_1.default(lhsA, lhsB).signature;
             }
             catch (ex) { }
             chai_1.expect(actual).equals(expected);

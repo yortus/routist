@@ -1,45 +1,46 @@
 'use strict';
 var parse_pattern_1 = require('./parse-pattern');
-// TODO: doc...
+/**
+ * A pattern recognizes a set of pathnames. It like a RegExp, but tailored
+ * specifically to pathname recognition. Patterns are case-sensitive.
+ */
 class Pattern {
-    // TODO: doc...
+    /**
+     * Constructs a Pattern instance.
+     * @param {string} source - the pattern specified as a pattern DSL string.
+     */
     constructor(source) {
         this.source = source;
         let patternAST = parse_pattern_1.default(source); // TODO: also validates - should separate this
         let matcher = makeMatchFunction(source);
-        this.signature = patternAST.canonical;
-        this.captureNames = matcher.captureNames;
+        this.signature = patternAST.signature;
+        this.captureNames = patternAST.captureNames.filter(n => n !== '?');
         this.match = matcher;
     }
-    // TODO: doc...
+    /** Returns the source string with which this instance was constructed. */
     toString() { return this.source; }
 }
+/** A singleton pattern that recognises all pathnames (i.e., the universal set). */
+Pattern.UNIVERSAL = new Pattern('…');
+/** A singleton pattern that recognises no pathnames (i.e., the empty set). */
+Pattern.EMPTY = new Pattern('∅');
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Pattern;
-/**
- * Returns a function that attempts to match a given pathname against `pattern`.
- * For successful matches, the returned function returns a hash containing the
- * name/value pairs for each named capture in the pattern. For failed matches,
- * the returned function returns null. The returned function has a property
- * `captureNames` that contains an array of the capture names present in the
- * pattern. For example, the pattern '{...path}/*.{ext}' will result in a matcher
- * function with a `captureNames` property with the value ['path', 'ext'].
- * NB: Pattern matching is case-sensitive.
- */
+/** Internal function used to create the Pattern#match method. */
 function makeMatchFunction(pattern) {
     // Gather information about the pattern to be matched.
     let patternAST = parse_pattern_1.default(pattern);
-    let patternSignature = patternAST.canonical.replace(/[^*…]+/g, 'A');
-    let literalPart = patternAST.canonical.replace(/[*…]/g, '');
+    let patternSignature = patternAST.signature.replace(/[^*…]+/g, 'A');
+    let literalPart = patternAST.signature.replace(/[*…]/g, '');
     let captureName0 = patternAST.captureNames[0];
-    // Construct the matcher function, using optimizations where possible.
+    // Construct the match function, using optimizations where possible.
     // Pattern matching may be done frequently, possibly on a critical path.
     // For simpler patterns, we can avoid the overhead of using a regex.
     // The switch block below picks out some simpler cases and provides
-    // specialized matcher functions for them. The default case falls back
+    // specialized match functions for them. The default case falls back
     // to using a regex. Note that all but the default case below could be
-    // commented out with no change in runtime behaviour. The additional cases
-    // are strictly optimizations.
+    // commented out with no change in runtime behaviour. The additional
+    // cases are strictly optimizations.
     let matchFunction;
     switch (patternSignature) {
         case 'A':
@@ -84,7 +85,7 @@ function makeMatchFunction(pattern) {
             };
             break;
         default:
-            let recogniser = makePathnameRecogniser(patternAST.canonical);
+            let recogniser = makePathnameRecogniser(patternAST.signature);
             matchFunction = (pathname) => {
                 let matches = pathname.match(recogniser);
                 if (!matches)
@@ -97,10 +98,8 @@ function makeMatchFunction(pattern) {
                 return result;
             };
     }
-    // Return the matcher function.
-    let match = matchFunction;
-    match.captureNames = patternAST.captureNames.filter(n => n !== '?');
-    return match;
+    // Return the match function.
+    return matchFunction;
 }
 /**
  * Constructs a regular expression that matches all pathnames recognised by the given pattern.

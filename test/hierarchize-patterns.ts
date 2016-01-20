@@ -1,6 +1,7 @@
 'use strict';
 import {expect} from 'chai';
 import hierarchizePatterns from '../src/hierarchize-patterns';
+import Pattern from '../src/pattern';
 
 
 describe('Hierarchizing a set of patterns', () => {
@@ -9,13 +10,13 @@ describe('Hierarchizing a set of patterns', () => {
         'a*',
         '*m*',
         '*z',
-        '…',
+        '**',
         '/bar',
         '/*',
         '/foo',
         '/foo/*.html',
         '/…o…o….html',
-        '/…o…o…',
+        '/**o**o**',
         '/bar',
         'a*',
         '/a/*',
@@ -95,7 +96,7 @@ describe('Hierarchizing a set of patterns', () => {
     };
 
     it('works', () => {
-        let actual = hierarchizePatterns(patterns);
+        let actual = hierarchizePatterns(patterns.map(p => new Pattern(p)));
         expect(actual).deep.equal(expected);
     });
 });

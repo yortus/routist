@@ -5,66 +5,83 @@ import parsePattern from './parse-pattern';
 
 
 
-// TODO: doc...
+/**
+ * A pattern recognizes a set of pathnames. It like a RegExp, but tailored
+ * specifically to pathname recognition. Patterns are case-sensitive.
+ */
 export default class Pattern {
 
 
-    // TODO: doc...
+    /**
+     * Constructs a Pattern instance.
+     * @param {string} source - the pattern specified as a pattern DSL string.
+     */
     constructor(private source: string) {
         let patternAST = parsePattern(source); // TODO: also validates - should separate this
         let matcher = makeMatchFunction(source);
-        this.signature = patternAST.canonical;
-        this.captureNames = matcher.captureNames;
+        this.signature = patternAST.signature;
+        this.captureNames = patternAST.captureNames.filter(n => n !== '?');
         this.match = matcher;
     }
 
 
-    // TODO: doc...
+    /**
+     * The signature of this pattern. Two patterns that match the same set of pathnames
+     * are guaranteed to have the same signature.
+     */
     signature: string;
 
 
-    // TODO: doc...
+    /**
+     * An array of the named captures present in the pattern, in order. For example, the pattern
+     * '{...path}/*.{ext}' will have a `captureNames` property with the value ['path', 'ext'].
+     */
     captureNames: string[];
 
 
-    // TODO: doc...
+    /**
+     * Attempts to match a given pathname against the pattern. For successful matches, a hash
+     * is returned containing the name/value pairs for each named capture in the pattern. For
+     * failed matches the return value is null.
+     * @param {string} pathname - the pathname to match against the pattern.
+     * @returns - null if the match failed, otherwise a hash of captured name/value pairs.
+     */
     match: (pathname: string) => {[captureName: string]: string};
 
 
-    // TODO: doc...
+    /** Returns the source string with which this instance was constructed. */
     toString() { return this.source; }
+
+
+    /** A singleton pattern that recognises all pathnames (i.e., the universal set). */
+    static UNIVERSAL = new Pattern('…');
+
+
+    /** A singleton pattern that recognises no pathnames (i.e., the empty set). */
+    static EMPTY = new Pattern('∅');
 }
 
 
 
 
 
-/**
- * Returns a function that attempts to match a given pathname against `pattern`.
- * For successful matches, the returned function returns a hash containing the
- * name/value pairs for each named capture in the pattern. For failed matches,
- * the returned function returns null. The returned function has a property
- * `captureNames` that contains an array of the capture names present in the
- * pattern. For example, the pattern '{...path}/*.{ext}' will result in a matcher
- * function with a `captureNames` property with the value ['path', 'ext'].
- * NB: Pattern matching is case-sensitive.
- */
+/** Internal function used to create the Pattern#match method. */
 function makeMatchFunction(pattern: string) {
 
     // Gather information about the pattern to be matched.
     let patternAST = parsePattern(pattern);
-    let patternSignature = patternAST.canonical.replace(/[^*…]+/g, 'A');
-    let literalPart = patternAST.canonical.replace(/[*…]/g, '');
+    let patternSignature = patternAST.signature.replace(/[^*…]+/g, 'A');
+    let literalPart = patternAST.signature.replace(/[*…]/g, '');
     let captureName0 = patternAST.captureNames[0];
 
-    // Construct the matcher function, using optimizations where possible.
+    // Construct the match function, using optimizations where possible.
     // Pattern matching may be done frequently, possibly on a critical path.
     // For simpler patterns, we can avoid the overhead of using a regex.
     // The switch block below picks out some simpler cases and provides
-    // specialized matcher functions for them. The default case falls back
+    // specialized match functions for them. The default case falls back
     // to using a regex. Note that all but the default case below could be
-    // commented out with no change in runtime behaviour. The additional cases
-    // are strictly optimizations.
+    // commented out with no change in runtime behaviour. The additional
+    // cases are strictly optimizations.
     let matchFunction: any;
     switch (patternSignature) {
         case 'A':
@@ -105,7 +122,7 @@ function makeMatchFunction(pattern: string) {
             break;
 
         default:
-            let recogniser = makePathnameRecogniser(patternAST.canonical);
+            let recogniser = makePathnameRecogniser(patternAST.signature);
             matchFunction = (pathname: string) => {
                 let matches = pathname.match(recogniser);
                 if (!matches) return null;
@@ -117,18 +134,13 @@ function makeMatchFunction(pattern: string) {
             };
     }
 
-    // Return the matcher function.
-    let match: MatchFunction = matchFunction;
-    match.captureNames = patternAST.captureNames.filter(n => n !== '?');
-    return match;
+    // Return the match function.
+    return matchFunction;
 }
 
 
-/** Describes the signature of the function returned by makePatternMatcher. */
-interface MatchFunction {
-    (pathname: string): {[name: string]: string};
-    captureNames: string[];
-}
+
+
 
 /**
  * Constructs a regular expression that matches all pathnames recognised by the given pattern.

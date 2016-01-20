@@ -1,21 +1,34 @@
 'use strict';
+import parsePattern from './parse-pattern';
+import Pattern from './pattern';
+
+
+
 
 
 /**
- * Returns a new pattern that matches all the pathnames that are matched by *both*
- * `patternA` and `patternB`. Returns the empty pattern '∅' if there are no such
- * pathnames. Throws an error if the intersection cannot be expressed as a single
- * pattern.
- * NB: `patternA` and `patternB` are assumed to be in normal form.
- * NB: The operation is case-sensitive.
+ * Generates a pattern that matches all the pathnames that are matched by *both*
+ * patterns `a` and `b`. Returns the empty pattern '∅' if `a` and `b` are disjoint.
+ * Throws an error if the intersection cannot be expressed as a single pattern.
+ * Note that patterns are case-sensitive.
+ * @param {Pattern|string} a - a pattern. It may be provided either as a Pattern
+ *        instance, or as a pattern string.
+ * @param {Pattern|string} b - a pattern. It may be provided either as a Pattern
+ *        instance, or as a pattern string.
+ * @returns {Pattern} - the pattern that matches all pathnames matched by both `a` and `b`.
  */
-export default function intersectPatterns(patternA: string, patternB: string): string {
-    let allIntersections = getAllIntersections(patternA, patternB);
+export default function intersectPatterns(a: Pattern|string, b: Pattern|string): Pattern {
+    let p = typeof a === 'string' ? parsePattern(a).signature : a.signature;
+    let q = typeof b === 'string' ? parsePattern(b).signature : b.signature;
+    let allIntersections = getAllIntersections(p, q);
     let distinctIntersections = getDistinctPatterns(allIntersections);
-    if (distinctIntersections.length === 0) return '∅';
-    if (distinctIntersections.length === 1) return distinctIntersections[0];
-    throw new Error(`Intersection of ${patternA} and ${patternB} cannot be expressed as a single pattern`);
+    if (distinctIntersections.length === 0) return Pattern.EMPTY;
+    if (distinctIntersections.length === 1) return new Pattern(distinctIntersections[0]);
+    throw new Error(`Intersection of ${a} and ${b} cannot be expressed as a single pattern`);
 }
+
+
+
 
 
 /**
@@ -64,6 +77,9 @@ function getAllIntersections(a: string, b: string): string[] {
 }
 
 
+
+
+
 /**
  * Returns an array of all the [prefix, suffix] pairs into which `pattern` may be split.
  * Splits that occur on a wildcard character have the wildcard on both sides of the split
@@ -82,6 +98,9 @@ function getAllPatternSplits(pattern: string): [string, string][] {
     }
     return result;
 }
+
+
+
 
 
 /**
@@ -106,6 +125,9 @@ function getDistinctPatterns(patterns: string[]) {
     // Return only the distinct patterns from the original list.
     return patterns.filter((_, i) => isDistinct[i]);
 }
+
+
+
 
 
 /**

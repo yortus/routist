@@ -1,18 +1,19 @@
 'use strict';
 var chai_1 = require('chai');
 var hierarchize_patterns_1 = require('../src/hierarchize-patterns');
+var pattern_1 = require('../src/pattern');
 describe('Hierarchizing a set of patterns', () => {
     let patterns = [
         'a*',
         '*m*',
         '*z',
-        '…',
+        '**',
         '/bar',
         '/*',
         '/foo',
         '/foo/*.html',
         '/…o…o….html',
-        '/…o…o…',
+        '/**o**o**',
         '/bar',
         'a*',
         '/a/*',
@@ -90,7 +91,7 @@ describe('Hierarchizing a set of patterns', () => {
         }
     };
     it('works', () => {
-        let actual = hierarchize_patterns_1.default(patterns);
+        let actual = hierarchize_patterns_1.default(patterns.map(p => new pattern_1.default(p)));
         chai_1.expect(actual).deep.equal(expected);
     });
 });

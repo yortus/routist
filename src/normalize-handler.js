@@ -1,5 +1,4 @@
 'use strict';
-//import makePatternMatcher from './make-pattern-matcher';
 var pattern_1 = require('./pattern');
 // TODO: doc...
 function normalizeHandler(patternSource, handler) {

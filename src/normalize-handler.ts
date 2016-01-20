@@ -1,8 +1,10 @@
 'use strict';
 import Request from './request';
 import Response from './response';
-//import makePatternMatcher from './make-pattern-matcher';
 import Pattern from './pattern';
+
+
+
 
 
 // TODO: doc...
@@ -40,10 +42,16 @@ export default function normalizeHandler(patternSource: string, handler: (...arg
 }
 
 
+
+
+
 // TODO: doc...
 export interface CanonicalHandler {
     (request: Request, tunnel: (request?: Request) => Response): Response;
 }
+
+
+
 
 
 // TODO: doc...

@@ -1,8 +1,9 @@
 'use strict';
 var intersect_patterns_1 = require('./intersect-patterns');
+var pattern_1 = require('./pattern');
 /**
  * Arranges the given list of patterns into a hierarchy according to their
- * set relationships, where each pattern represents a set of pathnames.
+ * set relationships (recall that each pattern represents a set of pathnames).
  * The arrangement is akin to a Venn diagram. The 'outermost' pattern is
  * always the universal set ('…'). For any two patterns p1 and p2, if
  * p2 is a proper subset of p1 then it will be a descendent of p1 in the
@@ -23,7 +24,9 @@ var intersect_patterns_1 = require('./intersect-patterns');
  *     |-- /f*o
  *         |-- /foo
  *
- * @returns {Object} A node object, whose keys are patterns and whose values are node objects.
+ * @param {Pattern[]} patterns - the list of patterns to go into the hierarchy.
+ * @returns {Object} A node object, whose keys are pattern signatures
+ *          and whose values are node objects.
  */
 function hierarchizePatterns(patterns) {
     // Create the nodeFor() function to return nodes from a single associative array
@@ -32,9 +35,10 @@ function hierarchizePatterns(patterns) {
     let map = {};
     let nodeFor = (pattern) => map[pattern] || (map[pattern] = {});
     // Insert each of the given patterns (except '…' and '∅') into a DAG rooted at '…'.
+    let root = new pattern_1.default('…');
     patterns
-        .filter(p => p !== '…' && p !== '∅')
-        .forEach(pattern => insert(pattern, '…', nodeFor));
+        .filter(p => p.signature !== '…' && p.signature !== '∅')
+        .forEach(pattern => insert(pattern.signature, '…', nodeFor));
     // Return a top-level node with the single key '…'.
     return { '…': nodeFor('…') };
 }
@@ -53,7 +57,7 @@ function insert(pattern, superset, nodeFor) {
     // Compute information about all the existing direct subsets of `superset`.
     // We only care about the ones that are non-disjoint with `pattern`.
     let nonDisjointComparands = Object.keys(nodeFor(superset))
-        .map(p => ({ pattern: p, intersection: intersect_patterns_1.default(pattern, p) }))
+        .map(p => ({ pattern: p, intersection: intersect_patterns_1.default(pattern, p).signature }))
         .filter(cmp => cmp.intersection !== '∅');
     // If `superset` has no direct subsets that are non-disjoint with `pattern`, then we
     // simply add `pattern` as a direct subset of `superset`.
