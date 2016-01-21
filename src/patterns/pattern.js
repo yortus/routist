@@ -84,16 +84,14 @@ function makeMatchFunction(pattern) {
             };
             break;
         default:
-            let recogniser = makePathnameRecogniser(patternAST.signature);
+            let recogniser = makePathnameRecogniser(patternAST.signature, patternAST.captureNames);
             matchFunction = (pathname) => {
                 let matches = pathname.match(recogniser);
                 if (!matches)
                     return null;
-                let result = patternAST.captureNames.reduce((result, name, i) => {
-                    if (name !== '?')
-                        result[name] = matches[i + 1];
-                    return result;
-                }, {});
+                let result = patternAST.captureNames
+                    .filter(name => name !== '?')
+                    .reduce((hash, name, i) => (hash[name] = matches[i + 1], hash), {});
                 return result;
             };
     }
@@ -104,14 +102,20 @@ function makeMatchFunction(pattern) {
  * Constructs a regular expression that matches all pathnames recognised by the given pattern.
  * Each globstar/wildcard in the pattern corresponds to a capture group in the regular expression.
  */
-function makePathnameRecogniser(pattern) {
+function makePathnameRecogniser(pattern, captureNames) {
+    let captureIndex = 0;
     let re = pattern.split('').map(c => {
-        if (c === '*')
-            return '([^\\/]*)';
-        if (c === '…')
-            return '(.*)';
-        if ('/._-'.indexOf(c) !== -1)
+        if (c === '*') {
+            let isAnonymous = captureNames[captureIndex++] === '?';
+            return isAnonymous ? '[^\\/]*' : '([^\\/]*)';
+        }
+        if (c === '…') {
+            let isAnonymous = captureNames[captureIndex++] === '?';
+            return isAnonymous ? '.*' : '(.*)';
+        }
+        if ('/._-'.indexOf(c) !== -1) {
             return `\\${c}`;
+        }
         return c;
     }).join('');
     return new RegExp(`^${re}$`);
