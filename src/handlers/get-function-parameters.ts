@@ -29,7 +29,7 @@ export default function getFunctionParameters(func: Function): string[] {
 
     // Detect special case 'foo=>...' (no parentheses around parameter).
     let id = result.split('=>')[0];
-    if (/^[a-z0-9$_]+$/i.test(id)) return id;
+    if (/^[a-z0-9$_]+$/i.test(id)) return [id];
 
     // Extract the parameter names.
     result = result.split(/\)(?:\{|(?:\=\>))/,1)[0].replace(/^[^(]*[(]/, '');

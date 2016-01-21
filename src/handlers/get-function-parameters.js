@@ -23,7 +23,7 @@ function getFunctionParameters(func) {
     // Detect special case 'foo=>...' (no parentheses around parameter).
     let id = result.split('=>')[0];
     if (/^[a-z0-9$_]+$/i.test(id))
-        return id;
+        return [id];
     // Extract the parameter names.
     result = result.split(/\)(?:\{|(?:\=\>))/, 1)[0].replace(/^[^(]*[(]/, '');
     // Strip ES6 rest parameter.

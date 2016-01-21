@@ -87,19 +87,21 @@ describe(`Identifying a function's formal parameters`, () => {
     tests.forEach(test => {
         it(test, () => {
             let funcSource = test.split(' ==> ')[0];
-            let expectedParamNames = test.split(' ==> ')[1];
-            let actualParamNames;
+            let rhs = test.split(' ==> ')[1];
+            let actualParamNames, expectedParamNames;
             try {
                 let func = eval(`(${funcSource})`);
-                actualParamNames = get_function_parameters_1.default(func).toString();
+                actualParamNames = get_function_parameters_1.default(func);
+                expectedParamNames = rhs ? rhs.split(',') : [];
             }
             catch (ex) {
                 actualParamNames = 'ERROR: ' + ex.message;
+                expectedParamNames = rhs;
                 if (expectedParamNames.slice(-3) === '...') {
                     actualParamNames = actualParamNames.slice(0, expectedParamNames.length - 3) + '...';
                 }
             }
-            chai_1.expect(actualParamNames).equals(expectedParamNames);
+            chai_1.expect(actualParamNames).deep.equal(expectedParamNames);
         });
     });
 });
