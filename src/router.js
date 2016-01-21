@@ -19,8 +19,33 @@ class Router {
             patterns = keys.map(key => new pattern_1.default(key));
             handlers = keys.map((key, i) => new handler_1.default(patterns[i], routes[key]));
         }
+        // TODO: add root pattern/handler if not there already
+        if (!patterns.some(p => p.signature === '…')) {
+            let rootPattern = new pattern_1.default('…');
+            patterns.push(rootPattern);
+            handlers.push(new handler_1.default(rootPattern, () => { throw new Error('404!'); }));
+        }
         // TODO: hierarchize patterns!
-        let dag = hierarchize_patterns_1.default(patterns);
+        let patternDAG = hierarchize_patterns_1.default(patterns);
+        let allNodes = {};
+        let nodeFor = (pattern) => allNodes[pattern] || (allNodes[pattern] = makeNode(pattern));
+        let dummy = patternDAG['…'];
+        debugger;
+        traverse('…', patternDAG['…']);
+        // Build Node DAG
+        function traverse(pattern, specializations, parent) {
+            let node = nodeFor(pattern);
+            if (parent)
+                node.lessSpecialized.push(parent); // uplinks
+            if (node.pattern)
+                return; // already visited
+            let i = patterns.findIndex(p => pattern === p.signature);
+            node.pattern = patterns[i];
+            node.handler = handlers[i];
+            node.moreSpecialized = Object.keys(specializations).map(nodeFor); // downlinks
+            let keys = Object.keys(specializations);
+            keys.forEach(key => traverse(key, specializations[key], node));
+        }
     }
     // TODO: doc...
     dispatch(request) {
@@ -30,4 +55,14 @@ class Router {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Router;
+// TODO: doc...
+function makeNode(signature) {
+    return {
+        signature: signature,
+        pattern: null,
+        handler: null,
+        lessSpecialized: [],
+        moreSpecialized: []
+    };
+}
 //# sourceMappingURL=router.js.map

@@ -14,7 +14,10 @@ describe('Constructing a router instance', () => {
             '/foo': () => 'foo',
             '/bar': () => 'bar',
             '/baz': () => 'baz',
-            '/{thing}': thing => thing
+            '/{thing}': thing => thing,
+
+            'a/*': () => {},
+            '*/b': () => {},
 
 
 

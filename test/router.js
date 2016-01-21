@@ -6,7 +6,9 @@ describe('Constructing a router instance', () => {
             '/foo': () => 'foo',
             '/bar': () => 'bar',
             '/baz': () => 'baz',
-            '/{thing}': thing => thing
+            '/{thing}': thing => thing,
+            'a/*': () => { },
+            '*/b': () => { },
         };
         let router = new router_1.default();
         router.add(routeTable);
