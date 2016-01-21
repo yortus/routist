@@ -21,6 +21,8 @@ describe('Parsing a pattern string', () => {
         'T: /**/{name}.{ext}',
         'T: /{...aPath}/{name}.{ext}',
         'T: /-/./-',
+        'F: /foo//',
+        'F: //',
         'F: /***',
         'F: /*…',
         'F: /foo/{...rest}*',
