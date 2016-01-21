@@ -9,67 +9,67 @@ describe('Constructing a Handler instance', () => {
     let tests = [
         {
             pattern: '/api/{...rest}',
-            body: (rest) => {},
+            action: (rest) => {},
             error: null
         },
         {
             pattern: '/api/{...rest}',
-            body: ($req, rest) => {},
+            action: ($req, rest) => {},
             error: null
         },
         {
             pattern: '/api/…',
-            body: () => {},
+            action: () => {},
             error: null
         },
         {
             pattern: '/api/{...rest}',
-            body: () => {},
+            action: () => {},
             error: `Capture name(s) 'rest' unused by handler...`
         },
         {
             pattern: '/api/…',
-            body: (rest) => {},
+            action: (rest) => {},
             error: `Handler parameter(s) 'rest' not captured by pattern...`
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
-            body: (path, ext, $req, name) => {},
+            action: (path, ext, $req, name) => {},
             error: null
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
-            body: (path, ext, req, name) => {},
+            action: (path, ext, req, name) => {},
             error: `Handler parameter(s) 'req' not captured by pattern...`
         },
         {
             pattern: '/api/{...$req}',
-            body: ($req) => {},
+            action: ($req) => {},
             error: `Use of reserved name(s) '$req' as capture(s) in pattern...`
         },
         {
             pattern: '/api/{...req}',
-            body: ($req) => {},
+            action: ($req) => {},
             error: `Capture name(s) 'req' unused by handler...`
         },
         {
             pattern: '/api/{...rest}',
-            body: (rest, $req, $yield) => {},
+            action: (rest, $req, $yield) => {},
             error: null
         },
         {
             pattern: '/api/{...rest}',
-            body: (rest, $yield) => {},
+            action: (rest, $yield) => {},
             error: null
         }
     ];
 
     tests.forEach((test, i) => {
-        it(`${test.pattern} WITH ${test.body}`, () => {
+        it(`${test.pattern} WITH ${test.action}`, () => {
             let expectedError = test.error || '';
             let actualError = '';
             try {
-                new Handler(new Pattern(test.pattern), test.body);
+                new Handler(new Pattern(test.pattern), test.action);
             }
             catch (ex) {
                 actualError = ex.message;
@@ -87,98 +87,98 @@ describe('Executing a handler against a pathname', () => {
     let tests = [
         {
             pattern: '/api/{...rest}',
-            body: (rest) => `${rest}`,
+            action: (rest) => `${rest}`,
             pathname: '/api/foo/bar/baz.html',
             downstream: rq => null,
             response: 'foo/bar/baz.html'
         },
         {
             pattern: '/api/{...rest}',
-            body: (rest) => `${rest}`,
+            action: (rest) => `${rest}`,
             pathname: '/api/foo/bar/baz.html',
             downstream: rq => 'other',
             response: 'other'
         },
         {
             pattern: '/api/{...rest}',
-            body: ($req, rest) => `${$req}, ${rest}`,
+            action: ($req, rest) => `${$req}, ${rest}`,
             pathname: '/api/foo/bar/baz.html',
             downstream: rq => null,
             response: '[object Object], foo/bar/baz.html'
         },
         {
             pattern: '/api/…',
-            body: () => '',
+            action: () => '',
             pathname: '/api/foo/bar/baz.html',
             downstream: rq => null,
             response: '',
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
-            body: (path, ext, $req, name) => `${path}, ${ext}, ${$req}, ${name}`,
+            action: (path, ext, $req, name) => `${path}, ${ext}, ${$req}, ${name}`,
             pathname: '/foo/bar/baz.html',
             downstream: rq => null,
             response: 'bar, html, [object Object], baz'
         },
         {
             pattern: '/api/{...rest}',
-            body: (rest, $req, $yield) => `${$yield($req)}-${rest.slice(4, 7)}`,
+            action: (rest, $req, $yield) => `${$yield($req)}-${rest.slice(4, 7)}`,
             pathname: '/api/foo/bar/baz.html',
             downstream: rq => `${rq.pathname.slice(5, 8)}`,
             response: 'foo-bar'
         },
         {
             pattern: '/api/{...rest}',
-            body: (rest, $yield) => `${$yield()}-${rest.slice(4, 7)}`, // NB: no rq this time
+            action: (rest, $yield) => `${$yield()}-${rest.slice(4, 7)}`, // NB: no rq this time
             pathname: '/api/foo/bar/baz.html',
             downstream: rq => `${rq.pathname.slice(5, 8)}`,
             response: 'foo-bar'
         },
         {
             pattern: '/api/{...rest}',
-            body: (rest, $yield) => $yield() || '!',
+            action: (rest, $yield) => $yield() || '!',
             pathname: '/api/foo/bar/baz.html',
             downstream: rq => null,
             response: '!'
         },
         {
             pattern: '/api/{...rest}',
-            body: (rest, $yield) => $yield('123') || '!',
+            action: (rest, $yield) => $yield('123') || '!',
             pathname: '/api/foo/bar/baz.html',
             downstream: rq => `abc${rq}`,
             response: 'abc123'
         },
         {
             pattern: '/api/{...rest}',
-            body: (rest) => { throw new Error('fail!'); },
+            action: (rest) => { throw new Error('fail!'); },
             pathname: '/api/foo',
             downstream: rq => `${rq.pathname}`,
             response: '/api/foo'
         },
         {
             pattern: '/api/{...rest}',
-            body: (rest) => { throw new Error('fail!'); },
+            action: (rest) => { throw new Error('fail!'); },
             pathname: '/api/foo',
             downstream: rq => null,
             response: 'ERROR: fail!'
         },
         {
             pattern: '/api/{...rest}',
-            body: (rest) => { throw new Error('fail!'); },
+            action: (rest) => { throw new Error('fail!'); },
             pathname: '/api/foo',
             downstream: rq => { throw new Error('downfail!'); },
             response: 'ERROR: downfail!'
         },
         {
             pattern: '/api/{...rest}',
-            body: (rest, $yield) => $yield('123') + null['wat'],
+            action: (rest, $yield) => $yield('123') + null['wat'],
             pathname: '/api/foo',
             downstream: rq => { throw new Error('downfail!'); },
             response: 'ERROR: downfail!'
         },
         {
             pattern: '/api/{...rest}',
-            body: (rest, $yield) => $yield('123') + null['wat'],
+            action: (rest, $yield) => $yield('123') + null['wat'],
             pathname: '/api/foo',
             downstream: rq => rq,
             response: `ERROR: Cannot read property 'wat' of null`
@@ -186,8 +186,8 @@ describe('Executing a handler against a pathname', () => {
     ];
 
     tests.forEach((test, i) => {
-        it(`${test.pattern} WITH ${test.body}`, () => {
-            let handler = new Handler(new Pattern(test.pattern), test.body);
+        it(`${test.pattern} WITH ${test.action}`, () => {
+            let handler = new Handler(new Pattern(test.pattern), test.action);
             let request = { pathname: test.pathname };
             let downstream = (rq?) => test.downstream(rq || request);
             let expectedResponse = test.response;

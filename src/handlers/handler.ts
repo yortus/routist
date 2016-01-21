@@ -13,11 +13,11 @@ export default class Handler {
 
 
     // TODO: doc...
-    constructor(pattern: Pattern, body: Function) {
-        let paramNames = getFunctionParameters(body);
+    constructor(pattern: Pattern, action: Function) {
+        let paramNames = getFunctionParameters(action);
         validateNames(pattern, paramNames);
         this.isDecorator = paramNames.indexOf('$yield') !== -1;
-        this.execute = <any> makeExecuteFunction(pattern, body, paramNames);
+        this.execute = <any> makeExecuteFunction(pattern, action, paramNames);
     }
 
 
@@ -79,28 +79,28 @@ function validateNames(pattern: Pattern, paramNames: string[]) {
  * Internal function used to create the Handler#execute method.
  * TODO: doc preconds
  * @param {Pattern} pattern - TODO
- * @param {Function} body - TODO
+ * @param {Function} action - TODO
  * @param {string[]} paramNames - TODO
  * @return {Function} - TODO
  */
-function makeExecuteFunction(pattern: Pattern, body: Function, paramNames: string[]) {
+function makeExecuteFunction(pattern: Pattern, action: Function, paramNames: string[]) {
 
-    // If the `body` function has a formal parameter named '$yield', that signifies it as a decorator.
+    // If the `action` function has a formal parameter named '$yield', that signifies it as a decorator.
     let isDecorator = paramNames.indexOf('$yield') !== -1;
 
-    // Precompute a map with keys that match all of the the `body` function's formal parameter names. The value
+    // Precompute a map with keys that match all of the the `action` function's formal parameter names. The value
     // for each key holds the source code to supply the actual parameter for the corresponding formal parameter.
     let paramMappings = pattern.captureNames.reduce((map, name) => (map[name] = `paramBindings.${name}`, map), {});
     paramMappings['$req'] = 'request';
     paramMappings['$yield'] = 'executeDownstreamHandlers';
 
-    // Generate the source code for the `execute` function. The `execute` function calls the `body` function,
+    // Generate the source code for the `execute` function. The `execute` function calls the `action` function,
     // passing it a set of capture values and/or builtins that correspond to its formal parameter names (a form of DI).
-    // The remaining logic depends on whether the `body` function is a decorator or not, as follows:
-    // - for decorators: just call the `body` function and return it's result. The '$yield' parameter is bound to the
+    // The remaining logic depends on whether the `action` function is a decorator or not, as follows:
+    // - for decorators: just call the `action` function and return it's result. The '$yield' parameter is bound to the
     //   `executeDownstreamHandlers` callback.
     // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
-    //   Otherwise, execute the `body` function and return its response.
+    //   Otherwise, execute the `action` function and return its response.
     // NB: given `makeExecuteFunction`'s preconditions, a number of checks can be elided in the implementation.
     let source = `(function execute(request, executeDownstreamHandlers) {
         var paramBindings = pattern.match(request.pathname);
@@ -108,7 +108,7 @@ function makeExecuteFunction(pattern: Pattern, body: Function, paramNames: strin
         var response = executeDownstreamHandlers();
         if (response !== null) return response;
         ` : ''}
-        return body(${paramNames.map(name => paramMappings[name])});
+        return action(${paramNames.map(name => paramMappings[name])});
     })`;
 
     // Evaluate the handler source into a function, and return it. The use of eval here is safe as there
