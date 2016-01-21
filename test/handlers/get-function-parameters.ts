@@ -3,9 +3,6 @@ import {expect} from 'chai';
 import getFunctionParameters from '../../src/handlers/get-function-parameters';
 
 
-
-
-
 describe(`Identifying a function's formal parameters`, () => {
 
     let tests = [

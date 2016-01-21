@@ -1,4 +1,5 @@
 'use strict';
+// TODO: re-implement getFunctionParameters using a pegjs grammar, including defaults & destructuring...
 /**
  * Returns an array of the `func` function's formal parameter names.
  * Works with:
