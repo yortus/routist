@@ -75,6 +75,7 @@ describe('Matching a pattern against a pathname', () => {
         '/** MATCHES /foo/bar',
         '/{a} MATCHES / WITH {a:""}',
         '/a/{b} MATCHES /a/ WITH {b:""}',
+        '/{...a}/ MATCHES // WITH {a:""}',
         '/{...path} MATCHES /foo/bar WITH { path: "foo/bar" }',
         '*ab* MATCHES aaabbb',
         '*aaa* MATCHES aaabbb',

@@ -71,7 +71,6 @@ parser = PEG.buildParser(`
     Element
     =   Globstar
     /   Wildcard
-    /   PathSeparator
     /   Literal
 
     Globstar 'globstar'
@@ -82,11 +81,8 @@ parser = PEG.buildParser(`
     =   "*"   !("*" / "…" / "{")   { return ['*', '?']; }
     /   "{"   id:IDENTIFIER   "}"   !("*" / "…" / "{")   { return ['*', id]; }
 
-    PathSeparator 'path separator'
-    =   "/"   !"/"   { return ['/', null]; }
-
     Literal 'literal'
-    =   c:[a-zA-Z0-9._-]   { return [c, null]; }
+    =   c:[a-zA-Z0-9/._-]   { return [c, null]; }
 
     IDENTIFIER
     =   [a-z_$]i   [a-z0-9_$]i*   { return text(); }
