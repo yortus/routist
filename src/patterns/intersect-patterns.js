@@ -46,7 +46,7 @@ function getAllIntersections(a, b) {
             splits.forEach(pair => pair[0] = pair[0].replace(/…/g, '*'));
         // Compute and return intersections for all valid unifications.
         return splits
-            .filter(pair => a[0] === '…' || (!pair[0].includes('/') && !pair[0].includes('…')))
+            .filter(pair => a[0] === '…' || (pair[0].indexOf('/') === -1 && pair[0].indexOf('…') === -1))
             .map(pair => getAllIntersections(a.slice(1), pair[1]).map(u => pair[0] + u))
             .reduce((ar, el) => (ar.push.apply(ar, el), ar), []);
     }
