@@ -30,7 +30,6 @@ class Router {
         let allNodes = {};
         let nodeFor = (pattern) => allNodes[pattern] || (allNodes[pattern] = makeNode(pattern));
         let dummy = patternDAG['…'];
-        debugger;
         traverse('…', patternDAG['…']);
         // Build Node DAG
         function traverse(pattern, specializations, parent) {
@@ -46,10 +45,31 @@ class Router {
             let keys = Object.keys(specializations);
             keys.forEach(key => traverse(key, specializations[key], node));
         }
+        // Set root node
+        this.root = nodeFor('…');
     }
     // TODO: doc...
     dispatch(request) {
         // TODO: ...
+        debugger;
+        let pathname = request.pathname;
+        let path = [];
+        let node = this.root; // always starts with '…'; don't need to check this against pathname
+        while (true) {
+            path.push(node);
+            let foundChild = null;
+            for (let i = 0; !foundChild && i < node.moreSpecialized.length; ++i) {
+                let child = node.moreSpecialized[i];
+                if (child.isMatch(pathname))
+                    foundChild = child;
+            }
+            if (!foundChild)
+                break;
+            node = foundChild;
+        }
+        // should have a path here...
+        let fullPath = path.map(n => n.signature).join('   ==>   ');
+        debugger;
         return null;
     }
 }
@@ -57,12 +77,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Router;
 // TODO: doc...
 function makeNode(signature) {
-    return {
+    let result = {
         signature: signature,
         pattern: null,
         handler: null,
         lessSpecialized: [],
-        moreSpecialized: []
+        moreSpecialized: [],
+        isMatch: null
     };
+    let quickPattern = new pattern_1.default(signature);
+    result.isMatch = (pathname) => quickPattern.match(pathname) !== null;
+    return result;
 }
 //# sourceMappingURL=router.js.map

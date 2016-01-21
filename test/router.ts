@@ -26,7 +26,7 @@ describe('Constructing a router instance', () => {
 
         let router = new Router();
         router.add(routeTable);
-
+        router.dispatch({pathname: 'a/b'});
 
     });
 });

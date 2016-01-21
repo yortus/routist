@@ -48,7 +48,6 @@ export default class Router {
         let nodeFor = (pattern: string): Node => allNodes[pattern] || (allNodes[pattern] = makeNode(pattern));
         let dummy = patternDAG['…'];
 
-        debugger;
         traverse('…', patternDAG['…']);
 
         // Build Node DAG
@@ -65,16 +64,42 @@ export default class Router {
             keys.forEach(key => traverse(key, specializations[key], node));
         }
 
-
-
-    }    
+        // Set root node
+        this.root = nodeFor('…');
+    }
 
 
     // TODO: doc...
     dispatch(request: Request): Response {
         // TODO: ...
-        return null;        
+debugger;
+        let pathname = request.pathname;
+        let path: Node[] = [];
+        let node = this.root; // always starts with '…'; don't need to check this against pathname
+
+        while (true) {
+            path.push(node);
+
+            let foundChild: Node = null;
+            for (let i = 0; !foundChild && i < node.moreSpecialized.length; ++i) {
+                let child = node.moreSpecialized[i];
+                if (child.isMatch(pathname)) foundChild = child;
+            }
+
+            if (!foundChild) break;
+
+            node = foundChild;
+        }
+
+        // should have a path here...
+        let fullPath = path.map(n => n.signature).join('   ==>   ');
+        debugger;
+        return null;
     }
+    
+
+    // TODO: doc...
+    private root: Node;
 }
 
 
@@ -88,6 +113,7 @@ interface Node {
     handler: Handler;
     lessSpecialized: Node[];
     moreSpecialized: Node[];
+    isMatch(pathname: string): boolean;
 }
 
 
@@ -96,11 +122,15 @@ interface Node {
 
 // TODO: doc...
 function makeNode(signature: string): Node {
-    return {
+    let result = {
         signature,
         pattern: null,
         handler: null,
         lessSpecialized: [],
-        moreSpecialized: []
+        moreSpecialized: [],
+        isMatch: null
     };
+    let quickPattern = new Pattern(signature);
+    result.isMatch = (pathname: string) => quickPattern.match(pathname) !== null;
+    return result;
 }
