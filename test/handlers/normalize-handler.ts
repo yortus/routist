@@ -98,6 +98,13 @@ describe('Normalizing a handler function', () => {
             tunnel: rq => null,
             response: '!'
         },
+        {
+            pattern: '/api/{...rest}',
+            pathname: '/api/foo/bar/baz.html',
+            handler: (rest, $yield) => $yield('123') || '!',
+            tunnel: rq => `abc${rq}`,
+            response: 'abc123'
+        },
     ];
 
     tests.forEach((test, i) => {

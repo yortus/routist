@@ -3,8 +3,6 @@
 
 
 
-// TODO: was...
-
 // Tell mocha where the test files are.
 process.argv.push('test');
 

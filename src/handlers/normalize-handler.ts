@@ -38,9 +38,12 @@ export default function normalizeHandler(pattern: Pattern, handler: (...args: an
     }
 
     // Create and return an equivalent handler in normalized form.
-    let canonicalHandler = makeCanonicalHandler(pattern, handler, paramNames);
+    let canonicalHandler = makeHandleFunction(pattern, handler, paramNames);
     return canonicalHandler;
 }
+
+
+
 
 
 
@@ -61,34 +64,40 @@ export interface CanonicalHandler {
 
 
 
-// TODO: doc precond - capture name cannot be any of: ['request', 'req', 'rq', 'tunnel']
-function makeCanonicalHandler(pattern: Pattern, originalHandler: Function, paramNames: string[]): CanonicalHandler {
+// TODO: doc precond - capture name cannot be any of: ['$req', '$yield']
+// TODO: doc precond - handle func will only ever be called with a matching pathname
+// TODO: doc precond - all `paramNames` are either in the pattern's captureNames or are builtins ($req, $yield)
+// TODO: doc precond - executeDownstreamHandlers can be called with no arg - and will substitute the current request in that case
+function makeHandleFunction(pattern: Pattern, originalHandler: Function, paramNames: string[]): CanonicalHandler {
 
-    // If the original handler has 'tunnel' as a formal parameter, that signifies that it is a decorator.
+    // If the original handler has a formal parameter named '$yield', that signifies it as a decorator.
     let isDecorator = paramNames.indexOf('$yield') !== -1;
 
     // Precompute a map with keys that match all of the the original function's formal parameter names.
     // The value for each key holds the source code to supply the actual parameter for the corresponding formal parameter.
     let paramMappings = pattern.captureNames.reduce((map, name) => (map[name] = `paramBindings.${name}`, map), {});
     paramMappings['$req'] = 'request';
-    paramMappings['$yield'] = 'tunnel';
+    paramMappings['$yield'] = 'executeDownstreamHandlers';
 
-    let source = `(function (request, tunnel) {
-
-        let paramBindings = pattern.match(request.pathname);
-        if (paramBindings === null) return null;
-
-        var response;
-        ${isDecorator ? '' : `
-        response = tunnel(request);
+    // Generate the source code for the normalized handler function. The handler function calls the original handler,
+    // passing it a set of capture values and/or built-ins that correspond to its formal parameter names (a form of D.I.).
+    // The remaining logic depends on whether the original handler is a decorator or not, as follows:
+    // - for decorators: just call the original handler and return it's result. The '$yield' parameter is bound to the
+    //   `executeDownstreamHandlers` callback.
+    // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
+    //   Otherwise, execute the original handler and return its response.
+    // NB: given `makeHandleFunction`'s preconditions, a number of checks can be elided in the implementation.
+    let source = `(function handle(request, executeDownstreamHandlers) {
+        var paramBindings = pattern.match(request.pathname);
+        ${!isDecorator ? `
+        var response = executeDownstreamHandlers();
         if (response !== null) return response;
-        `}
-
-        response = originalHandler(${paramNames.map(name => paramMappings[name] || '#ILLEGAL!').join(', ')});
-        return response;
+        ` : ''}
+        return originalHandler(${paramNames.map(name => paramMappings[name])});
     })`;
 
-
+    // Evaluate the handler source into a function, and return it. The use of eval here is safe as there
+    // are no untrusted inputs. The resulting evaled function is fast and suitable for use on a hot path.
     let canonicalHandler: CanonicalHandler = eval(source);
     canonicalHandler.isDecorator = isDecorator;
     return canonicalHandler;

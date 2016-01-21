@@ -5,6 +5,16 @@ import * as PEG from 'pegjs';
 
 
 
+// TODO: describe 'valid' pattern strings:
+// - can't have adjacent captures
+// - literal text can only include chars: A-Z a-z 0-9 _ - . /
+// - capture names must be valid JS identifiers (actually just A-Z a-z 0-9 $ _)
+// - ** and … are synonymous
+
+
+
+
+
 /**
  * Verifies that `pattern` has a valid format, and returns metadata about the pattern.
  * Throws an error if `pattern` is invalid. The returned metadata is as follows:
