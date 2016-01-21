@@ -12,10 +12,10 @@
  * - generator functions.
  * - async functions.
  * - async arrow functions.
- * - parameters with default values (NB: unsupported in all Node versions).
+ * - rest parameters.
  * - comments and line breaks in parameter list.
  * DOES NOT WORK with:
- * - rest parameters.
+ * - parameters with default values.
  * - destructured parameters.
  * Adapted from http://stackoverflow.com/a/31194949/1075886.
  */
@@ -33,8 +33,13 @@ export default function getFunctionParameters(func: Function): string[] {
     // Extract the parameter names.
     result = result.split(/\)(?:\{|(?:\=\>))/,1)[0].replace(/^[^(]*[(]/, '');
 
-    // Strip any ES6 defaults.
-    result = result.replace(/=[^,]+/g, '');
+    // Strip ES6 rest parameter.
+    result = result.replace(/\.\.\..*/g, '');
+
+    // Detect unsupported ES6 features and fail if found (ie default params, destructuring).
+    if (result.replace(/[^=\[{]*/g, '').length > 0) {
+        throw new Error(`getFunctionParameters: unsupported function syntax in ${func}`);
+    }
 
     // Convert to array, filter out blanks, and return result.
     result = result.split(',').filter(Boolean);

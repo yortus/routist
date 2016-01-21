@@ -11,9 +11,14 @@ describe(`Identifying a function's formal parameters`, () => {
         `function fn(a) {} ==> a`,
         `function fn(foo,    bar,baz) {} ==> foo,bar,baz`,
         `function fn(aAA, bBb) {} ==> aAA,bBb`,
-        `function (aAA, bBb, ...rest) {} ==> ERROR: ...`,
+        `[REST_PARAMS] function (aAA, bBb, ...rest) {} ==> aAA, bBb`,
         `function \n\n\n   (   foo\n, bar/*,baz*/) {} ==> foo,bar`,
         `function (foo) { return function (bar) {}; } ==> foo`,
+        `[DEFAULT_PARAMS] function (foo = 'foo', bar) {} ==> ERROR: getFunctionParameters...`,
+        `[DEFAULT_PARAMS] function (foo='foo', bar     =      99) {} ==> ERROR: getFunctionParameters...`,
+        `[DEFAULT_PARAMS] function (foo = 'foo', bar = 99) {} ==> ERROR: getFunctionParameters...`,
+        `[DEFAULT_PARAMS] function (foo, bar = {foo:'bar'}) {} ==> ERROR: getFunctionParameters...`,
+        `[DESTUCTURING] function loop({ start=0, end=-1, step=1 }) {} ==> ERROR: getFunctionParameters...`,
         `() => {} ==> `,
         `() => null ==> `,
         `(a) => {} ==> a`,
@@ -22,11 +27,16 @@ describe(`Identifying a function's formal parameters`, () => {
         `foo => Date ==> foo`,
         `(foo,    bar,baz) => {} ==> foo,bar,baz`,
         `(aAA, bBb) => {} ==> aAA,bBb`,
-        `(aAA, bBb, ...rest) => {} ==> ERROR: ...`,
+        `[REST_PARAMS] (aAA, bBb, ...rest) => {} ==> aAA, bBb`,
         `(\n   foo\n, bar/*,baz*/) => {} ==> foo,bar`,
         `(foo) => { return function (bar) {}; } ==> foo`,
         `Date => { return function (bar) {}; } ==> Date`,
         `foo => bar => null ==> foo`,
+        `[DEFAULT_PARAMS] (foo = 'foo', bar) => {} ==> ERROR: getFunctionParameters...`,
+        `[DEFAULT_PARAMS] (foo='foo', bar     =      99) => {} ==> ERROR: getFunctionParameters...`,
+        `[DEFAULT_PARAMS] (foo = 'foo', bar = 99) => {} ==> ERROR: getFunctionParameters...`,
+        `[DEFAULT_PARAMS] (foo, bar = {foo:'bar'}) => {} ==> ERROR: getFunctionParameters...`,
+        `[DESTUCTURING] ({ start=0, end=-1, step=1 }) => {} ==> ERROR: getFunctionParameters...`,
         `function* () {} ==> `,
         `function* (a) {} ==> a`,
         `function  * (foo,    bar,baz) {} ==> foo,bar,baz`,
@@ -35,17 +45,45 @@ describe(`Identifying a function's formal parameters`, () => {
         `function  *fn(a) {} ==> a`,
         `function* fn(foo,    bar,baz) {} ==> foo,bar,baz`,
         `function * fn(aAA, bBb) {} ==> aAA,bBb`,
-        // Currently unsupported in any Node version: default values, destructuring, async functions
-        // TODO: what to do when *some* Node versions support these? Disable tests?
-        //       Disable test if eval errors? (but that will mask erroneous test cases too)
-        `function (foo = 'foo', bar) {} ==> ERROR: Unexpected token...`,
-        `function (foo='foo', bar     =      99) {} ==> ERROR: Unexpected token...`,
-        `function (foo = 'foo', bar = 99) {} ==> ERROR: Unexpected token...`,
-        `function (foo, bar = {foo:'bar'}) {} ==> ERROR: Unexpected token...`,
-        `function loop({ start=0, end=-1, step=1 }) {} ==> ERROR: Unexpected token...`,
-        `async function fn(foo,   bar) {} ==> ERROR: Unexpected token...`,
-        `async (foo,   bar) => {} ==> ERROR: Unexpected token...`
+        `[ASYNC] async function fn(foo,   bar) {} ==> foo,bar`,
+        `[ASYNC_ARROW] async (foo,   bar) => {} ==> foo,bar`
     ];
+    // Detect runtime support for ES6/ES7 features. Disable tests that target unsupported features.
+    let has = { REST_PARAMS: true, DEFAULT_PARAMS: true, DESTUCTURING: true, ASYNC: true, ASYNC_ARROW: true };
+    try {
+        eval(`(function (...rest) {})`);
+    }
+    catch (ex) {
+        has.REST_PARAMS = false;
+    }
+    try {
+        eval(`(function (foo = 'foo') {})`);
+    }
+    catch (ex) {
+        has.DEFAULT_PARAMS = false;
+    }
+    try {
+        eval(`(function ({ x=1, y=2 }) {})`);
+    }
+    catch (ex) {
+        has.DESTUCTURING = false;
+    }
+    try {
+        eval(`(async function (foo) {})`);
+    }
+    catch (ex) {
+        has.ASYNC = false;
+    }
+    try {
+        eval(`(async (foo) => {})`);
+    }
+    catch (ex) {
+        has.ASYNC_ARROW = false;
+    }
+    tests = tests
+        .map(test => test.split('] ').map(s => s.replace(/^\[/, '')))
+        .filter(parts => parts.length === 1 || has[parts[0]])
+        .map(parts => parts[parts.length - 1]);
     tests.forEach(test => {
         it(test, () => {
             let funcSource = test.split(' ==> ')[0];
