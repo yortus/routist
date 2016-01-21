@@ -105,7 +105,21 @@ describe('Executing a handler against a pathname', () => {
             action: () => '',
             pathname: '/api/foo/bar/baz.html',
             downstream: rq => null,
-            response: '',
+            response: ''
+        },
+        {
+            pattern: '/api/…',
+            action: () => '',
+            pathname: '/foo/bar/baz.html',
+            downstream: rq => 'other',
+            response: null
+        },
+        {
+            pattern: '/api/…',
+            action: ($yield) => '',
+            pathname: '/foo/bar/baz.html',
+            downstream: rq => null,
+            response: null
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
@@ -184,17 +198,17 @@ describe('Executing a handler against a pathname', () => {
             let request = { pathname: test.pathname };
             let downstream = (rq) => test.downstream(rq || request);
             let expectedResponse = test.response;
+            let actualResponse;
             try {
-                let actualResponse = handler.execute(request, (rq) => test.downstream(rq || request));
-                chai_1.expect(actualResponse).equals(expectedResponse);
+                actualResponse = handler.execute(request, (rq) => test.downstream(rq || request));
             }
             catch (ex) {
-                let actualResponse = `ERROR: ${ex.message}`;
-                if (expectedResponse.slice(-3) === '...') {
+                actualResponse = `ERROR: ${ex.message}`;
+                if (expectedResponse && expectedResponse.slice(-3) === '...') {
                     actualResponse = actualResponse.slice(0, expectedResponse.length - 3) + '...';
                 }
-                chai_1.expect(actualResponse).equals(expectedResponse);
             }
+            chai_1.expect(actualResponse).equals(expectedResponse);
         });
     });
 });
