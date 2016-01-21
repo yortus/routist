@@ -151,19 +151,16 @@ function validateNames(pattern: Pattern, paramNames: string[]) {
 
     // We already know the capture names are valid JS identifiers. Now also ensure they don't clash with builtin names.
     let badCaptures = cnames.filter(cname => bnames.indexOf(cname) !== -1);
-    if (badCaptures.length > 0) {
-        throw new Error(`Use of reserved name(s) '${badCaptures.join("', '")}' as capture(s) in pattern '${pattern}'`);
-    }
+    let ok = badCaptures.length === 0;
+    assert(ok, `Use of reserved name(s) '${badCaptures.join("', '")}' as capture(s) in pattern '${pattern}'`);
 
     // Ensure that all capture names appear among the handler's parameter names (i.e. check for unused capture names).
     let excessCaptures = cnames.filter(cname => pnames.indexOf(cname) === -1);
-    if (excessCaptures.length > 0) {
-        throw new Error(`Capture name(s) '${excessCaptures.join("', '")}' unused by handler in pattern '${pattern}'`);
-    }
+    ok = excessCaptures.length === 0;
+    assert(ok, `Capture name(s) '${excessCaptures.join("', '")}' unused by handler in pattern '${pattern}'`);
 
     // Ensure every parameter name matches either a capture name or a builtin name (i.e. check for unsatisfied params).
     let excessParams = pnames.filter(pname => bnames.indexOf(pname) === -1 && cnames.indexOf(pname) === -1);
-    if (excessParams.length > 0) {
-        throw new Error(`Handler parameter(s) '${excessParams.join("', '")}' not captured by pattern '${pattern}'`);
-    }
+    ok = excessParams.length === 0;
+    assert(ok, `Handler parameter(s) '${excessParams.join("', '")}' not captured by pattern '${pattern}'`);
 }

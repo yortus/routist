@@ -64,7 +64,7 @@ describe('Constructing a Handler instance', () => {
         }
     ];
 
-    tests.forEach((test, i) => {
+    tests.forEach(test => {
         it(`${test.pattern} WITH ${test.action}`, () => {
             let expectedError = test.error || '';
             let actualError = '';
@@ -199,7 +199,7 @@ describe('Executing a handler against a pathname', () => {
         }
     ];
 
-    tests.forEach((test, i) => {
+    tests.forEach(test => {
         it(`${test.pattern} WITH ${test.action}`, () => {
             let handler = new Handler(new Pattern(test.pattern), test.action);
             let request = { pathname: test.pathname };

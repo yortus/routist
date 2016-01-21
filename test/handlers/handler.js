@@ -60,7 +60,7 @@ describe('Constructing a Handler instance', () => {
             error: null
         }
     ];
-    tests.forEach((test, i) => {
+    tests.forEach(test => {
         it(`${test.pattern} WITH ${test.action}`, () => {
             let expectedError = test.error || '';
             let actualError = '';
@@ -192,7 +192,7 @@ describe('Executing a handler against a pathname', () => {
             response: `ERROR: Cannot read property 'wat' of null`
         }
     ];
-    tests.forEach((test, i) => {
+    tests.forEach(test => {
         it(`${test.pattern} WITH ${test.action}`, () => {
             let handler = new handler_1.default(new pattern_1.default(test.pattern), test.action);
             let request = { pathname: test.pathname };
