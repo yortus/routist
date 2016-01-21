@@ -1,13 +1,7 @@
 'use strict';
-import {expect} from 'chai';
-import parsePatternSource from '../../src/patterns/parse-pattern-source';
-
-
-
-
-
+var chai_1 = require('chai');
+var parse_pattern_source_1 = require('../../src/patterns/parse-pattern-source');
 describe('Parsing a pattern string', () => {
-
     let tests = [
         'T: /api/foo',
         'T: /api/foo/BAR',
@@ -41,15 +35,19 @@ describe('Parsing a pattern string', () => {
         'T: {$}',
         'T: {...__}'
     ];
-
     tests.forEach(test => {
         it(test, () => {
             let patternSource = test.slice(3);
             let expected = test[0] === 'T' ? true : false;
             let actual = true;
-            try { parsePatternSource(patternSource) }
-            catch (ex) { actual = false; }
-            expect(actual).equals(expected);
+            try {
+                parse_pattern_source_1.default(patternSource);
+            }
+            catch (ex) {
+                actual = false;
+            }
+            chai_1.expect(actual).equals(expected);
         });
     });
 });
+//# sourceMappingURL=parse-pattern-source.js.map

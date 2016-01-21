@@ -1,17 +1,35 @@
 'use strict';
 var PEG = require('pegjs');
-// TODO: describe 'valid' pattern strings:
-// - can't have adjacent captures
-// - literal text can only include chars: A-Z a-z 0-9 _ - . /
-// - capture names must be valid JS identifiers (actually just A-Z a-z 0-9 $ _)
-// - ** and … are synonymous
 /**
  * Verifies that `pattern` has a valid format, and returns metadata about the pattern.
- * Throws an error if `pattern` is invalid. The returned metadata is as follows:
- * - signature: the pattern in its normalized form.
- * - captureNames: an array of strings, with one element per wildcard/capture in the pattern.
- *                 Each element holds the name of its corresponding capture, or '?'
- *                 if the corresponding capture is anonymous (ie an '*' or '…' wildcard).
+ * Throws an error if `pattern` is invalid. A valid pattern conforms to the following rules:
+ * - Patterns are case-sensitive.
+ * - A pattern consists of an alternating sequence of captures and literals.
+ * - A literal consists of one or more adjacent characters from [A-Za-z0-9/._-].
+ * - Literals must exactly match a corresponding portion of a pathname.
+ * - A capture represents an operator that matches zero or more characters of a pathname.
+ * - There are two types of captures: globstars and wildcards.
+ * - A globstar matches zero or more adjacent characters in a pathname.
+ * - A wildcard matches zero or more adjacent characters in a pathname, but cannot match '/'.
+ * - Captures may be named or anonymous. Named captures return their correspoding capture
+ *     values in the result of a call to Pattern#match.
+ * - An anonymous globstar is designated with '**' or '…'.
+ * - A named globstar is designated with '{...id}' where id is a valid JS identifier.
+ * - An anonymous wildcard is designated with '*'.
+ * - A named wildcard is designated with '{id}' where id is a valid JS identifier.
+ * - Two captures may not occupy adjacent positions in a pattern.
+ * Examples:
+ * - '/foo/*' matches '/foo/bar' but not '/foo/bar/baz'
+ * - '/foo**' (or '/foo…') matches '/foo', '/foo/bar' and '/foo/bar/baz'
+ * - '{...path}/{name}.{ext} matches '/api/foo/bar.html' with {path: '/api/foo', name: 'bar', ext: 'baz' }
+ * @param {string} pattern - the pattern source string to be parsed.
+ * @returns {{signature: string; captureNames: string[]}} an object containing metadata
+ *        about the pattern, with the following members:
+ *        - 'signature': the pattern in its normalized form (i.e. all named captures
+ *          replaced with '*' and '…').
+ *        - 'captureNames': an array of strings, with one element per capture in the
+ *          pattern. Each element holds the name of its corresponding capture, or '?'
+ *          if the corresponding capture is anonymous (i.e. '*' or '…').
  */
 function parsePatternSource(pattern) {
     try {
