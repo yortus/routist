@@ -43,7 +43,7 @@ export default class Pattern {
      * is returned containing the name/value pairs for each named capture in the pattern. For
      * failed matches the return value is null.
      * @param {string} pathname - the pathname to match against the pattern.
-     * @returns - null if the match failed, otherwise a hash of captured name/value pairs.
+     * @returns {Object} null if the match failed, otherwise a hash of captured name/value pairs.
      */
     match: (pathname: string) => {[captureName: string]: string};
 
