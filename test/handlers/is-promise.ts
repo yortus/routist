@@ -33,7 +33,6 @@ describe('Identifying a Promise instance', () => {
             let expected = test[0] === 'T' ? true : false;
             let actual = isPromise(testVal);
             expect(actual).equals(expected);
-            
         });
     });
 });

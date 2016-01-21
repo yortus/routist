@@ -1,13 +1,7 @@
 'use strict';
-import {expect} from 'chai';
-import getFunctionParameters from '../../src/handlers/get-function-parameters';
-
-
-
-
-
+var chai_1 = require('chai');
+var get_function_parameters_1 = require('../../src/handlers/get-function-parameters');
 describe(`Identifying a function's formal parameters`, () => {
-
     let tests = [
         `function () {} ==> `,
         `function (a) {} ==> a`,
@@ -41,7 +35,6 @@ describe(`Identifying a function's formal parameters`, () => {
         `function  *fn(a) {} ==> a`,
         `function* fn(foo,    bar,baz) {} ==> foo,bar,baz`,
         `function * fn(aAA, bBb) {} ==> aAA,bBb`,
-
         // Currently unsupported in any Node version: default values, destructuring, async functions
         // TODO: what to do when *some* Node versions support these? Disable tests?
         //       Disable test if eval errors? (but that will mask erroneous test cases too)
@@ -53,7 +46,6 @@ describe(`Identifying a function's formal parameters`, () => {
         `async function fn(foo,   bar) {} ==> ERROR: Unexpected token...`,
         `async (foo,   bar) => {} ==> ERROR: Unexpected token...`
     ];
-
     tests.forEach(test => {
         it(test, () => {
             let funcSource = test.split(' ==> ')[0];
@@ -61,7 +53,7 @@ describe(`Identifying a function's formal parameters`, () => {
             let actualParamNames;
             try {
                 let func = eval(`(${funcSource})`);
-                actualParamNames = getFunctionParameters(func).toString();
+                actualParamNames = get_function_parameters_1.default(func).toString();
             }
             catch (ex) {
                 actualParamNames = 'ERROR: ' + ex.message;
@@ -69,7 +61,8 @@ describe(`Identifying a function's formal parameters`, () => {
                     actualParamNames = actualParamNames.slice(0, expectedParamNames.length - 3) + '...';
                 }
             }
-            expect(actualParamNames).equals(expectedParamNames);
+            chai_1.expect(actualParamNames).equals(expectedParamNames);
         });
     });
 });
+//# sourceMappingURL=get-function-parameters.js.map
