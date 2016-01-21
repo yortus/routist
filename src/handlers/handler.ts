@@ -48,9 +48,9 @@ function validateNames(pattern: Pattern, paramNames: string[]) {
     let cnames = pattern.captureNames;
 
     // We already know the capture names are valid JS identifiers. Now also ensure they don't clash with builtin names.
-    let reservedCaptures = cnames.filter(cname => bnames.indexOf(cname) !== -1);
-    if (reservedCaptures.length > 0) {
-        throw new Error(`Use of reserved capture name(s) '${reservedCaptures.join("', '")}' in pattern '${pattern}'`);
+    let badCaptures = cnames.filter(cname => bnames.indexOf(cname) !== -1);
+    if (badCaptures.length > 0) {
+        throw new Error(`Use of reserved name(s) '${badCaptures.join("', '")}' as capture(s) in pattern '${pattern}'`);
     }
 
     // Ensure that all capture names appear among the handler's parameter names (i.e. check for unused capture names).
@@ -62,7 +62,7 @@ function validateNames(pattern: Pattern, paramNames: string[]) {
     // Ensure every parameter name matches either a capture name or a builtin name (i.e. check for unsatisfied params).
     let excessParams = pnames.filter(pname => bnames.indexOf(pname) === -1 && cnames.indexOf(pname) === -1);
     if (excessParams.length > 0) {
-        throw new Error(`Handler parameter(s) '${excessParams.join("', '")}' not satisfied by pattern '${pattern}'`);
+        throw new Error(`Handler parameter(s) '${excessParams.join("', '")}' not captured by pattern '${pattern}'`);
     }
 }
 
@@ -108,7 +108,7 @@ function makeExecuteFunction(pattern: Pattern, body: Function, paramNames: strin
         var response = executeDownstreamHandlers();
         if (response !== null) return response;
         ` : ''}
-        return originalHandler(${paramNames.map(name => paramMappings[name])});
+        return body(${paramNames.map(name => paramMappings[name])});
     })`;
 
     // Evaluate the handler source into a function, and return it. The use of eval here is safe as there

@@ -1,6 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import normalizeHandler from '../../src/handlers/normalize-handler';
+import Handler from '../../src/handlers/handler';
 import Pattern from '../../src/patterns/pattern';
 
 
@@ -40,14 +40,14 @@ describe('Normalizing a handler function', () => {
             pathname: '/api/foo/bar/baz.html',
             handler: () => '',
             tunnel: rq => null,
-            response: 'ERROR: Unused captures...'
+            response: 'ERROR: Capture name...'
         },
         {
             pattern: '/api/…',
             pathname: '/api/foo/bar/baz.html',
             handler: (rest) => `${rest}`,
             tunnel: rq => null,
-            response: 'ERROR: Unsatisfied parameter...'
+            response: 'ERROR: Handler parameter...'
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
@@ -61,21 +61,21 @@ describe('Normalizing a handler function', () => {
             pathname: '/foo/bar/baz.html',
             handler: (path, ext, req, name) => `${path}, ${ext}, ${req}, ${name}`,
             tunnel: rq => null,
-            response: 'ERROR: Unsatisfied parameter...'
+            response: 'ERROR: Handler parameter...'
         },
         {
             pattern: '/api/{...$req}',
             pathname: '/api/foo/bar/baz.html',
             handler: ($req) => `${$req}`,
             tunnel: rq => null,
-            response: 'ERROR: Reserved name...'
+            response: 'ERROR: Use of reserved name...'
         },
         {
             pattern: '/api/{...req}',
             pathname: '/api/foo/bar/baz.html',
             handler: ($req) => `${$req}`,
             tunnel: rq => null,
-            response: 'ERROR: Unused captures...'
+            response: 'ERROR: Capture name...'
         },
         {
             pattern: '/api/{...rest}',
@@ -104,17 +104,17 @@ describe('Normalizing a handler function', () => {
             handler: (rest, $yield) => $yield('123') || '!',
             tunnel: rq => `abc${rq}`,
             response: 'abc123'
-        },
+        }
     ];
 
     tests.forEach((test, i) => {
         it(`${test.pattern} WITH ${test.handler}`, () => {
             let expectedResponse = test.response;
             try {
-                let canonicalHandler = normalizeHandler(new Pattern(test.pattern), test.handler);
+                let handler = new Handler(new Pattern(test.pattern), test.handler);
                 let request = { pathname: test.pathname };
                 let tunnel = (rq?) => test.tunnel(rq || request);
-                let actualResponse = <any> canonicalHandler(request, (rq?) => test.tunnel(rq || request));
+                let actualResponse = handler.execute(request, (rq?) => test.tunnel(rq || request));
                 expect(actualResponse).equals(expectedResponse);
             }
             catch (ex) {
