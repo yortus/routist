@@ -1,9 +1,10 @@
 'use strict';
-import Handler from './handlers/handler';
-import hierarchizePatterns from './patterns/hierarchize-patterns';
-import Request from './request';
-import Response from './response';
-import Pattern from './patterns/pattern';
+import * as assert from 'assert';
+import Handler from '../handlers/handler';
+import hierarchizePatterns from '../patterns/hierarchize-patterns';
+import Request from '../request';
+import Response from '../response';
+import Pattern from '../patterns/pattern';
 
 
 
@@ -14,7 +15,7 @@ export default class Router {
 
     // TODO: doc...
     constructor() {
-    }    
+    }
 
 
     // TODO: doc...
@@ -44,8 +45,8 @@ export default class Router {
 
         // TODO: hierarchize patterns!
         let patternDAG = hierarchizePatterns(patterns);
-        let allNodes = {};
-        let nodeFor = (pattern: string): Node => allNodes[pattern] || (allNodes[pattern] = makeNode(pattern));
+        let allNodes: {[pattern: string]: Node} = {};
+        let nodeFor = (pattern: string) => allNodes[pattern] || (allNodes[pattern] = makeNode(pattern));
         let dummy = patternDAG['…'];
 
         traverse('…', patternDAG['…']);
@@ -64,6 +65,11 @@ export default class Router {
             keys.forEach(key => traverse(key, specializations[key], node));
         }
 
+        // Ensure each decorator appears only once in the DAG
+        // TODO: this is more restrictive that necessary. Better way?
+        // let dupliDecors = Object.keys(allNodes).filter(key => allNodes[key].handler.isDecorator && allNodes[key].lessSpecialized.length > 1);
+        // assert(dupliDecors.length === 0, `split decorators: '${dupliDecors.join("', '")}'`); // TODO: improve error message
+
         // Set root node
         this.root = nodeFor('…');
     }
@@ -72,7 +78,7 @@ export default class Router {
     // TODO: doc...
     dispatch(request: Request): Response {
         // TODO: ...
-debugger;
+
         let pathname = request.pathname;
         let path: Node[] = [];
         let node = this.root; // always starts with '…'; don't need to check this against pathname
@@ -93,7 +99,7 @@ debugger;
 
         // should have a path here...
         let fullPath = path.map(n => n.signature).join('   ==>   ');
-        debugger;
+        //debugger;
         return null;
     }
     

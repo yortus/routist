@@ -1,32 +1,18 @@
 'use strict';
-import {expect} from 'chai';
-import Router from '../src/router';
-
-
-
-
-
+var router_1 = require('../../src/routers/router');
 describe('Constructing a router instance', () => {
-
     it('works', () => {
-
-        let routeTable: {[pattern: string]: Function} = {
+        let routeTable = {
             '/foo': () => 'foo',
             '/bar': () => 'bar',
             '/baz': () => 'baz',
             '/{thing}': thing => thing,
-
-            'a/*': () => {},
-            '*/b': () => {},
-
-
-
-
+            'a/*': () => { },
+            '*/b': () => { },
         };
-
-        let router = new Router();
+        let router = new router_1.default();
         router.add(routeTable);
-        router.dispatch({pathname: 'a/b'});
-
+        router.dispatch({ pathname: 'a/b' });
     });
 });
+//# sourceMappingURL=router.js.map

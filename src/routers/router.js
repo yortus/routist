@@ -1,7 +1,7 @@
 'use strict';
-var handler_1 = require('./handlers/handler');
-var hierarchize_patterns_1 = require('./patterns/hierarchize-patterns');
-var pattern_1 = require('./patterns/pattern');
+var handler_1 = require('../handlers/handler');
+var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
+var pattern_1 = require('../patterns/pattern');
 class Router {
     // TODO: doc...
     constructor() {
@@ -45,13 +45,16 @@ class Router {
             let keys = Object.keys(specializations);
             keys.forEach(key => traverse(key, specializations[key], node));
         }
+        // Ensure each decorator appears only once in the DAG
+        // TODO: this is more restrictive that necessary. Better way?
+        // let dupliDecors = Object.keys(allNodes).filter(key => allNodes[key].handler.isDecorator && allNodes[key].lessSpecialized.length > 1);
+        // assert(dupliDecors.length === 0, `split decorators: '${dupliDecors.join("', '")}'`); // TODO: improve error message
         // Set root node
         this.root = nodeFor('…');
     }
     // TODO: doc...
     dispatch(request) {
         // TODO: ...
-        debugger;
         let pathname = request.pathname;
         let path = [];
         let node = this.root; // always starts with '…'; don't need to check this against pathname
@@ -69,7 +72,7 @@ class Router {
         }
         // should have a path here...
         let fullPath = path.map(n => n.signature).join('   ==>   ');
-        debugger;
+        //debugger;
         return null;
     }
 }
