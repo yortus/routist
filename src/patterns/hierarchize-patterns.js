@@ -2,17 +2,17 @@
 var intersect_patterns_1 = require('./intersect-patterns');
 var pattern_1 = require('./pattern');
 /**
- * Arranges the given list of patterns into a hierarchy according to their
- * set relationships (recall that each pattern represents a set of pathnames).
- * The arrangement is akin to a Venn diagram. The 'outermost' pattern is
- * always the universal set ('…'). For any two patterns p1 and p2, if
- * p2 is a proper subset of p1 then it will be a descendent of p1 in the
- * hierarchy. Overlapping patterns are represented as siblings in the hierarchy.
- * For overlapping patterns, an additional node representing their intersection
- * is added as a descendent of both patterns. The hierarchy is thus a directed
- * acyclic graph (DAG).
- * NB: The given patterns are assumed to be in normal form.
- * NB: The operation is case-sensitive.
+ * Arranges the given list of patterns into a hierarchy according to their set
+ * relationships (recall that each pattern represents a set of pathnames). The
+ * arrangement is akin to a Venn diagram. The 'outermost' pattern is always the
+ * the universal set ('…'), regardless of whether `patterns` contains a '…'.
+ * For any two patterns p1 and p2, if p2 is a proper subset of p1, then it will
+ * be a descendent of p1 in the hierarchy. Overlapping patterns (i.e., patterns
+ * whose intersection is non-empty and neither is a subset of the other) are
+ * represented as siblings in the hierarchy. For overlapping patterns, an
+ * additional pattern representing their intersection is synthesized and added
+ * as a descendent of both patterns. The hierarchy is thus a directed acyclic
+ * graph (DAG).
  *
  * For example, the patterns ['/foo', '/bar', '/f*', '/*o'] result in the DAG:
  * …
@@ -25,8 +25,9 @@ var pattern_1 = require('./pattern');
  *         |-- /foo
  *
  * @param {Pattern[]} patterns - the list of patterns to go into the hierarchy.
- * @returns {Object} A node object, whose keys are pattern signatures
- *          and whose values are node objects.
+ * @returns {Object} A 'node' object, whose keys are pattern signatures and
+ *        whose values are more 'nodes'. The returned node always contains the
+ *        single key '…'.
  */
 function hierarchizePatterns(patterns) {
     // Create the nodeFor() function to return nodes from a single associative array
