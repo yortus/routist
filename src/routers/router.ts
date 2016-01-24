@@ -2,6 +2,7 @@
 import * as assert from 'assert';
 import Handler from '../handlers/handler';
 import hierarchizePatterns from '../patterns/hierarchize-patterns';
+import mapGraph from './mapGraph';
 import Request from '../request';
 import Response from '../response';
 import Pattern from '../patterns/pattern';
@@ -43,35 +44,50 @@ export default class Router {
             handlers.push(new Handler(rootPattern, () => { throw new Error('404!');}));
         }
 
-        // TODO: hierarchize patterns!
-        let patternDAG = hierarchizePatterns(patterns);
-        let allNodes: {[pattern: string]: Node} = {};
-        let nodeFor = (pattern: string) => allNodes[pattern] || (allNodes[pattern] = makeNode(pattern));
-        let dummy = patternDAG['…'];
 
-        traverse('…', patternDAG['…']);
+        let patternHierarchy = hierarchizePatterns(patterns);
+        var routeHierarchy = mapGraph(patternHierarchy, {
+            addNode: (value, key) => makeNode(key),
+            addEdge: (parent: Node, child: Node) => {
+                parent.moreSpecialized.push(child);
+                child.lessSpecialized.push(parent);
+            }
+        });
 
-        // Build Node DAG
-        function traverse(pattern: string, specializations: typeof dummy, parent?: Node) {
-            let node = nodeFor(pattern);
-            if (parent) node.lessSpecialized.push(parent); // uplinks
-            if (node.pattern) return; // already visited
 
-            let i = patterns.findIndex(p => pattern === p.signature);
-            node.pattern = patterns[i];
-            node.handler = handlers[i];
-            node.moreSpecialized = Object.keys(specializations).map(nodeFor); // downlinks
-            let keys = Object.keys(specializations);
-            keys.forEach(key => traverse(key, specializations[key], node));
-        }
 
-        // Ensure each decorator appears only once in the DAG
-        // TODO: this is more restrictive that necessary. Better way?
-        // let dupliDecors = Object.keys(allNodes).filter(key => allNodes[key].handler.isDecorator && allNodes[key].lessSpecialized.length > 1);
-        // assert(dupliDecors.length === 0, `split decorators: '${dupliDecors.join("', '")}'`); // TODO: improve error message
 
-        // Set root node
-        this.root = nodeFor('…');
+
+
+//         // TODO: hierarchize patterns!
+//         let patternDAG = hierarchizePatterns(patterns);
+//         let allNodes: {[pattern: string]: Node} = {};
+//         let nodeFor = (pattern: string) => allNodes[pattern] || (allNodes[pattern] = makeNode(pattern));
+//         let dummy = patternDAG['…'];
+// 
+//         traverse('…', patternDAG['…']);
+// 
+//         // Build Node DAG
+//         function traverse(pattern: string, specializations: typeof dummy, parent?: Node) {
+//             let node = nodeFor(pattern);
+//             if (parent) node.lessSpecialized.push(parent); // uplinks
+//             if (node.pattern) return; // already visited
+// 
+//             let i = patterns.findIndex(p => pattern === p.signature);
+//             node.pattern = patterns[i];
+//             node.handler = handlers[i];
+//             node.moreSpecialized = Object.keys(specializations).map(nodeFor); // downlinks
+//             let keys = Object.keys(specializations);
+//             keys.forEach(key => traverse(key, specializations[key], node));
+//         }
+// 
+//         // Ensure each decorator appears only once in the DAG
+//         // TODO: this is more restrictive that necessary. Better way?
+//         // let dupliDecors = Object.keys(allNodes).filter(key => allNodes[key].handler.isDecorator && allNodes[key].lessSpecialized.length > 1);
+//         // assert(dupliDecors.length === 0, `split decorators: '${dupliDecors.join("', '")}'`); // TODO: improve error message
+// 
+//         // Set root node
+//         this.root = nodeFor('…');
     }
 
 

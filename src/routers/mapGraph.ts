@@ -22,17 +22,25 @@ import * as assert from 'assert';
  *        of output nodes whose equivalent input nodes are joined by an edge.
  * @returns the root node of the output graph.
  */
-export default function mapGraph<T extends {[key: string]: T}, U>(graph: T, addNode: AddNode<T,U>, addEdge: AddEdge<U>): U {
-    return mapGraphImpl(graph, null, addNode, addEdge, new Map());
+export default function mapGraph<T extends {[key: string]: T}, U>(graph: T, options: Options<T, U>): U {
+    return mapGraphImpl(graph, null, options, new Map());
 }
 
 
 
 
+
+interface Options<T, U> {
+    addNode: (value: T, key: string) => U;
+    addEdge: (parent: U, child: U) => void;
+}
+
+
+
 // These types are for convenience, mainly to shorten the function declaration lines.
-type Graph<T> = {[key: string]: T};
-type AddNode<T, U> = (value: T, key: string) => U;
-type AddEdge<U> = (parent: U, child: U) => void
+//type Graph<T> = {[key: string]: T};
+//type AddNode<T, U> = (value: T, key: string) => U;
+//type AddEdge<U> = (parent: U, child: U) => void
 
 
 
@@ -42,14 +50,14 @@ type AddEdge<U> = (parent: U, child: U) => void
  * Implements the logic of mapGraph using recursion. The function signature has an
  * additional `visited` parameter, which enables support for DAGs and cyclic graphs.
  */
-function mapGraphImpl<T extends {[key: string]: T}, U>(inputValue: T, inputKey: string, addNode: AddNode<T,U>, addEdge: AddEdge<U>, visited: Map<T, U>): U {
+function mapGraphImpl<T extends {[key: string]: T}, U>(inputValue: T, inputKey: string, options: Options<T, U>, visited: Map<T, U>): U {
 
     // If we've already visited this input node, return its already-constructed output node.
     let outputNode = visited.get(inputValue);
     if (outputNode) return outputNode;
 
     // Construct the output node for this input node by calling `addNode`. Add the result to the `visited` map.
-    outputNode = addNode(inputValue, inputKey);
+    outputNode = options.addNode(inputValue, inputKey);
     visited.set(inputValue, outputNode);
 
     // Ensure the input node's value is an object.
@@ -63,10 +71,10 @@ function mapGraphImpl<T extends {[key: string]: T}, U>(inputValue: T, inputKey: 
         // Get the output node corresponding to this child input node. This step is recursive. If the child input
         // node has already been visited (which may hapen in a DAG or cyclic graph), this will return the already-
         // constructed output node for the child input node. Otherwise, we proceed by recursion here.
-        let childOutputNode = mapGraphImpl(childInputValue, childInputKey, addNode, addEdge, visited);
+        let childOutputNode = mapGraphImpl(childInputValue, childInputKey, options, visited);
 
         // Add the edge between the current and child output nodes by calling `addEdge`.
-        addEdge(outputNode, childOutputNode);
+        options.addEdge(outputNode, childOutputNode);
     });
     return outputNode;
 }

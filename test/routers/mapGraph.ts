@@ -74,7 +74,7 @@ describe('Mapping over an object graph', () => {
         test.checks.forEach(check => it(`Case ${i + 1} - ${check}`, () => {
             if (!output) {
                 patchRefs(test.input);
-                output = mapGraph(test.input, test.addNode, test.addEdge);
+                output = mapGraph(test.input, { addNode: test.addNode, addEdge: test.addEdge});
             }
             expect(() => eval(`assert_(${check}, 'check failed')`)).to.not.throw();
         }));

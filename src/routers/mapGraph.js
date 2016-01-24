@@ -17,22 +17,26 @@ var assert = require('assert');
  *        of output nodes whose equivalent input nodes are joined by an edge.
  * @returns the root node of the output graph.
  */
-function mapGraph(graph, addNode, addEdge) {
-    return mapGraphImpl(graph, null, addNode, addEdge, new Map());
+function mapGraph(graph, options) {
+    return mapGraphImpl(graph, null, options, new Map());
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = mapGraph;
+// These types are for convenience, mainly to shorten the function declaration lines.
+//type Graph<T> = {[key: string]: T};
+//type AddNode<T, U> = (value: T, key: string) => U;
+//type AddEdge<U> = (parent: U, child: U) => void
 /**
  * Implements the logic of mapGraph using recursion. The function signature has an
  * additional `visited` parameter, which enables support for DAGs and cyclic graphs.
  */
-function mapGraphImpl(inputValue, inputKey, addNode, addEdge, visited) {
+function mapGraphImpl(inputValue, inputKey, options, visited) {
     // If we've already visited this input node, return its already-constructed output node.
     let outputNode = visited.get(inputValue);
     if (outputNode)
         return outputNode;
     // Construct the output node for this input node by calling `addNode`. Add the result to the `visited` map.
-    outputNode = addNode(inputValue, inputKey);
+    outputNode = options.addNode(inputValue, inputKey);
     visited.set(inputValue, outputNode);
     // Ensure the input node's value is an object.
     // TODO: explain why, or relax this. Are there cases where we should wish to do otherwise?
@@ -43,9 +47,9 @@ function mapGraphImpl(inputValue, inputKey, addNode, addEdge, visited) {
         // Get the output node corresponding to this child input node. This step is recursive. If the child input
         // node has already been visited (which may hapen in a DAG or cyclic graph), this will return the already-
         // constructed output node for the child input node. Otherwise, we proceed by recursion here.
-        let childOutputNode = mapGraphImpl(childInputValue, childInputKey, addNode, addEdge, visited);
+        let childOutputNode = mapGraphImpl(childInputValue, childInputKey, options, visited);
         // Add the edge between the current and child output nodes by calling `addEdge`.
-        addEdge(outputNode, childOutputNode);
+        options.addEdge(outputNode, childOutputNode);
     });
     return outputNode;
 }
