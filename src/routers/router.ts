@@ -6,11 +6,13 @@ import mapGraph from './mapGraph';
 import Request from '../request';
 import Response from '../response';
 import Pattern from '../patterns/pattern';
+import Rule from './rule';
 
 
 
 
 
+// TODO: doc...
 export default class Router {
 
 
@@ -44,16 +46,20 @@ export default class Router {
             handlers.push(new Handler(rootPattern, () => { throw new Error('404!');}));
         }
 
-
+        // 
         let patternHierarchy = hierarchizePatterns(patterns);
-        var routeHierarchy = mapGraph(patternHierarchy, {
-            addNode: (value, key) => makeNode(key),
-            addEdge: (parent: Node, child: Node) => {
-                parent.moreSpecialized.push(child);
-                child.lessSpecialized.push(parent);
+        var ruleHierarchy = mapGraph(patternHierarchy, {
+
+            addNode: (value, key) => {
+                return new Rule(key || '');
+            },
+ 
+            addEdge: (parent: Rule, child: Rule) => {
+                parent.moreSpecific.push(child);
+                child.lessSpecific.push(parent);
             }
         });
-
+        debugger;
 
 
 
@@ -96,21 +102,21 @@ export default class Router {
         // TODO: ...
 
         let pathname = request.pathname;
-        let path: Node[] = [];
-        let node = this.root; // always starts with '…'; don't need to check this against pathname
+        let path: Rule[] = [];
+        let rule = this.root; // always starts with '…'; don't need to check this against pathname
 
         while (true) {
-            path.push(node);
+            path.push(rule);
 
-            let foundChild: Node = null;
-            for (let i = 0; !foundChild && i < node.moreSpecialized.length; ++i) {
-                let child = node.moreSpecialized[i];
+            let foundChild: Rule = null;
+            for (let i = 0; !foundChild && i < rule.moreSpecific.length; ++i) {
+                let child = rule.moreSpecific[i];
                 if (child.isMatch(pathname)) foundChild = child;
             }
 
             if (!foundChild) break;
 
-            node = foundChild;
+            rule = foundChild;
         }
 
         // should have a path here...
@@ -121,38 +127,5 @@ export default class Router {
     
 
     // TODO: doc...
-    private root: Node;
-}
-
-
-
-
-
-// TODO: doc...
-interface Node {
-    signature: string;
-    pattern: Pattern;
-    handler: Handler;
-    lessSpecialized: Node[];
-    moreSpecialized: Node[];
-    isMatch(pathname: string): boolean;
-}
-
-
-
-
-
-// TODO: doc...
-function makeNode(signature: string): Node {
-    let result = {
-        signature,
-        pattern: null,
-        handler: null,
-        lessSpecialized: [],
-        moreSpecialized: [],
-        isMatch: null
-    };
-    let quickPattern = new Pattern(signature);
-    result.isMatch = (pathname: string) => quickPattern.match(pathname) !== null;
-    return result;
+    private root: Rule;
 }

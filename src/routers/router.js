@@ -1,7 +1,10 @@
 'use strict';
 var handler_1 = require('../handlers/handler');
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
+var mapGraph_1 = require('./mapGraph');
 var pattern_1 = require('../patterns/pattern');
+var rule_1 = require('./rule');
+// TODO: doc...
 class Router {
     // TODO: doc...
     constructor() {
@@ -25,8 +28,18 @@ class Router {
             patterns.push(rootPattern);
             handlers.push(new handler_1.default(rootPattern, () => { throw new Error('404!'); }));
         }
+        // 
         let patternHierarchy = hierarchize_patterns_1.default(patterns);
-        //var routeHierarchy = mapGraph(patternHierarchy, (value, key) => { return 42; }, (parent, child) => {});
+        var ruleHierarchy = mapGraph_1.default(patternHierarchy, {
+            addNode: (value, key) => {
+                return new rule_1.default(key || '');
+            },
+            addEdge: (parent, child) => {
+                parent.moreSpecific.push(child);
+                child.lessSpecific.push(parent);
+            }
+        });
+        debugger;
         //         // TODO: hierarchize patterns!
         //         let patternDAG = hierarchizePatterns(patterns);
         //         let allNodes: {[pattern: string]: Node} = {};
@@ -62,18 +75,18 @@ class Router {
         // TODO: ...
         let pathname = request.pathname;
         let path = [];
-        let node = this.root; // always starts with '…'; don't need to check this against pathname
+        let rule = this.root; // always starts with '…'; don't need to check this against pathname
         while (true) {
-            path.push(node);
+            path.push(rule);
             let foundChild = null;
-            for (let i = 0; !foundChild && i < node.moreSpecialized.length; ++i) {
-                let child = node.moreSpecialized[i];
+            for (let i = 0; !foundChild && i < rule.moreSpecific.length; ++i) {
+                let child = rule.moreSpecific[i];
                 if (child.isMatch(pathname))
                     foundChild = child;
             }
             if (!foundChild)
                 break;
-            node = foundChild;
+            rule = foundChild;
         }
         // should have a path here...
         let fullPath = path.map(n => n.signature).join('   ==>   ');
@@ -83,18 +96,4 @@ class Router {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Router;
-// TODO: doc...
-function makeNode(signature) {
-    let result = {
-        signature: signature,
-        pattern: null,
-        handler: null,
-        lessSpecialized: [],
-        moreSpecialized: [],
-        isMatch: null
-    };
-    let quickPattern = new pattern_1.default(signature);
-    result.isMatch = (pathname) => quickPattern.match(pathname) !== null;
-    return result;
-}
 //# sourceMappingURL=router.js.map
