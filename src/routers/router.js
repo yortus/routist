@@ -1,9 +1,7 @@
 'use strict';
 var handler_1 = require('../handlers/handler');
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
-var mapGraph_1 = require('./mapGraph');
 var pattern_1 = require('../patterns/pattern');
-var rule_node_1 = require('./rule-node');
 // TODO: doc...
 class Router {
     // TODO: doc...
@@ -22,6 +20,10 @@ class Router {
             patterns = keys.map(key => new pattern_1.default(key));
             handlers = keys.map((key, i) => new handler_1.default(patterns[i], routes[key]));
         }
+        // TODO: ...
+        function getHandlersForPattern(patternSignature) {
+            return handlers.filter((h, i) => patterns[i].signature === patternSignature);
+        }
         // TODO: add root pattern/handler if not there already
         if (!patterns.some(p => p.signature === '…')) {
             let rootPattern = new pattern_1.default('…');
@@ -30,37 +32,8 @@ class Router {
         }
         // TODO: ...
         let patternHierarchy = hierarchize_patterns_1.default(patterns);
-        debugger;
-        let allRules = [];
-        var ruleHierarchy = mapGraph_1.default(patternHierarchy, {
-            addNode: (value, key) => {
-                if (!key)
-                    return -1;
-                let rule = new rule_node_1.default(key || '');
-                return allRules.push(rule) - 1;
-            },
-            addEdge: (parent, child) => {
-                if (parent === -1)
-                    return;
-                allRules[parent].moreSpecific.push(child);
-                allRules[child].lessSpecific.push(parent);
-            }
-        });
-        debugger;
-        // TODO: set root node
-        //assert(ruleHierarchy.moreSpecific.length === 1);
-        //assert(ruleHierarchy.moreSpecific[0].signature === '…');
-        //this.rootRule = ruleHierarchy.moreSpecific[0];
-        let allRoutes = allRules.map(rule => {
-            let route = {
-                isMatch: null,
-                moreSpecific: rule.moreSpecific,
-                execute: null
-            };
-        });
-        debugger;
-        traceAllRoutes(allRules[0], allRules);
-        debugger;
+        let allRules = mapPatternsToRules(patternHierarchy, getHandlersForPattern);
+        let allRoutes = mapRulesToRoutes(allRules);
         //         // Ensure each decorator appears only once in the DAG
         //         // TODO: this is more restrictive that necessary. Better way?
         //         // let dupliDecors = Object.keys(allNodes).filter(key => allNodes[key].handler.isDecorator && allNodes[key].lessSpecialized.length > 1);
@@ -94,5 +67,49 @@ function traceAllRoutes(rootRule, allRules) {
             console.log(`  ${steps.join(' ==> ')}`);
         });
     });
+}
+// TODO: ...
+function mapPatternsToRules(patterns, getHandlersFor, parentRule, allRules) {
+    allRules = allRules || {};
+    Object.keys(patterns).forEach(pattern => {
+        let childRule = allRules[pattern] || (allRules[pattern] = {
+            signature: pattern,
+            lessSpecific: [],
+            moreSpecific: [],
+            handlers: getHandlersFor(pattern)
+        });
+        mapPatternsToRules(patterns[pattern], getHandlersFor, childRule, allRules);
+        if (!parentRule)
+            return;
+        childRule.lessSpecific.push(parentRule.signature);
+        parentRule.moreSpecific.push(pattern);
+    });
+    return allRules;
+}
+// TODO: ...
+function mapRulesToRoutes(rules) {
+    let routes = Object.keys(rules).map(pattern => {
+        let rule = rules[pattern];
+        let route = {
+            signature: rule.signature,
+            quickMatch: makeQuickMatchFunction(rule),
+            moreSpecific: rule.moreSpecific,
+            execute: makeExecuteFunction(rule)
+        };
+        return route;
+    });
+    return routes;
+}
+// TODO: ...
+function makeQuickMatchFunction(rule) {
+    let quickMatchPattern = new pattern_1.default(rule.signature);
+    let isMatch = (pathname) => quickMatchPattern.match(pathname) !== null;
+    return isMatch;
+}
+// TODO: ...
+function makeExecuteFunction(rule) {
+    let result;
+    // TODO: ...
+    return result;
 }
 //# sourceMappingURL=router.js.map

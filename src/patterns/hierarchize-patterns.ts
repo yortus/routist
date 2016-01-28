@@ -40,7 +40,7 @@ export default function hierarchizePatterns(patterns: Pattern[]) {
     // Create the nodeFor() function to return nodes from a single associative array
     // of patterns, creating them on demand if they don't exist. This ensures every
     // request for the same pattern gets the same singleton node.
-    let map: PNode = {};
+    let map: PatternNode = {};
     let nodeFor = (pattern: string) => map[pattern] || (map[pattern] = {});
 
     // Insert each of the given patterns (except '…' and '∅') into a DAG rooted at '…'.
@@ -50,7 +50,7 @@ export default function hierarchizePatterns(patterns: Pattern[]) {
         .forEach(pattern => insert(pattern.signature, '…', nodeFor));
 
     // Return a top-level node with the single key '…'.
-    return <PNode> {'…': nodeFor('…')};
+    return <PatternNode> {'…': nodeFor('…')};
 }
 
 
@@ -58,7 +58,7 @@ export default function hierarchizePatterns(patterns: Pattern[]) {
 
 
 /** Recursive structure used for representing a DAG whose nodes are patterns. */
-type PNode = {[pattern: string]: PNode};
+export type PatternNode = {[pattern: string]: PatternNode};
 
 
 
@@ -73,7 +73,7 @@ type PNode = {[pattern: string]: PNode};
  * @param {(pattern: string) => Node} nodeFor - A callback used by the function to
  *        map patterns to their corresponding nodes on demand.
  */
-function insert(pattern: string, superset: string, nodeFor: (pattern: string) => PNode) {
+function insert(pattern: string, superset: string, nodeFor: (pattern: string) => PatternNode) {
 
     // Compute information about all the existing direct subsets of `superset`.
     // We only care about the ones that are non-disjoint with `pattern`.

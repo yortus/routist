@@ -1,13 +1,10 @@
 'use strict';
 import * as assert from 'assert';
 import Handler from '../handlers/handler';
-import hierarchizePatterns from '../patterns/hierarchize-patterns';
-import mapGraph from './mapGraph';
+import hierarchizePatterns, {PatternNode} from '../patterns/hierarchize-patterns';
 import Request from '../request';
 import Response from '../response';
 import Pattern from '../patterns/pattern';
-import Route from './route';
-import RuleNode from './rule-node';
 
 
 
@@ -40,6 +37,11 @@ export default class Router {
             handlers = keys.map((key, i) => new Handler(patterns[i], routes[key]));
         }
 
+        // TODO: ...
+        function getHandlersForPattern(patternSignature: string) {
+            return handlers.filter((h, i) => patterns[i].signature === patternSignature);
+        }
+
         // TODO: add root pattern/handler if not there already
         if (!patterns.some(p => p.signature === '…')) {
             let rootPattern = new Pattern('…')
@@ -49,49 +51,11 @@ export default class Router {
 
         // TODO: ...
         let patternHierarchy = hierarchizePatterns(patterns);
-        debugger;
-
-
-        let allRules: RuleNode[] = [];
-        var ruleHierarchy = mapGraph(patternHierarchy, {
-
-            addNode: (value, key) => {
-                if (!key) return -1;
-                let rule = new RuleNode(key || '');
-                return allRules.push(rule) - 1;
-            },
- 
-            addEdge: (parent: number, child: number) => {
-                if (parent === -1) return;
-                allRules[parent].moreSpecific.push(child);
-                allRules[child].lessSpecific.push(parent);
-            }
-        });
-
-debugger;
+        let allRules = mapPatternsToRules(patternHierarchy, getHandlersForPattern);
+        let allRoutes = mapRulesToRoutes(allRules);
 
 
 
-        // TODO: set root node
-        //assert(ruleHierarchy.moreSpecific.length === 1);
-        //assert(ruleHierarchy.moreSpecific[0].signature === '…');
-        //this.rootRule = ruleHierarchy.moreSpecific[0];
-
-
-        let allRoutes = allRules.map(rule => {
-            let route: Route = {
-                isMatch: null,
-                moreSpecific: rule.moreSpecific,
-                execute: null
-            };
-        });
-
-
-
-
-        debugger;
-        traceAllRoutes(allRules[0], allRules);
-        debugger;
 
 
 
@@ -99,7 +63,6 @@ debugger;
 //         // TODO: this is more restrictive that necessary. Better way?
 //         // let dupliDecors = Object.keys(allNodes).filter(key => allNodes[key].handler.isDecorator && allNodes[key].lessSpecialized.length > 1);
 //         // assert(dupliDecors.length === 0, `split decorators: '${dupliDecors.join("', '")}'`); // TODO: improve error message
-
     }
 
 
@@ -139,10 +102,10 @@ debugger;
 
 
 // TODO: ...
-function traceAllRoutes(rootRule: RuleNode, allRules: RuleNode[]) {
+function traceAllRoutes(rootRule: Rule, allRules: Rule[]) {
     var x = allRules.map(rule => {
-        let incompletePaths: RuleNode[][] = [[rule]];
-        let completePaths: RuleNode[][] = [];
+        let incompletePaths: Rule[][] = [[rule]];
+        let completePaths: Rule[][] = [];
         while (incompletePaths.length > 0) {
             let incompletePath = incompletePaths.pop();
             if (incompletePath[0].signature === '…') {
@@ -165,4 +128,79 @@ function traceAllRoutes(rootRule: RuleNode, allRules: RuleNode[]) {
             console.log(`  ${steps.join(' ==> ')}`);
         });
     });
+}
+
+
+
+
+
+// TODO: ...
+interface Rule {
+    signature: string;
+    lessSpecific: string[];    
+    moreSpecific: string[];
+    handlers: Handler[];
+}
+
+
+
+
+
+// TODO: ...
+function mapPatternsToRules(patterns: PatternNode, getHandlersFor: (pattern: string) => Handler[], parentRule?: Rule, allRules?: {[pattern:string]: Rule}) {
+    allRules = allRules || {};
+    Object.keys(patterns).forEach(pattern => {
+        let childRule = allRules[pattern] || (allRules[pattern] = {
+            signature: pattern,
+            lessSpecific: [],
+            moreSpecific: [],
+            handlers: getHandlersFor(pattern)
+        });
+        mapPatternsToRules(patterns[pattern], getHandlersFor, childRule, allRules);
+        if (!parentRule) return;
+        childRule.lessSpecific.push(parentRule.signature);
+        parentRule.moreSpecific.push(pattern);
+    });
+    return allRules;
+}
+
+
+
+
+
+// TODO: ...
+function mapRulesToRoutes(rules: {[pattern:string]: Rule}) {
+    let routes = Object.keys(rules).map(pattern => {
+        let rule = rules[pattern];
+        let route = {
+            signature: rule.signature, // TODO: need?
+            quickMatch: makeQuickMatchFunction(rule),
+            moreSpecific: rule.moreSpecific,
+            execute: makeExecuteFunction(rule)
+        };
+        return route;
+    });
+    return routes;
+}
+
+
+
+
+
+// TODO: ...
+function makeQuickMatchFunction(rule: Rule) {
+    let quickMatchPattern = new Pattern(rule.signature);
+    let isMatch = (pathname: string) => quickMatchPattern.match(pathname) !== null;
+    return isMatch;
+}
+
+
+
+
+
+// TODO: ...
+function makeExecuteFunction(rule: Rule) {
+    let result: (request: Request) => Response;
+    // TODO: ...
+    return result;
 }
