@@ -1,5 +1,4 @@
 'use strict';
-var pattern_1 = require('../patterns/pattern');
 // TODO: doc...
 class RuleNode {
     // TODO: doc...
@@ -9,8 +8,8 @@ class RuleNode {
         this.lessSpecific = [];
         // TODO: doc...
         this.moreSpecific = [];
-        let quickMatchPattern = new pattern_1.default(signature);
-        this.isMatch = (pathname) => quickMatchPattern.match(pathname) !== null;
+        // let quickMatchPattern = new Pattern(signature);
+        // this.isMatch = (pathname: string) => quickMatchPattern.match(pathname) !== null;
     }
 }
 Object.defineProperty(exports, "__esModule", { value: true });

@@ -49,27 +49,49 @@ export default class Router {
 
         // TODO: ...
         let patternHierarchy = hierarchizePatterns(patterns);
+        debugger;
+
+
+        let allRules: RuleNode[] = [];
         var ruleHierarchy = mapGraph(patternHierarchy, {
 
             addNode: (value, key) => {
+                if (!key) return -1;
                 let rule = new RuleNode(key || '');
-                if (key) this.allRules.push(rule);
-                return rule;
+                return allRules.push(rule) - 1;
             },
  
-            addEdge: (parent: RuleNode, child: RuleNode) => {
-                parent.moreSpecific.push(child);
-                child.lessSpecific.push(parent);
+            addEdge: (parent: number, child: number) => {
+                if (parent === -1) return;
+                allRules[parent].moreSpecific.push(child);
+                allRules[child].lessSpecific.push(parent);
             }
         });
 
+debugger;
+
+
+
         // TODO: set root node
-        assert(ruleHierarchy.moreSpecific.length === 1);
-        assert(ruleHierarchy.moreSpecific[0].signature === '…');
-        this.rootRule = ruleHierarchy.moreSpecific[0];
+        //assert(ruleHierarchy.moreSpecific.length === 1);
+        //assert(ruleHierarchy.moreSpecific[0].signature === '…');
+        //this.rootRule = ruleHierarchy.moreSpecific[0];
+
+
+        let allRoutes = allRules.map(rule => {
+            let route: Route = {
+                isMatch: null,
+                moreSpecific: rule.moreSpecific,
+                execute: null
+            };
+        });
+
+
+
 
         debugger;
-        traceAllRoutes(this.rootRule, this.allRules);
+        traceAllRoutes(allRules[0], allRules);
+        debugger;
 
 
 
@@ -82,37 +104,37 @@ export default class Router {
 
 
     // TODO: doc...
-    dispatch(request: Request): Response {
-        // TODO: ...
-
-        let pathname = request.pathname;
-        let path: RuleNode[] = [];
-        let rule = this.rootRule; // always starts with '…'; don't need to check this against pathname
-
-        while (true) {
-            path.push(rule);
-
-            let foundChild: RuleNode = null;
-            for (let i = 0; !foundChild && i < rule.moreSpecific.length; ++i) {
-                let child = rule.moreSpecific[i];
-                if (child.isMatch(pathname)) foundChild = child;
-            }
-
-            if (!foundChild) break;
-
-            rule = foundChild;
-        }
-
-        // should have a path here...
-        let fullPath = path.map(n => n.signature).join('   ==>   ');
-        //debugger;
-        return null;
-    }
+//     dispatch(request: Request): Response {
+//         // TODO: ...
+// 
+//         let pathname = request.pathname;
+//         let path: RuleNode[] = [];
+//         let rule = this.rootRule; // always starts with '…'; don't need to check this against pathname
+// 
+//         while (true) {
+//             path.push(rule);
+// 
+//             let foundChild: RuleNode = null;
+//             for (let i = 0; !foundChild && i < rule.moreSpecific.length; ++i) {
+//                 let child = rule.moreSpecific[i];
+//                 if (child.isMatch(pathname)) foundChild = child;
+//             }
+// 
+//             if (!foundChild) break;
+// 
+//             rule = foundChild;
+//         }
+// 
+//         // should have a path here...
+//         let fullPath = path.map(n => n.signature).join('   ==>   ');
+//         //debugger;
+//         return null;
+//     }
     
 
     // TODO: doc...
-    private allRules: RuleNode[] = [];
-    private rootRule: RuleNode;
+    //private allRules: RuleNode[];
+    //private rootRule: RuleNode;
 }
 
 

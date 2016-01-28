@@ -8,12 +8,13 @@ import RuleNode from './rule-node';
 
 
 // TODO: ...
-export default class Route {
+export default Route;
+interface Route {
 
 
     //TODO:...
-    constructor(rule: RuleNode) {
-    }
+    //constructor(rule: RuleNode) {
+    //}
 
 
     //TODO:...
@@ -21,7 +22,7 @@ export default class Route {
 
 
     //TODO:...
-    moreSpecific: Route[];
+    moreSpecific: number[];
 
 
     //TODO:...

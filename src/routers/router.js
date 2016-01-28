@@ -1,5 +1,4 @@
 'use strict';
-var assert = require('assert');
 var handler_1 = require('../handlers/handler');
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
 var mapGraph_1 = require('./mapGraph');
@@ -9,8 +8,6 @@ var rule_node_1 = require('./rule-node');
 class Router {
     // TODO: doc...
     constructor() {
-        // TODO: doc...
-        this.allRules = [];
     }
     add(routes) {
         // Construct flat lists of all the patterns and handlers for the given routes.
@@ -33,51 +30,41 @@ class Router {
         }
         // TODO: ...
         let patternHierarchy = hierarchize_patterns_1.default(patterns);
+        debugger;
+        let allRules = [];
         var ruleHierarchy = mapGraph_1.default(patternHierarchy, {
             addNode: (value, key) => {
+                if (!key)
+                    return -1;
                 let rule = new rule_node_1.default(key || '');
-                if (key)
-                    this.allRules.push(rule);
-                return rule;
+                return allRules.push(rule) - 1;
             },
             addEdge: (parent, child) => {
-                parent.moreSpecific.push(child);
-                child.lessSpecific.push(parent);
+                if (parent === -1)
+                    return;
+                allRules[parent].moreSpecific.push(child);
+                allRules[child].lessSpecific.push(parent);
             }
         });
-        // TODO: set root node
-        assert(ruleHierarchy.moreSpecific.length === 1);
-        assert(ruleHierarchy.moreSpecific[0].signature === '…');
-        this.rootRule = ruleHierarchy.moreSpecific[0];
         debugger;
-        traceAllRoutes(this.rootRule, this.allRules);
+        // TODO: set root node
+        //assert(ruleHierarchy.moreSpecific.length === 1);
+        //assert(ruleHierarchy.moreSpecific[0].signature === '…');
+        //this.rootRule = ruleHierarchy.moreSpecific[0];
+        let allRoutes = allRules.map(rule => {
+            let route = {
+                isMatch: null,
+                moreSpecific: rule.moreSpecific,
+                execute: null
+            };
+        });
+        debugger;
+        traceAllRoutes(allRules[0], allRules);
+        debugger;
         //         // Ensure each decorator appears only once in the DAG
         //         // TODO: this is more restrictive that necessary. Better way?
         //         // let dupliDecors = Object.keys(allNodes).filter(key => allNodes[key].handler.isDecorator && allNodes[key].lessSpecialized.length > 1);
         //         // assert(dupliDecors.length === 0, `split decorators: '${dupliDecors.join("', '")}'`); // TODO: improve error message
-    }
-    // TODO: doc...
-    dispatch(request) {
-        // TODO: ...
-        let pathname = request.pathname;
-        let path = [];
-        let rule = this.rootRule; // always starts with '…'; don't need to check this against pathname
-        while (true) {
-            path.push(rule);
-            let foundChild = null;
-            for (let i = 0; !foundChild && i < rule.moreSpecific.length; ++i) {
-                let child = rule.moreSpecific[i];
-                if (child.isMatch(pathname))
-                    foundChild = child;
-            }
-            if (!foundChild)
-                break;
-            rule = foundChild;
-        }
-        // should have a path here...
-        let fullPath = path.map(n => n.signature).join('   ==>   ');
-        //debugger;
-        return null;
     }
 }
 Object.defineProperty(exports, "__esModule", { value: true });

@@ -1,5 +1,8 @@
 'use strict';
 var assert = require('assert');
+//TODO: this isn't really general because of lack of control over how
+//      the input graph is traversed and what constitute input nodes.
+//      And it's only used in one place. Move inline there? 
 /**
  * Traverses the object graph rooted at `graph`, creating a new object graph with equivalent
  * topology. The nodes in the input graph are comprised of the input object's key/value pairs,

@@ -12,8 +12,8 @@ export default class RuleNode {
 
     // TODO: doc...
     constructor(public signature: string) {
-        let quickMatchPattern = new Pattern(signature);
-        this.isMatch = (pathname: string) => quickMatchPattern.match(pathname) !== null;
+        // let quickMatchPattern = new Pattern(signature);
+        // this.isMatch = (pathname: string) => quickMatchPattern.match(pathname) !== null;
     }
 
 
@@ -26,13 +26,13 @@ export default class RuleNode {
 
 
     // TODO: doc...
-    lessSpecific: RuleNode[] = [];
+    lessSpecific: number[] = [];
 
 
     // TODO: doc...
-    moreSpecific: RuleNode[] = [];
+    moreSpecific: number[] = [];
 
 
     // TODO: doc...
-    isMatch: (pathname: string) => boolean;
+    //isMatch: (pathname: string) => boolean;
 }
