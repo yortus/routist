@@ -12,7 +12,7 @@ describe('Constructing a router instance', () => {
         };
         let router = new router_1.default();
         router.add(routeTable);
-        router.dispatch({ pathname: 'a/b' });
+        //router.dispatch({pathname: 'a/b'});
     });
 });
 //# sourceMappingURL=router.js.map

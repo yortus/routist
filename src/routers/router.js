@@ -1,13 +1,16 @@
 'use strict';
+var assert = require('assert');
 var handler_1 = require('../handlers/handler');
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
 var mapGraph_1 = require('./mapGraph');
 var pattern_1 = require('../patterns/pattern');
-var rule_1 = require('./rule');
+var rule_node_1 = require('./rule-node');
 // TODO: doc...
 class Router {
     // TODO: doc...
     constructor() {
+        // TODO: doc...
+        this.allRules = [];
     }
     add(routes) {
         // Construct flat lists of all the patterns and handlers for the given routes.
@@ -26,56 +29,39 @@ class Router {
         if (!patterns.some(p => p.signature === '…')) {
             let rootPattern = new pattern_1.default('…');
             patterns.push(rootPattern);
-            handlers.push(new handler_1.default(rootPattern, () => { throw new Error('404!'); }));
+            handlers.push(new handler_1.default(rootPattern, () => { throw new Error('404!'); })); // TODO: proper handler?
         }
-        // 
+        // TODO: ...
         let patternHierarchy = hierarchize_patterns_1.default(patterns);
         var ruleHierarchy = mapGraph_1.default(patternHierarchy, {
             addNode: (value, key) => {
-                return new rule_1.default(key || '');
+                let rule = new rule_node_1.default(key || '');
+                if (key)
+                    this.allRules.push(rule);
+                return rule;
             },
             addEdge: (parent, child) => {
                 parent.moreSpecific.push(child);
                 child.lessSpecific.push(parent);
             }
         });
+        // TODO: set root node
+        assert(ruleHierarchy.moreSpecific.length === 1);
+        assert(ruleHierarchy.moreSpecific[0].signature === '…');
+        this.rootRule = ruleHierarchy.moreSpecific[0];
         debugger;
-        //         // TODO: hierarchize patterns!
-        //         let patternDAG = hierarchizePatterns(patterns);
-        //         let allNodes: {[pattern: string]: Node} = {};
-        //         let nodeFor = (pattern: string) => allNodes[pattern] || (allNodes[pattern] = makeNode(pattern));
-        //         let dummy = patternDAG['…'];
-        // 
-        //         traverse('…', patternDAG['…']);
-        // 
-        //         // Build Node DAG
-        //         function traverse(pattern: string, specializations: typeof dummy, parent?: Node) {
-        //             let node = nodeFor(pattern);
-        //             if (parent) node.lessSpecialized.push(parent); // uplinks
-        //             if (node.pattern) return; // already visited
-        // 
-        //             let i = patterns.findIndex(p => pattern === p.signature);
-        //             node.pattern = patterns[i];
-        //             node.handler = handlers[i];
-        //             node.moreSpecialized = Object.keys(specializations).map(nodeFor); // downlinks
-        //             let keys = Object.keys(specializations);
-        //             keys.forEach(key => traverse(key, specializations[key], node));
-        //         }
-        // 
+        traceAllRoutes(this.rootRule, this.allRules);
         //         // Ensure each decorator appears only once in the DAG
         //         // TODO: this is more restrictive that necessary. Better way?
         //         // let dupliDecors = Object.keys(allNodes).filter(key => allNodes[key].handler.isDecorator && allNodes[key].lessSpecialized.length > 1);
         //         // assert(dupliDecors.length === 0, `split decorators: '${dupliDecors.join("', '")}'`); // TODO: improve error message
-        // 
-        //         // Set root node
-        //         this.root = nodeFor('…');
     }
     // TODO: doc...
     dispatch(request) {
         // TODO: ...
         let pathname = request.pathname;
         let path = [];
-        let rule = this.root; // always starts with '…'; don't need to check this against pathname
+        let rule = this.rootRule; // always starts with '…'; don't need to check this against pathname
         while (true) {
             path.push(rule);
             let foundChild = null;
@@ -96,4 +82,30 @@ class Router {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Router;
+// TODO: ...
+function traceAllRoutes(rootRule, allRules) {
+    var x = allRules.map(rule => {
+        let incompletePaths = [[rule]];
+        let completePaths = [];
+        while (incompletePaths.length > 0) {
+            let incompletePath = incompletePaths.pop();
+            if (incompletePath[0].signature === '…') {
+                completePaths.push(incompletePath);
+                continue;
+            }
+            let longer = incompletePath[0].lessSpecific.map(parent => {
+                return [].concat(parent, incompletePath);
+            });
+            incompletePaths.push.apply(incompletePaths, longer);
+        }
+        return completePaths;
+    });
+    allRules.forEach((rule, i) => {
+        console.log(`Ending at ${rule.signature}:`);
+        x[i].forEach(path => {
+            let steps = path.map(step => step.signature);
+            console.log(`  ${steps.join(' ==> ')}`);
+        });
+    });
+}
 //# sourceMappingURL=router.js.map

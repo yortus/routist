@@ -7,13 +7,13 @@ import Pattern from '../patterns/pattern';
 
 
 // TODO: doc...
-export default class Rule {
+export default class RuleNode {
 
 
     // TODO: doc...
     constructor(public signature: string) {
-        let quickPattern = new Pattern(signature);
-        this.isMatch = (pathname: string) => quickPattern.match(pathname) !== null;
+        let quickMatchPattern = new Pattern(signature);
+        this.isMatch = (pathname: string) => quickMatchPattern.match(pathname) !== null;
     }
 
 
@@ -26,11 +26,11 @@ export default class Rule {
 
 
     // TODO: doc...
-    lessSpecific: Rule[] = [];
+    lessSpecific: RuleNode[] = [];
 
 
     // TODO: doc...
-    moreSpecific: Rule[] = [];
+    moreSpecific: RuleNode[] = [];
 
 
     // TODO: doc...
