@@ -6,6 +6,7 @@ import mapGraph from './mapGraph';
 import Request from '../request';
 import Response from '../response';
 import Pattern from '../patterns/pattern';
+import Route from './route';
 import RuleNode from './rule-node';
 
 
