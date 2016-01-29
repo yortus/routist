@@ -85,7 +85,7 @@ describe(`Identifying a function's formal parameters`, () => {
         .filter(parts => parts.length === 1 || has[parts[0]])
         .map(parts => parts[parts.length - 1]);
     tests.forEach(test => {
-        it(test, () => {
+        it(JSON.stringify(test).slice(1, -1), () => {
             let funcSource = test.split(' ==> ')[0];
             let rhs = test.split(' ==> ')[1];
             let actualParamNames, expectedParamNames;
