@@ -3,6 +3,14 @@ import {expect} from 'chai';
 import Router from '../../src/routers/router';
 
 
+// TODO: More coverage:
+// - multiple non-decorator handlers for same pattern
+// - multiple decorator handlers for same pattern
+// - one decorator and some non-decorators for same pattern
+// - decorators along ambiguous paths (same decorators on all paths)
+// - decorators along ambiguous paths (not same decorators on all paths)
+
+
 describe('Constructing a router instance', () => {
 
     let routeTable: {[pattern: string]: Function} = {
