@@ -1,7 +1,9 @@
 'use strict';
 var assert = require('assert');
 var get_function_parameters_1 = require('./get-function-parameters');
-// TODO: make async...
+//var d: Downstream;
+//d.candidates.length;
+var execute;
 /**
  * A handler provides a standarized means for transforming a request to a response,
  * according to the particulars of the pattern/action pair it was constructed with.

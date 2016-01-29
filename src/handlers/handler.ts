@@ -15,6 +15,19 @@ import Pattern from '../patterns/pattern';
 
 
 
+// TODO: ...
+interface Downstream {
+    execute: (request: Request, index?: number) => Response;
+    candidates: void[];
+    
+}
+//var d: Downstream;
+//d.candidates.length;
+
+var execute: (request: Request, downstream: Downstream) => Response;
+
+
+
 /**
  * A handler provides a standarized means for transforming a request to a response,
  * according to the particulars of the pattern/action pair it was constructed with.

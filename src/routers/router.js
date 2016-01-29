@@ -34,10 +34,38 @@ class Router {
         let patternHierarchy = hierarchize_patterns_1.default(patterns);
         let allRules = mapPatternsToRules(patternHierarchy, getHandlersForPattern);
         let allRoutes = mapRulesToRoutes(allRules);
+        this.allRoutes = allRoutes;
+        this.rootRoute = allRoutes['…'];
+        // TODO: restore...
         //         // Ensure each decorator appears only once in the DAG
         //         // TODO: this is more restrictive that necessary. Better way?
         //         // let dupliDecors = Object.keys(allNodes).filter(key => allNodes[key].handler.isDecorator && allNodes[key].lessSpecialized.length > 1);
         //         // assert(dupliDecors.length === 0, `split decorators: '${dupliDecors.join("', '")}'`); // TODO: improve error message
+    }
+    // TODO: doc...
+    dispatch(request) {
+        // TODO: ...
+        let pathname = request.pathname;
+        let path = [];
+        let route = this.rootRoute; // always starts with '…'; don't need to check this against pathname
+        while (true) {
+            path.push(route);
+            let foundChild = null;
+            for (let i = 0; !foundChild && i < route.moreSpecific.length; ++i) {
+                let child = this.allRoutes[route.moreSpecific[i]];
+                foundChild = child.quickMatch(pathname) && child;
+            }
+            if (!foundChild)
+                break;
+            route = foundChild;
+        }
+        // TODO: temp testing...
+        let response = route.execute(request);
+        return response;
+        // // should have a path here...
+        // let fullPath = path.map(n => n.signature).join('   ==>   ');
+        // //debugger;
+        // return null;
     }
 }
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -78,7 +106,7 @@ function mapPatternsToRules(patterns, getHandlersFor, parentRule, allRules) {
             moreSpecific: [],
             handlers: getHandlersFor(pattern)
         });
-        mapPatternsToRules(patterns[pattern], getHandlersFor, childRule, allRules);
+        mapPatternsToRules(patterns[pattern], getHandlersFor, childRule, allRules); // Recurse!
         if (!parentRule)
             return;
         childRule.lessSpecific.push(parentRule.signature);
@@ -87,18 +115,18 @@ function mapPatternsToRules(patterns, getHandlersFor, parentRule, allRules) {
     return allRules;
 }
 // TODO: ...
-function mapRulesToRoutes(rules) {
-    let routes = Object.keys(rules).map(pattern => {
+function mapRulesToRoutes(rules, allRoutes) {
+    allRoutes = allRoutes || {};
+    Object.keys(rules).forEach(pattern => {
         let rule = rules[pattern];
-        let route = {
+        allRoutes[pattern] = {
             signature: rule.signature,
-            quickMatch: makeQuickMatchFunction(rule),
             moreSpecific: rule.moreSpecific,
+            quickMatch: makeQuickMatchFunction(rule),
             execute: makeExecuteFunction(rule)
         };
-        return route;
     });
-    return routes;
+    return allRoutes;
 }
 // TODO: ...
 function makeQuickMatchFunction(rule) {
@@ -110,6 +138,7 @@ function makeQuickMatchFunction(rule) {
 function makeExecuteFunction(rule) {
     let result;
     // TODO: ...
+    result = req => rule.handlers[0].execute(req, () => null);
     return result;
 }
 //# sourceMappingURL=router.js.map
