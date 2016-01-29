@@ -55,11 +55,11 @@ describe('Constructing a router instance', () => {
     router.add(routeTable);
 
     tests.forEach(test => it(test, () => {
-        let pathname = test.split(' ==> ')[0];
+        let request = test.split(' ==> ')[0];
         let expected = test.split(' ==> ')[1];
         let actual: string;
         try {
-            actual = <string> router.dispatch({pathname});
+            actual = <string> router.dispatch(request);
         }
         catch (ex) {
             actual = 'ERROR: ' + ex.message;

@@ -1,7 +1,5 @@
 'use strict';
-// TODO: more...
-class Request {
+class RequestObject {
 }
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Request;
+exports.RequestObject = RequestObject;
 //# sourceMappingURL=request.js.map

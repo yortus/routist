@@ -1,12 +1,16 @@
 'use strict';
 
 
-// TODO: union with string like Response does. Shorthand for {pathname: string }
 
 
-// TODO: more...
-export default class Request {
+
+export default Request;
+type Request = RequestObject | string;
+
+
+export class RequestObject {
 
     pathname: string;
 
+    // TODO: more...
 }

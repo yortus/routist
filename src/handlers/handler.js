@@ -56,7 +56,7 @@ function makeExecuteFunction(pattern, action, paramNames) {
     // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
     //   Otherwise, execute the `action` function and return its response.
     let source = `(function execute(request, downstream) {
-        var paramBindings = pattern.match(request.pathname);
+        var paramBindings = pattern.match(typeof request === 'string' ? request : request.pathname);
         if (!paramBindings) return null; // pattern didn't match pathname
         ${!isDecorator ? `
         var response = downstream.execute(request);

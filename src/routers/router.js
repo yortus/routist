@@ -47,7 +47,7 @@ class Router {
     // TODO: doc...
     dispatch(request) {
         // TODO: ...
-        let pathname = request.pathname;
+        let pathname = typeof request === 'string' ? request : request.pathname;
         let path = [];
         let route = this.allRoutes['…']; // matches all pathnames; don't need to check this against pathname
         while (true) {
