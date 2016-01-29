@@ -51,12 +51,12 @@ describe('Constructing a Handler instance', () => {
         },
         {
             pattern: '/api/{...rest}',
-            action: (rest, $req, $yield) => { },
+            action: (rest, $req, $next) => { },
             error: null
         },
         {
             pattern: '/api/{...rest}',
-            action: (rest, $yield) => { },
+            action: (rest, $next) => { },
             error: null
         }
     ];
@@ -116,7 +116,7 @@ describe('Executing a handler against a pathname', () => {
         },
         {
             pattern: '/api/…',
-            action: ($yield) => '',
+            action: ($next) => '',
             pathname: '/foo/bar/baz.html',
             downstream: rq => null,
             response: null
@@ -130,28 +130,28 @@ describe('Executing a handler against a pathname', () => {
         },
         {
             pattern: '/api/{...rest}',
-            action: (rest, $req, $yield) => `${$yield($req)}-${rest.slice(4, 7)}`,
+            action: (rest, $req, $next) => `${$next.execute($req)}-${rest.slice(4, 7)}`,
             pathname: '/api/foo/bar/baz.html',
             downstream: rq => `${rq.pathname.slice(5, 8)}`,
             response: 'foo-bar'
         },
         {
             pattern: '/api/{...rest}',
-            action: (rest, $yield) => `${$yield()}-${rest.slice(4, 7)}`,
+            action: (rest, $next) => `${$next.execute()}-${rest.slice(4, 7)}`,
             pathname: '/api/foo/bar/baz.html',
             downstream: rq => `${rq.pathname.slice(5, 8)}`,
-            response: 'foo-bar'
+            response: `ERROR: Cannot read property 'pathname' of undefined...`
         },
         {
             pattern: '/api/{...rest}',
-            action: (rest, $yield) => $yield() || '!',
+            action: (rest, $next) => $next.execute() || '!',
             pathname: '/api/foo/bar/baz.html',
             downstream: rq => null,
             response: '!'
         },
         {
             pattern: '/api/{...rest}',
-            action: (rest, $yield) => $yield('123') || '!',
+            action: (rest, $next) => $next.execute('123') || '!',
             pathname: '/api/foo/bar/baz.html',
             downstream: rq => `abc${rq}`,
             response: 'abc123'
@@ -179,14 +179,14 @@ describe('Executing a handler against a pathname', () => {
         },
         {
             pattern: '/api/{...rest}',
-            action: (rest, $yield) => $yield('123') + null['wat'],
+            action: (rest, $next) => $next.execute('123') + null['wat'],
             pathname: '/api/foo',
             downstream: rq => { throw new Error('downfail!'); },
             response: 'ERROR: downfail!'
         },
         {
             pattern: '/api/{...rest}',
-            action: (rest, $yield) => $yield('123') + null['wat'],
+            action: (rest, $next) => $next.execute('123') + null['wat'],
             pathname: '/api/foo',
             downstream: rq => rq,
             response: `ERROR: Cannot read property 'wat' of null`
@@ -200,7 +200,11 @@ describe('Executing a handler against a pathname', () => {
             let expectedResponse = test.response;
             let actualResponse;
             try {
-                actualResponse = handler.execute(request, (rq) => test.downstream(rq || request));
+                let downstream = {
+                    execute: test.downstream,
+                    candidates: { length: 1 }
+                };
+                actualResponse = handler.execute(request, downstream);
             }
             catch (ex) {
                 actualResponse = `ERROR: ${ex.message}`;

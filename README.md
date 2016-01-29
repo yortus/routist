@@ -15,6 +15,8 @@
 
 **Pattern:** A concise regex-like representation that matches a particular set of Addresses.
 
+**Action:** TODO... raw handler... capture names as params, $req, $yield
+
 **Handler:** A procedure for generating the Response for a particular Request.
 
 **Decorator:** A special Handler... TODO

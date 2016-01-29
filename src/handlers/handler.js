@@ -1,9 +1,6 @@
 'use strict';
 var assert = require('assert');
 var get_function_parameters_1 = require('./get-function-parameters');
-//var d: Downstream;
-//d.candidates.length;
-var execute;
 /**
  * A handler provides a standarized means for transforming a request to a response,
  * according to the particulars of the pattern/action pair it was constructed with.
@@ -24,7 +21,7 @@ class Handler {
      */
     constructor(pattern, action) {
         let paramNames = get_function_parameters_1.default(action);
-        this.isDecorator = paramNames.indexOf('$yield') !== -1;
+        this.isDecorator = paramNames.indexOf('$next') !== -1;
         this.execute = makeExecuteFunction(pattern, action, paramNames);
     }
 }
@@ -37,19 +34,19 @@ exports.default = Handler;
  * '$yield': marks the action function as a decorator. Injects the
  *           standard `executeDownstreamHandlers` callback into it.
  */
-var builtinNames = ['$req', '$yield'];
+var builtinNames = ['$req', '$next'];
 /** Internal function used to create the Handler#execute method. */
 function makeExecuteFunction(pattern, action, paramNames) {
     // Assert the mutual validity of `pattern` and `paramNames`. This allows the body of
     // the 'execute' function to be simpler, as it can safely forego some extra checks.
     validateNames(pattern, paramNames);
     // If the `action` function has a formal parameter named '$yield', that signifies it as a decorator.
-    let isDecorator = paramNames.indexOf('$yield') !== -1;
+    let isDecorator = paramNames.indexOf('$next') !== -1;
     // Precompute a map with keys that match all of the the `action` function's formal parameter names. The value
     // for each key holds the source code to supply the actual parameter for the corresponding formal parameter.
     let paramMappings = pattern.captureNames.reduce((map, name) => (map[name] = `paramBindings.${name}`, map), {});
     paramMappings['$req'] = 'request';
-    paramMappings['$yield'] = 'executeDownstreamHandlers';
+    paramMappings['$next'] = 'downstream';
     assert(builtinNames.every(bname => !!paramMappings[bname])); // sanity check: ensure all builtins are mapped
     // Generate the source code for the `execute` function. The `execute` function calls the `action` function,
     // passing it a set of capture values and/or builtins that correspond to its formal parameter names (a form of DI).
@@ -58,11 +55,11 @@ function makeExecuteFunction(pattern, action, paramNames) {
     //   `executeDownstreamHandlers` callback.
     // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
     //   Otherwise, execute the `action` function and return its response.
-    let source = `(function execute(request, executeDownstreamHandlers) {
+    let source = `(function execute(request, downstream) {
         var paramBindings = pattern.match(request.pathname);
         if (!paramBindings) return null; // pattern didn't match pathname
         ${!isDecorator ? `
-        var response = executeDownstreamHandlers();
+        var response = downstream.execute(request);
         if (response !== null) return response;
         ` : ''}
         return action(${paramNames.map(name => paramMappings[name])});

@@ -10,21 +10,23 @@ import Pattern from '../patterns/pattern';
 
 
 // TODO: make async...
+// TODO: review all comments given recent changes ($yield/$next, executeDownstreamHandlers/downstream)
 
 
 
 
 
-// TODO: ...
-interface Downstream {
+// TODO: doc...
+export interface Downstream {
+
+    // TODO: doc...
     execute: (request: Request, index?: number) => Response;
-    candidates: void[];
-    
-}
-//var d: Downstream;
-//d.candidates.length;
 
-var execute: (request: Request, downstream: Downstream) => Response;
+    // TODO: doc...
+    candidates: { length: number; };
+}
+
+
 
 
 
@@ -50,14 +52,14 @@ export default class Handler {
      */
     constructor(pattern: Pattern, action: Function) {
         let paramNames = getFunctionParameters(action);
-        this.isDecorator = paramNames.indexOf('$yield') !== -1;
+        this.isDecorator = paramNames.indexOf('$next') !== -1;
         this.execute = <any> makeExecuteFunction(pattern, action, paramNames);
     }
 
 
     /**
      * Indicates whether or not this handler is a decorator. A handler is a decorator
-     * if its action function includes the name '$yield' as a formal parameter. See
+     * if its action function includes the name '$next' as a formal parameter. See
      * Handler#execute for more information execution differences between decorators
      * and non-decorators.
      */
@@ -67,7 +69,7 @@ export default class Handler {
     /**
      * Executes the handler. There are two modes of execution depending on whether or not
      * the handler is a decorator:
-     * (1) Decorators have control over downstream execution. Their '$yield' parameter is
+     * (1) Decorators have control over downstream execution. Their '$next' parameter is
      * bound to the `executeDownstreamHandlers` callback passed to `execute`. Decorators may
      * perform arbitrary steps before downstream execution, including modifying the request.
      * They may also perform arbitrary steps after downstream execution, including modifying
@@ -86,7 +88,7 @@ export default class Handler {
      *        return null to indicate that it declined to produce a response. Processing
      *        proceeds upstream until a handler responds are all decorators have run.
      */
-    execute: (request: Request, executeDownstreamHandlers: (request?: Request) => Response) => Response;
+    execute: (request: Request, downstream: Downstream) => Response;
 }
 
 
@@ -100,7 +102,7 @@ export default class Handler {
  * '$yield': marks the action function as a decorator. Injects the
  *           standard `executeDownstreamHandlers` callback into it.
  */
-var builtinNames = ['$req', '$yield'];
+var builtinNames = ['$req', '$next'];
 
 
 
@@ -114,13 +116,13 @@ function makeExecuteFunction(pattern: Pattern, action: Function, paramNames: str
     validateNames(pattern, paramNames);
 
     // If the `action` function has a formal parameter named '$yield', that signifies it as a decorator.
-    let isDecorator = paramNames.indexOf('$yield') !== -1;
+    let isDecorator = paramNames.indexOf('$next') !== -1;
 
     // Precompute a map with keys that match all of the the `action` function's formal parameter names. The value
     // for each key holds the source code to supply the actual parameter for the corresponding formal parameter.
     let paramMappings = pattern.captureNames.reduce((map, name) => (map[name] = `paramBindings.${name}`, map), {});
     paramMappings['$req'] = 'request';
-    paramMappings['$yield'] = 'executeDownstreamHandlers';
+    paramMappings['$next'] = 'downstream';
     assert(builtinNames.every(bname => !!paramMappings[bname])); // sanity check: ensure all builtins are mapped
 
     // Generate the source code for the `execute` function. The `execute` function calls the `action` function,
@@ -130,11 +132,11 @@ function makeExecuteFunction(pattern: Pattern, action: Function, paramNames: str
     //   `executeDownstreamHandlers` callback.
     // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
     //   Otherwise, execute the `action` function and return its response.
-    let source = `(function execute(request, executeDownstreamHandlers) {
+    let source = `(function execute(request, downstream) {
         var paramBindings = pattern.match(request.pathname);
         if (!paramBindings) return null; // pattern didn't match pathname
         ${!isDecorator ? `
-        var response = executeDownstreamHandlers();
+        var response = downstream.execute(request);
         if (response !== null) return response;
         ` : ''}
         return action(${paramNames.map(name => paramMappings[name])});

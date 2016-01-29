@@ -1,6 +1,6 @@
 'use strict';
 import * as assert from 'assert';
-import Handler from '../handlers/handler';
+import Handler, {Downstream} from '../handlers/handler';
 import hierarchizePatterns, {PatternNode} from '../patterns/hierarchize-patterns';
 import Request from '../request';
 import Response from '../response';
@@ -53,8 +53,9 @@ export default class Router {
         let patternHierarchy = hierarchizePatterns(patterns);
         let allRules = mapPatternsToRules(patternHierarchy, getHandlersForPattern);
         let allRoutes = mapRulesToRoutes(allRules);
+        makeAllExecuteFunctions(allRoutes, allRules);
+        this.allRules = allRules;
         this.allRoutes = allRoutes;
-        this.rootRoute = allRoutes['…'];
 
 
 // TODO: restore...
@@ -71,14 +72,15 @@ export default class Router {
 
         let pathname = request.pathname;
         let path: Route[] = [];
-        let route = this.rootRoute; // always starts with '…'; don't need to check this against pathname
+        let route = this.allRoutes['…']; // matches all pathnames; don't need to check this against pathname
 
         while (true) {
             path.push(route);
+            let rule = this.allRules[route.signature];
 
             let foundChild: Route = null;
-            for (let i = 0; !foundChild && i < route.moreSpecific.length; ++i) {
-                let child = this.allRoutes[route.moreSpecific[i]];
+            for (let i = 0; !foundChild && i < rule.moreSpecific.length; ++i) {
+                let child = this.allRoutes[rule.moreSpecific[i]];
                 foundChild = child.quickMatch(pathname) && child;
             }
 
@@ -99,41 +101,8 @@ export default class Router {
     
 
     // TODO: doc...
-    //private allRules: RuleNode[];
-    //private rootRule: RuleNode;
-
+    private allRules: {[pattern: string]: Rule};
     private allRoutes: {[pattern: string]: Route};
-    private rootRoute: Route;
-}
-
-
-// TODO: ...
-function traceAllRoutes(rootRule: Rule, allRules: Rule[]) {
-    var x = allRules.map(rule => {
-        let incompletePaths: Rule[][] = [[rule]];
-        let completePaths: Rule[][] = [];
-        while (incompletePaths.length > 0) {
-            let incompletePath = incompletePaths.pop();
-            if (incompletePath[0].signature === '…') {
-                completePaths.push(incompletePath);
-                continue;
-            }
-            
-            let longer = incompletePath[0].lessSpecific.map(parent => {
-                return [].concat(parent, incompletePath);
-            });
-            incompletePaths.push.apply(incompletePaths, longer);
-        }
-        return completePaths;
-    });
-
-    allRules.forEach((rule, i) => {
-        console.log(`Ending at ${rule.signature}:`);
-        x[i].forEach(path => {
-            let steps = path.map(step => step.signature);
-            console.log(`  ${steps.join(' ==> ')}`);
-        });
-    });
 }
 
 
@@ -155,7 +124,6 @@ interface Rule {
 // TODO: ...
 interface Route {
     signature: string;
-    moreSpecific: string[];
     quickMatch: (pathname: string) => boolean;
     execute: (request: Request) => Response;
 }
@@ -193,9 +161,8 @@ function mapRulesToRoutes(rules: {[pattern:string]: Rule}, allRoutes?: {[pattern
         let rule = rules[pattern];
         allRoutes[pattern] = {
             signature: rule.signature, // TODO: need?
-            moreSpecific: rule.moreSpecific,
             quickMatch: makeQuickMatchFunction(rule),
-            execute: makeExecuteFunction(rule)
+            execute: null
         };
     });
     return allRoutes;
@@ -216,12 +183,103 @@ function makeQuickMatchFunction(rule: Rule) {
 
 
 
-// TODO: ...
+// TODO: ... remove?
 function makeExecuteFunction(rule: Rule) {
     let result: (request: Request) => Response;
-    // TODO: ...
 
-    result = req => rule.handlers[0].execute(req, () => null);
+    // TODO: ...
+    let downstream = {
+        execute: () => null,
+        candidates: { length: 0 }
+    };
+
+    result = req => rule.handlers[0].execute(req, downstream);
 
     return result;
+}
+
+
+
+
+
+//TODO: ...
+function makeAllExecuteFunctions(allRoutes: {[pattern: string]: Route}, allRules: {[pattern: string]: Rule}) {
+    Object.keys(allRoutes).forEach(pattern => {
+        let route = allRoutes[pattern];
+        let rule = allRules[pattern];
+
+        let incompletePaths: Rule[][] = [[rule]];
+        let completePaths: Rule[][] = [];
+        while (incompletePaths.length > 0) {
+            let incompletePath = incompletePaths.pop();
+            if (incompletePath[0].signature === '…') {
+                completePaths.push(incompletePath);
+                continue;
+            }
+
+            let longer = incompletePath[0].lessSpecific.map(parent => {
+                return [].concat(allRules[parent], incompletePath);
+            });
+            incompletePaths.push.apply(incompletePaths, longer);
+        }
+        //return completePaths;
+
+        // TODO: handle multiple paths properly... for now just execute the best matching rule and then fall back to 'ambiguous' failure
+        let completePath: Rule[];
+        if (completePaths.length > 1) {
+            //assert(completePaths.length === 1, `Not implemented: multiple paths to route`);
+            completePath = [
+                {
+                    signature: '…',
+                    lessSpecific: [],
+                    moreSpecific: [rule.signature],
+                    handlers: [
+                        // TODO: temp... fix this...
+                        new Handler(new Pattern('…'), () => { throw new Error('ambiguous'); })
+                    ]
+                },
+                rule
+            ];            
+        }
+        else {
+            completePath = completePaths[0];
+        }
+
+        // TODO: compose all the handlers along the path into an 'execute' function
+        let downstream: Downstream = { // Sentinel value - should make this a singleton somewhere
+            execute: (req, index) => null,
+            candidates: {length: 0}
+        };
+        //let execute: (request: Request) => Response = null;
+
+
+        while (completePath.length > 0) {
+            let rule = completePath.pop();
+
+            // TODO: fail if a path has multiple handlers for now... address this case later...
+            assert(rule.handlers.length <= 1, `Not implemented: multiple handlers for path`);
+
+            let handler = rule.handlers[0] || { execute: (r, d) => d.execute(r) }; // no handler === handler that just does downstream
+            let ds = downstream; // capture in loop
+
+            downstream = {
+                execute: (request, index) => handler.execute(request, ds),
+                candidates: {length: 1}
+            };
+        }
+
+        route.execute = downstream.execute;
+    });
+
+
+
+
+
+    // allRules.forEach((rule, i) => {
+    //     console.log(`Ending at ${rule.signature}:`);
+    //     x[i].forEach(path => {
+    //         let steps = path.map(step => step.signature);
+    //         console.log(`  ${steps.join(' ==> ')}`);
+    //     });
+    // });
 }

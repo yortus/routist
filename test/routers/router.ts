@@ -9,19 +9,38 @@ describe('Constructing a router instance', () => {
         '/foo': () => 'foo',
         '/bar': () => 'bar',
         '/baz': () => 'baz',
-        //'/{name}': $downstream => `---${$downstream.execute() || 'NONE'}---`,
+        '/*': ($req, $next) => `---${$next.execute($req) || 'NONE'}---`,
 
         'a/*': () => `starts with 'a'`,
         '*/b': () => `ends with 'b'`,
-        //'a/b': () => {}
+        'a/b': () => `starts with 'a' AND ends with 'b'`,
+
+        'c/*': () => `starts with 'c'`,
+        '*/d': () => `ends with 'd'`,
+        'c/d': () => null,
+
+        'api/**': () => `fallback`,
+        'api/foo': () => 'FOO',
+        'api/bar': () => null,
     };
 
     let tests = [
-        `/foo ==> foo`,
-        `/bar ==> bar`,
-        `/baz ==> baz`,
+        `/foo ==> ---foo---`,
+        `/bar ==> ---bar---`,
+        `/baz ==> ---baz---`,
+        `/quux ==> ---NONE---`,
+
         `a/foo ==> starts with 'a'`,
         `foo/b ==> ends with 'b'`,
+        `a/b ==> starts with 'a' AND ends with 'b'`,
+
+        `c/foo ==> starts with 'c'`,
+        `foo/d ==> ends with 'd'`,
+        `c/d ==> ERROR: ambiguous...`,
+
+        `api/ ==> fallback`,
+        `api/foo ==> FOO`,
+        `api/bar ==> fallback`,
     ];
 
     let router = new Router();
@@ -30,7 +49,16 @@ describe('Constructing a router instance', () => {
     tests.forEach(test => it(test, () => {
         let pathname = test.split(' ==> ')[0];
         let expected = test.split(' ==> ')[1];
-        let actual = router.dispatch({pathname});
+        let actual: string;
+        try {
+            actual = <string> router.dispatch({pathname});
+        }
+        catch (ex) {
+            actual = 'ERROR: ' + ex.message;
+            if (expected.slice(-3) === '...') {
+                actual = actual.slice(0, expected.length - 3) + '...';
+            }
+        }
         expect(actual).equals(expected);
     }));
 });
