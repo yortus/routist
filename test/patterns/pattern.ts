@@ -36,7 +36,12 @@ describe('Constructing a Pattern instance', () => {
         '{{} ==> ERROR',
         '{}} ==> ERROR',
         '{$} ==> * WITH ["$"]',
-        '{...__} ==> … WITH ["__"]'
+        '{...__} ==> … WITH ["__"]',
+        '#comment ==> ',
+        '   #comment ==> ',
+        '# /a/b/c   fsdfsdf ==> ',
+        '/a/b#comment ==> /a/b',
+        '/**/{name}.js   #12 ==> /…/*.js WITH ["name"]',
     ];
 
     tests.forEach(test => {

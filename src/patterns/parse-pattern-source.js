@@ -18,6 +18,9 @@ var PEG = require('pegjs');
  * - An anonymous wildcard is designated with '*'.
  * - A named wildcard is designated with '{id}' where id is a valid JS identifier.
  * - Two captures may not occupy adjacent positions in a pattern.
+ * - Patterns may have trailing whitespace, which is removed.
+ * - Whitespace consists of spaces and/or comments.
+ * - A comment begins with '#' and continues to the end of the string.
  * Examples:
  * - '/foo/*' matches '/foo/bar' but not '/foo/bar/baz'
  * - '/foo**' (or '/foo…') matches '/foo', '/foo/bar' and '/foo/bar/baz'
@@ -53,7 +56,7 @@ var parser;
 parser = PEG.buildParser(`
     // ================================================================================
     Pattern
-    =   !"∅"   elems:Element*
+    =   !"∅"   elems:Element*   TRAILING_WS?
         {
             var signature = elems.map(elem => elem[0]).join('');
             var captureNames = elems.map(elem => elem[1]).filter(name => !!name);
@@ -79,6 +82,9 @@ parser = PEG.buildParser(`
 
     IDENTIFIER
     =   [a-z_$]i   [a-z0-9_$]i*   { return text(); }
+
+    TRAILING_WS
+    =   " "*   ("#"   .*)?
     // ================================================================================
 `);
 //# sourceMappingURL=parse-pattern-source.js.map
