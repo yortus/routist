@@ -235,7 +235,7 @@ function makeAllExecuteFunctions(allRoutes: {[pattern: string]: Route}, allRules
                     moreSpecific: [rule.signature],
                     handlers: [
                         // TODO: temp... fix this...
-                        new Handler(new Pattern('…'), () => { throw new Error('ambiguous'); })
+                        new Handler(new Pattern('…'), () => { throw new Error('ambiguous - which fallback?'); })
                     ]
                 },
                 rule
@@ -257,14 +257,32 @@ function makeAllExecuteFunctions(allRoutes: {[pattern: string]: Route}, allRules
             let rule = completePath.pop();
 
             // TODO: fail if a path has multiple handlers for now... address this case later...
-            assert(rule.handlers.length <= 1, `Not implemented: multiple handlers for path`);
+            //assert(rule.handlers.length <= 1, `Not implemented: multiple handlers for path`);
 
-            let handler = rule.handlers[0] || { execute: (r, d) => d.execute(r) }; // no handler === handler that just does downstream
+            //let handler = rule.handlers[0] || { execute: (r, d) => d.execute(r) }; // no handler === handler that just does downstream
+            let handlers = rule.handlers;
             let ds = downstream; // capture in loop
 
             downstream = {
-                execute: (request, index) => handler.execute(request, ds),
-                candidates: {length: 1}
+                execute: (request, index) => {
+                    // TODO: fix logic...
+                    let handler: Handler;
+                    if (index === void 0) {
+                        if (handlers.length === 0) {
+                            handler = <any> { execute: () => null };
+                        }
+                        else {
+                            assert(handlers.length === 1, `ambiguous - which handler?`);
+                            handler = handlers[0];
+                        }
+                    }
+                    else {
+                        assert(index >= 0 && index < handlers.length, `index out of range`);
+                        handler = handlers[index];
+                    }
+                    return handler.execute(request, ds);
+                },
+                candidates: { length: handlers.length }
             };
         }
 

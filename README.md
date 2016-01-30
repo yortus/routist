@@ -9,6 +9,29 @@
 - [ ] add Route interface. Make one per rule
 
 
+## Handler execution order (when multiple handlers for same pattern)
+### multiple non-decorators
+- method is left up to decorators to resolve
+- default is to throw 'ambiguous' error
+
+### multiple mixed decorators/non-decorators
+- non-decorators are handled as if they were specialisations of the decorators
+
+### multiple decorators
+- assume any order is ok (NOT SAFE! but maybe provide option so it doesn't throw / is allowed)
+- implicit ordering
+  - but how?
+  - order of being added to router? not reliable when multiple sources...
+- explicit ordering
+  - but how?
+  - optional 'ordinal' comment on the end of pattern? like css z-index
+  - action name or parameter that somehow indicates priority?
+
+
+
+
+
+
 ## Glossary
 
 **Address:** A string designating the specific resource being requested. Part of a Request.
