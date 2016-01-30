@@ -23,6 +23,12 @@ class Handler {
         let paramNames = get_function_parameters_1.default(action);
         this.isDecorator = paramNames.indexOf('$next') !== -1;
         this.execute = makeExecuteFunction(pattern, action, paramNames);
+        // TODO: temp testing... extract rule's 'priority' from comment in pattern...
+        // NB: default is 0.
+        // NB: error handling??? throw error if not numeric?
+        let comment = pattern.toString().split('#')[1] || '0';
+        let priority = parseInt(comment, 10);
+        this.priority = isNaN(priority) ? 0 : priority;
     }
 }
 Object.defineProperty(exports, "__esModule", { value: true });

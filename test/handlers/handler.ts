@@ -10,66 +10,116 @@ describe('Constructing a Handler instance', () => {
         {
             pattern: '/api/{...rest}',
             action: (rest) => {},
+            priority: 0,
             error: null
         },
         {
             pattern: '/api/{...rest}',
             action: ($req, rest) => {},
+            priority: 0,
             error: null
         },
         {
             pattern: '/api/…',
             action: () => {},
+            priority: 0,
             error: null
         },
         {
             pattern: '/api/{...rest}',
             action: () => {},
+            priority: 0,
             error: `Capture name(s) 'rest' unused by handler...`
         },
         {
             pattern: '/api/…',
             action: (rest) => {},
+            priority: 0,
             error: `Handler parameter(s) 'rest' not captured by pattern...`
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
             action: (path, ext, $req, name) => {},
+            priority: 0,
             error: null
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
             action: (path, ext, req, name) => {},
+            priority: 0,
             error: `Handler parameter(s) 'req' not captured by pattern...`
         },
         {
             pattern: '/api/{...$req}',
             action: ($req) => {},
+            priority: 0,
             error: `Use of reserved name(s) '$req' as capture(s) in pattern...`
         },
         {
             pattern: '/api/{...req}',
             action: ($req) => {},
+            priority: 0,
             error: `Capture name(s) 'req' unused by handler...`
         },
         {
             pattern: '/api/{...rest}',
             action: (rest, $req, $next) => {},
+            priority: 0,
             error: null
         },
         {
             pattern: '/api/{...rest}',
             action: (rest, $next) => {},
+            priority: 0,
             error: null
-        }
+        },
+        {
+            pattern: '/api/{...rest} #2',
+            action: (rest, $next) => {},
+            priority: 2,
+            error: null
+        },
+        {
+            pattern: '/api/{...rest} #1000',
+            action: (rest, $next) => {},
+            priority: 1000,
+            error: null
+        },
+        {
+            pattern: '/api/{...rest} #comment',
+            action: (rest, $next) => {},
+            priority: 0,
+            error: null
+        },
+        {
+            pattern: '#/api/{...rest}',
+            action: (rest, $next) => {},
+            priority: 0,
+            error: `Handler parameter(s) 'rest' not captured by pattern...`
+        },
+        {
+            pattern: '/api/{...rest} # 2 0 abc',
+            action: (rest, $next) => {},
+            priority: 2,
+            error: null
+        },
+        {
+            pattern: '/api/x # was... /{...rest}',
+            action: () => {},
+            priority: 0,
+            error: null
+        },
     ];
 
     tests.forEach(test => {
         it(`${test.pattern} WITH ${test.action}`, () => {
+            let expectedPriority = test.priority || 0;
             let expectedError = test.error || '';
+            let actualPriority = 0;
             let actualError = '';
             try {
-                new Handler(new Pattern(test.pattern), test.action);
+                let h = new Handler(new Pattern(test.pattern), test.action);
+                actualPriority = h.priority;
             }
             catch (ex) {
                 actualError = ex.message;
@@ -77,6 +127,7 @@ describe('Constructing a Handler instance', () => {
                     actualError = actualError.slice(0, expectedError.length - 3) + '...';
                 }
             }
+            expect(actualPriority).equals(expectedPriority);
             expect(actualError).equals(expectedError);
         });
     });

@@ -54,6 +54,13 @@ export default class Handler {
         let paramNames = getFunctionParameters(action);
         this.isDecorator = paramNames.indexOf('$next') !== -1;
         this.execute = <any> makeExecuteFunction(pattern, action, paramNames);
+
+        // TODO: temp testing... extract rule's 'priority' from comment in pattern...
+        // NB: default is 0.
+        // NB: error handling??? throw error if not numeric?
+        let comment = pattern.toString().split('#')[1] || '0';
+        let priority = parseInt(comment, 10);
+        this.priority = isNaN(priority) ? 0 : priority;
     }
 
 
@@ -64,6 +71,10 @@ export default class Handler {
      * and non-decorators.
      */
     isDecorator: boolean;
+
+
+    // TODO: doc...
+    priority: number;
 
 
     /**
