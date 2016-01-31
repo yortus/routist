@@ -203,6 +203,7 @@ function makeExecuteFunction(rule: Rule) {
 
 
 //TODO: ...
+// TODO: analyse and factor out/memoize repeated calculations/closures below...
 function makeAllExecuteFunctions(allRoutes: {[pattern: string]: Route}, allRules: {[pattern: string]: Rule}) {
     Object.keys(allRoutes).forEach(pattern => {
         let route = allRoutes[pattern];
@@ -235,6 +236,7 @@ function makeAllExecuteFunctions(allRoutes: {[pattern: string]: Route}, allRules
                     moreSpecific: [rule.signature],
                     handlers: [
                         // TODO: temp... fix this...
+                        // for now just execute the best matching rule and then fall back to this 'ambiguous' failure handler
                         new Handler(new Pattern('…'), () => { throw new Error('ambiguous - which fallback?'); })
                     ]
                 },
@@ -268,10 +270,15 @@ function makeAllExecuteFunctions(allRoutes: {[pattern: string]: Route}, allRules
                     // TODO: fix logic...
                     let handler: Handler;
                     if (index === void 0) {
+                        // no `index` argument provided
                         if (handlers.length === 0) {
+                            // no handlers - make a handler that returns the 'unhandled' sentinel
+                            // TODO: memoize this one
                             handler = <any> { execute: () => null };
                         }
                         else {
+                            // Ensure there is exactly one handler available. Else fail.
+                            // TODO: proper way to fail?
                             assert(handlers.length === 1, `ambiguous - which handler?`);
                             handler = handlers[0];
                         }
@@ -300,4 +307,20 @@ function makeAllExecuteFunctions(allRoutes: {[pattern: string]: Route}, allRules
     //         console.log(`  ${steps.join(' ==> ')}`);
     //     });
     // });
+}
+
+
+
+
+function makeDownstreamObject() {
+    if ('leaf rule') {
+        // use singleton 'unhandled' downstream object
+    }
+    else {
+        // non-leaf rule
+
+        // downstream first        
+        
+    }
+    
 }

@@ -28,6 +28,8 @@
   - action name or parameter that somehow indicates priority?
 
 
+### Options
+- allowAmbiguousDecoratorOrder: true|false
 
 
 
@@ -45,6 +47,8 @@
 **Decorator:** A special Handler... TODO
 
 **Rule:** A Pattern/Handler pair.
+
+**Priority:** TODO...
 
 **Route:** An ordered list of Rules that match an Address.
 

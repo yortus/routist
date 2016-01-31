@@ -122,6 +122,7 @@ function makeExecuteFunction(rule) {
     return result;
 }
 //TODO: ...
+// TODO: analyse and factor out/memoize repeated calculations/closures below...
 function makeAllExecuteFunctions(allRoutes, allRules) {
     Object.keys(allRoutes).forEach(pattern => {
         let route = allRoutes[pattern];
@@ -151,6 +152,7 @@ function makeAllExecuteFunctions(allRoutes, allRules) {
                     moreSpecific: [rule.signature],
                     handlers: [
                         // TODO: temp... fix this...
+                        // for now just execute the best matching rule and then fall back to this 'ambiguous' failure handler
                         new handler_1.default(new pattern_1.default('…'), () => { throw new Error('ambiguous - which fallback?'); })
                     ]
                 },
@@ -178,10 +180,15 @@ function makeAllExecuteFunctions(allRoutes, allRules) {
                     // TODO: fix logic...
                     let handler;
                     if (index === void 0) {
+                        // no `index` argument provided
                         if (handlers.length === 0) {
+                            // no handlers - make a handler that returns the 'unhandled' sentinel
+                            // TODO: memoize this one
                             handler = { execute: () => null };
                         }
                         else {
+                            // Ensure there is exactly one handler available. Else fail.
+                            // TODO: proper way to fail?
                             assert(handlers.length === 1, `ambiguous - which handler?`);
                             handler = handlers[0];
                         }
@@ -204,5 +211,11 @@ function makeAllExecuteFunctions(allRoutes, allRules) {
     //         console.log(`  ${steps.join(' ==> ')}`);
     //     });
     // });
+}
+function makeDownstreamObject() {
+    if ('leaf rule') {
+    }
+    else {
+    }
 }
 //# sourceMappingURL=router.js.map

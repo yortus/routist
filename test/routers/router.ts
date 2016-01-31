@@ -30,6 +30,11 @@ describe('Constructing a router instance', () => {
         'api/**': () => `fallback`,
         'api/foo': () => 'FOO',
         'api/bar': () => null,
+
+        // '/** #1': ($next) => `!`,
+        // '/**  #5ish': ($next) => `!`,
+        // '/** #5ish': ($next) => `!`,
+        // '/** #50': ($next) => `!`,
     };
 
     let tests = [
