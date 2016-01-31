@@ -37,6 +37,26 @@ describe('Constructing a router instance', () => {
         // '/** #50': ($next) => `!`,
     };
 
+    let testTable2 = {
+        '/** #latency':                 ($next) => null,
+        '/** #addBlahHeader':           ($next) => null,
+        '/** #authorize':               ($next) => null,
+        '/api/{...path}':               (path) => null,
+        '/public/main.js':              ($next) => null,
+        '/public/main.js #1.jquery':    () => null,
+        '/public/main.js #2.cajon':     () => null,
+    };
+
+    function compare(pat1, pat2) {
+        
+    }
+    let priorities = [
+        // Root-level decorators:
+        'latency', 'authorize', 'addBlahHeader'
+    ];
+
+
+
     let tests = [
         `/foo ==> ---foo---`,
         `/bar ==> ---bar---`,

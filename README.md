@@ -40,13 +40,13 @@
 
 **Pattern:** A concise regex-like representation that matches a particular set of Addresses.
 
-**Action:** TODO... raw handler... capture names as params, $req, $yield
+RENAME TO HANDLER **Action:** TODO... raw handler... capture names as params, $req, $yield
 
-**Handler:** A procedure for generating the Response for a particular Request.
+RENAME TO RULE, add ref to pattern **Handler:** A procedure for generating the Response for a particular Request.
 
 **Decorator:** A special Handler... TODO
 
-**Rule:** A Pattern/Handler pair.
+SEE ABOVE **Rule:** A Pattern/Handler pair.
 
 **Priority:** TODO...
 
