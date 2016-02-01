@@ -38,19 +38,17 @@
 
 **Address:** A string designating the specific resource being requested. Part of a Request.
 
+**Rule:** A condition and action in the form of a Pattern/Handler pair.
+
 **Pattern:** A concise regex-like representation that matches a particular set of Addresses.
 
-RENAME TO HANDLER **Action:** TODO... raw handler... capture names as params, $req, $yield
+**Handler:** TODO... A procedure for generating the Response for a particular Request.... capture names as params... $req, $next...
 
-RENAME TO RULE, add ref to pattern **Handler:** A procedure for generating the Response for a particular Request.
-
-**Decorator:** A special Handler... TODO
-
-SEE ABOVE **Rule:** A Pattern/Handler pair.
+**Decorator:** A special Rule... TODO
 
 **Priority:** TODO...
 
-**Route:** TODO: ??? An ordered list of Rules that match an Address.
+**Route:** TODO: ??? An ordered list of Rules that all match an Address.
 
 **Request:** A logical representation... TODO
 
