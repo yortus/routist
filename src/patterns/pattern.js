@@ -1,8 +1,8 @@
 'use strict';
 var parse_pattern_source_1 = require('./parse-pattern-source');
 /**
- * A pattern recognizes a set of pathnames. It like a RegExp, but tailored
- * specifically to pathname recognition. Patterns are case-sensitive.
+ * A pattern recognizes a set of addresses. It like a RegExp, but tailored
+ * specifically to address recognition. Patterns are case-sensitive.
  */
 class Pattern {
     /**
@@ -19,9 +19,9 @@ class Pattern {
     /** Returns the source string with which this instance was constructed. */
     toString() { return this.source; }
 }
-/** A singleton pattern that recognises all pathnames (i.e., the universal set). */
+/** A singleton pattern that recognises all addresses (i.e., the universal set). */
 Pattern.UNIVERSAL = new Pattern('…');
-/** A singleton pattern that recognises no pathnames (i.e., the empty set). */
+/** A singleton pattern that recognises no addresses (i.e., the empty set). */
 Pattern.EMPTY = new Pattern('∅');
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Pattern;
@@ -43,25 +43,25 @@ function makeMatchFunction(pattern) {
     let matchFunction;
     switch (patternSignature) {
         case 'A':
-            matchFunction = (pathname) => pathname === pattern ? {} : null;
+            matchFunction = (address) => address === pattern ? {} : null;
             break;
         case '*':
         case '…':
-            matchFunction = (pathname) => {
-                if (patternSignature === '*' && pathname.indexOf('/') !== -1)
+            matchFunction = (address) => {
+                if (patternSignature === '*' && address.indexOf('/') !== -1)
                     return null;
                 if (captureName0 === '?')
                     return {};
-                return { [captureName0]: pathname };
+                return { [captureName0]: address };
             };
             break;
         case 'A*':
         case 'A…':
-            matchFunction = (pathname) => {
-                let i = pathname.indexOf(literalPart);
+            matchFunction = (address) => {
+                let i = address.indexOf(literalPart);
                 if (i !== 0)
                     return null;
-                let captureValue = pathname.slice(literalPart.length);
+                let captureValue = address.slice(literalPart.length);
                 if (patternSignature === 'A*' && captureValue.indexOf('/') !== -1)
                     return null;
                 if (captureName0 === '?')
@@ -71,11 +71,11 @@ function makeMatchFunction(pattern) {
             break;
         case '*A':
         case '…A':
-            matchFunction = (pathname) => {
-                let i = pathname.lastIndexOf(literalPart);
-                if (i === -1 || i !== pathname.length - literalPart.length)
+            matchFunction = (address) => {
+                let i = address.lastIndexOf(literalPart);
+                if (i === -1 || i !== address.length - literalPart.length)
                     return null;
-                let captureValue = pathname.slice(0, -literalPart.length);
+                let captureValue = address.slice(0, -literalPart.length);
                 if (patternSignature === '*A' && captureValue.indexOf('/') !== -1)
                     return null;
                 if (captureName0 === '?')
@@ -84,9 +84,9 @@ function makeMatchFunction(pattern) {
             };
             break;
         default:
-            let recogniser = makePathnameRecogniser(patternAST.signature, patternAST.captureNames);
-            matchFunction = (pathname) => {
-                let matches = pathname.match(recogniser);
+            let recogniser = makeAddressRecogniser(patternAST.signature, patternAST.captureNames);
+            matchFunction = (address) => {
+                let matches = address.match(recogniser);
                 if (!matches)
                     return null;
                 let result = patternAST.captureNames
@@ -99,10 +99,10 @@ function makeMatchFunction(pattern) {
     return matchFunction;
 }
 /**
- * Constructs a regular expression that matches all pathnames recognised by the given pattern.
+ * Constructs a regular expression that matches all addresses recognised by the given pattern.
  * Each globstar/wildcard in the pattern corresponds to a capture group in the regular expression.
  */
-function makePathnameRecogniser(pattern, captureNames) {
+function makeAddressRecogniser(pattern, captureNames) {
     let captureIndex = 0;
     let re = pattern.split('').map(c => {
         if (c === '*') {

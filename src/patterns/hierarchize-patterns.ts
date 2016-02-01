@@ -9,7 +9,7 @@ import Pattern from './pattern';
 
 /**
  * Arranges the given list of patterns into a hierarchy according to their set
- * relationships (recall that each pattern represents a set of pathnames). The
+ * relationships (recall that each pattern represents a set of addresses). The
  * arrangement is akin to a Venn diagram. The 'outermost' pattern is always the
  * the universal set ('…'), regardless of whether `patterns` contains a '…'.
  * For any two patterns p1 and p2, if p2 is a proper subset of p1, then it will

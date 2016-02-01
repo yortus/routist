@@ -11,11 +11,11 @@ import * as PEG from 'pegjs';
  * - Patterns are case-sensitive.
  * - A pattern consists of an alternating sequence of captures and literals.
  * - A literal consists of one or more adjacent characters from [A-Za-z0-9/._-].
- * - Literals must exactly match a corresponding portion of a pathname.
- * - A capture represents an operator that matches zero or more characters of a pathname.
+ * - Literals must exactly match a corresponding portion of an address.
+ * - A capture represents an operator that matches zero or more characters of an address.
  * - There are two types of captures: globstars and wildcards.
- * - A globstar matches zero or more adjacent characters in a pathname.
- * - A wildcard matches zero or more adjacent characters in a pathname, but cannot match '/'.
+ * - A globstar matches zero or more adjacent characters in an address.
+ * - A wildcard matches zero or more adjacent characters in an address, but cannot match '/'.
  * - Captures may be named or anonymous. Named captures return their correspoding capture
  *     values in the result of a call to Pattern#match.
  * - An anonymous globstar is designated with '**' or '…'.

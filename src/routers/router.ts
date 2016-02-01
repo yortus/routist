@@ -70,9 +70,9 @@ export default class Router {
     dispatch(request: Request): Response {
         // TODO: ...
 
-        let pathname = typeof request === 'string' ? request : request.pathname;
+        let address = typeof request === 'string' ? request : request.address;
         let path: Route[] = [];
-        let route = this.allRoutes['…']; // matches all pathnames; don't need to check this against pathname
+        let route = this.allRoutes['…']; // matches all addresses; don't need to check this against address
 
         while (true) {
             path.push(route);
@@ -81,7 +81,7 @@ export default class Router {
             let foundChild: Route = null;
             for (let i = 0; !foundChild && i < rule.moreSpecific.length; ++i) {
                 let child = this.allRoutes[rule.moreSpecific[i]];
-                foundChild = child.quickMatch(pathname) && child;
+                foundChild = child.quickMatch(address) && child;
             }
 
             if (!foundChild) break;
@@ -124,7 +124,7 @@ interface RuleNode {
 // TODO: ...
 interface Route {
     signature: string;
-    quickMatch: (pathname: string) => boolean;
+    quickMatch: (address: string) => boolean;
     execute: (request: Request) => Response;
 }
 
@@ -175,7 +175,7 @@ function mapRuleNodesToRoutes(rules: {[pattern:string]: RuleNode}, allRoutes?: {
 // TODO: ...
 function makeQuickMatchFunction(rule: RuleNode) {
     let quickMatchPattern = new Pattern(rule.signature);
-    let isMatch = (pathname: string) => quickMatchPattern.match(pathname) !== null;
+    let isMatch = (address: string) => quickMatchPattern.match(address) !== null;
     return isMatch;
 }
 

@@ -48,7 +48,7 @@ export default class Rule {
      *        values are passed to the matching parameters of `action` upon invocation.
      *        A non-null return value from `action` is interpreted as a response. A null
      *        return value from `action` signifies that the action declined to respond to
-     *        the given request, even if the pattern matched the request's pathname.
+     *        the given request, even if the pattern matched the request's address.
      */
     constructor(public pattern: Pattern, handler: Function) {
         let paramNames = getFunctionParameters(handler);
@@ -88,8 +88,8 @@ export default class Rule {
      * (2) A non-decorator rule always perform downstream execution first, and then only
      * executes its handler if the downsteam handlers did not produce a response.
      * @param {Request} request - an object containing all information relevant to producing
-     *        a response, including the pathname from which capture name/value pairs are bound
-     *        to action function parameters.
+     *        a response, including the address from which capture name/value pairs are bound
+     *        to handler function parameters.
      * @param {(request?: Request) => Response} executeDownstreamHandlers - a callback that
      *        executes all downsteam handlers and returns their collective response. The
      *        callback is already bound to the current request, and passes it to downstream
@@ -144,8 +144,8 @@ function makeExecuteFunction(pattern: Pattern, handler: Function, paramNames: st
     // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
     //   Otherwise, execute the handler function and return its response.
     let source = `(function execute(request, downstream) {
-        var paramBindings = pattern.match(typeof request === 'string' ? request : request.pathname);
-        if (!paramBindings) return null; // pattern didn't match pathname
+        var paramBindings = pattern.match(typeof request === 'string' ? request : request.address);
+        if (!paramBindings) return null; // pattern didn't match address
         ${!isDecorator ? `
         var response = downstream.execute(request);
         if (response !== null) return response;

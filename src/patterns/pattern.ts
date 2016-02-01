@@ -6,8 +6,8 @@ import parsePatternSource from './parse-pattern-source';
 
 
 /**
- * A pattern recognizes a set of pathnames. It like a RegExp, but tailored
- * specifically to pathname recognition. Patterns are case-sensitive.
+ * A pattern recognizes a set of addresses. It like a RegExp, but tailored
+ * specifically to address recognition. Patterns are case-sensitive.
  */
 export default class Pattern {
 
@@ -25,8 +25,8 @@ export default class Pattern {
 
 
     /**
-     * The signature of this pattern. Two patterns that match the same set of pathnames
-     * are guaranteed to have the same signature.
+     * The signature of this pattern. Two patterns that match the same set of
+     * addresses are guaranteed to have the same signature.
      */
     signature: string;
 
@@ -39,24 +39,24 @@ export default class Pattern {
 
 
     /**
-     * Attempts to match a given pathname against the pattern. For successful matches, a hash
+     * Attempts to match a given address against the pattern. For successful matches, a hash
      * is returned containing the name/value pairs for each named capture in the pattern. For
      * failed matches the return value is null.
-     * @param {string} pathname - the pathname to match against the pattern.
+     * @param {string} address - the address to match against the pattern.
      * @returns {Object} null if the match failed, otherwise a hash of captured name/value pairs.
      */
-    match: (pathname: string) => {[captureName: string]: string};
+    match: (address: string) => {[captureName: string]: string};
 
 
     /** Returns the source string with which this instance was constructed. */
     toString() { return this.source; }
 
 
-    /** A singleton pattern that recognises all pathnames (i.e., the universal set). */
+    /** A singleton pattern that recognises all addresses (i.e., the universal set). */
     static UNIVERSAL = new Pattern('…');
 
 
-    /** A singleton pattern that recognises no pathnames (i.e., the empty set). */
+    /** A singleton pattern that recognises no addresses (i.e., the empty set). */
     static EMPTY = new Pattern('∅');
 }
 
@@ -84,24 +84,24 @@ function makeMatchFunction(pattern: string) {
     let matchFunction: any;
     switch (patternSignature) {
         case 'A':
-            matchFunction = (pathname: string) => pathname === pattern ? {} : null;
+            matchFunction = (address: string) => address === pattern ? {} : null;
             break;
 
         case '*':
         case '…':
-            matchFunction = (pathname: string) => {
-                if (patternSignature === '*' && pathname.indexOf('/') !== -1) return null;
+            matchFunction = (address: string) => {
+                if (patternSignature === '*' && address.indexOf('/') !== -1) return null;
                 if (captureName0 === '?') return {};
-                return {[captureName0]: pathname};
+                return {[captureName0]: address};
             }
             break;
 
         case 'A*':
         case 'A…':
-            matchFunction = (pathname: string) => {
-                let i = pathname.indexOf(literalPart);
+            matchFunction = (address: string) => {
+                let i = address.indexOf(literalPart);
                 if (i !== 0) return null;
-                let captureValue = pathname.slice(literalPart.length);
+                let captureValue = address.slice(literalPart.length);
                 if (patternSignature === 'A*' && captureValue.indexOf('/') !== -1) return null;
                 if (captureName0 === '?') return {};
                 return {[captureName0]: captureValue};
@@ -110,10 +110,10 @@ function makeMatchFunction(pattern: string) {
 
         case '*A':
         case '…A':
-            matchFunction = (pathname: string) => {
-                let i = pathname.lastIndexOf(literalPart);
-                if (i === -1 || i !== pathname.length - literalPart.length) return null;
-                let captureValue = pathname.slice(0, -literalPart.length);
+            matchFunction = (address: string) => {
+                let i = address.lastIndexOf(literalPart);
+                if (i === -1 || i !== address.length - literalPart.length) return null;
+                let captureValue = address.slice(0, -literalPart.length);
                 if (patternSignature === '*A' && captureValue.indexOf('/') !== -1) return null;
                 if (captureName0 === '?') return {};
                 return {[captureName0]: captureValue};
@@ -121,9 +121,9 @@ function makeMatchFunction(pattern: string) {
             break;
 
         default:
-            let recogniser = makePathnameRecogniser(patternAST.signature, patternAST.captureNames);
-            matchFunction = (pathname: string) => {
-                let matches = pathname.match(recogniser);
+            let recogniser = makeAddressRecogniser(patternAST.signature, patternAST.captureNames);
+            matchFunction = (address: string) => {
+                let matches = address.match(recogniser);
                 if (!matches) return null;
                 let result = patternAST.captureNames
                     .filter(name => name !== '?')
@@ -141,10 +141,10 @@ function makeMatchFunction(pattern: string) {
 
 
 /**
- * Constructs a regular expression that matches all pathnames recognised by the given pattern.
+ * Constructs a regular expression that matches all addresses recognised by the given pattern.
  * Each globstar/wildcard in the pattern corresponds to a capture group in the regular expression.
  */
-function makePathnameRecogniser(pattern: string, captureNames: string[]) {
+function makeAddressRecogniser(pattern: string, captureNames: string[]) {
     let captureIndex = 0;
     let re = pattern.split('').map(c => {
         if (c === '*') {

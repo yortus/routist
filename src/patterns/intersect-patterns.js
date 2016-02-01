@@ -2,7 +2,7 @@
 var parse_pattern_source_1 = require('./parse-pattern-source');
 var pattern_1 = require('./pattern');
 /**
- * Generates a pattern that matches all the pathnames that are matched by *both*
+ * Generates a pattern that matches all the addresses that are matched by *both*
  * patterns `a` and `b`. Returns the empty pattern '∅' if `a` and `b` are disjoint.
  * Throws an error if the intersection cannot be expressed as a single pattern.
  * Note that patterns are case-sensitive.
@@ -10,7 +10,7 @@ var pattern_1 = require('./pattern');
  *        instance, or as a pattern string.
  * @param {Pattern|string} b - a pattern. It may be provided either as a Pattern
  *        instance, or as a pattern string.
- * @returns {Pattern} - the pattern that matches all pathnames matched by both `a` and `b`.
+ * @returns {Pattern} - the pattern that matches all addresses matched by both `a` and `b`.
  */
 function intersectPatterns(a, b) {
     let p = typeof a === 'string' ? parse_pattern_source_1.default(a).signature : a.signature;

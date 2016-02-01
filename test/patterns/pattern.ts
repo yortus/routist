@@ -65,7 +65,7 @@ describe('Constructing a Pattern instance', () => {
 });
 
 
-describe('Matching a pattern against a pathname', () => {
+describe('Matching a pattern against an address', () => {
 
     let tests = [
         '* MATCHES abc',
@@ -107,10 +107,10 @@ describe('Matching a pattern against a pathname', () => {
             let split = isMatch ? ' MATCHES ' : ' DOES NOT MATCH ';
             let patternSource = test.split(split)[0];
             let rhs = test.split(split)[1];
-            let pathname = rhs.split(' WITH ')[0];
+            let address = rhs.split(' WITH ')[0];
             let expectedCaptures = isMatch ? eval(`(${rhs.split(' WITH ')[1]})`) || {} : null;
             let pattern = new Pattern(patternSource);
-            let actualCaptures = pattern.match(pathname);
+            let actualCaptures = pattern.match(address);
             expect(actualCaptures).to.deep.equal(expectedCaptures);
             if (!isMatch) return;
             let expectedCaptureNames = Object.keys(expectedCaptures);

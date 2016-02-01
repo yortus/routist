@@ -17,7 +17,7 @@ class Rule {
      *        values are passed to the matching parameters of `action` upon invocation.
      *        A non-null return value from `action` is interpreted as a response. A null
      *        return value from `action` signifies that the action declined to respond to
-     *        the given request, even if the pattern matched the request's pathname.
+     *        the given request, even if the pattern matched the request's address.
      */
     constructor(pattern, handler) {
         this.pattern = pattern;
@@ -63,8 +63,8 @@ function makeExecuteFunction(pattern, handler, paramNames) {
     // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
     //   Otherwise, execute the handler function and return its response.
     let source = `(function execute(request, downstream) {
-        var paramBindings = pattern.match(typeof request === 'string' ? request : request.pathname);
-        if (!paramBindings) return null; // pattern didn't match pathname
+        var paramBindings = pattern.match(typeof request === 'string' ? request : request.address);
+        if (!paramBindings) return null; // pattern didn't match address
         ${!isDecorator ? `
         var response = downstream.execute(request);
         if (response !== null) return response;

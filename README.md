@@ -2,7 +2,7 @@
 
 ## To Do List
 
-- [ ] change pathname to address throughout
+- [x] change pathname to address throughout
 - [ ] introduce 'Rule' interface wherever pattern/handler pairs occur
 - [ ] asyncify Handler#execute
 - [ ] still need `isPromise`? If not, remove it :( Otherwise find a use for it.

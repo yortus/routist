@@ -128,7 +128,7 @@ describe('Constructing a Rule instance', () => {
         });
     });
 });
-describe('Executing a rule against a pathname', () => {
+describe('Executing a rule against an address', () => {
     let tests = [
         {
             pattern: '/api/{...rest}',
@@ -175,7 +175,7 @@ describe('Executing a rule against a pathname', () => {
         {
             pattern: '/foo/{...path}/{name}.{ext}',
             handler: (path, ext, $req, name) => `${path}, ${ext}, ${$req}, ${name}`,
-            request: { pathname: '/foo/bar/baz.html' },
+            request: { address: '/foo/bar/baz.html' },
             downstream: rq => null,
             response: 'bar, html, [object Object], baz'
         },
@@ -190,8 +190,8 @@ describe('Executing a rule against a pathname', () => {
             pattern: '/api/{...rest}',
             handler: (rest, $next) => `${$next.execute()}-${rest.slice(4, 7)}`,
             request: '/api/foo/bar/baz.html',
-            downstream: rq => `${rq.pathname.slice(5, 8)}`,
-            response: `ERROR: Cannot read property 'pathname' of undefined...`
+            downstream: rq => `${rq.address.slice(5, 8)}`,
+            response: `ERROR: Cannot read property 'address' of undefined...`
         },
         {
             pattern: '/api/{...rest}',
@@ -210,8 +210,8 @@ describe('Executing a rule against a pathname', () => {
         {
             pattern: '/api/{...rest}',
             handler: (rest) => { throw new Error('fail!'); },
-            request: { pathname: '/api/foo' },
-            downstream: rq => `${rq.pathname}`,
+            request: { address: '/api/foo' },
+            downstream: rq => `${rq.address}`,
             response: '/api/foo'
         },
         {
