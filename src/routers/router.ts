@@ -1,10 +1,10 @@
 'use strict';
 import * as assert from 'assert';
-import Handler, {Downstream} from '../handlers/handler';
 import hierarchizePatterns, {PatternNode} from '../patterns/hierarchize-patterns';
+import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
-import Pattern from '../patterns/pattern';
+import Rule, {Downstream} from '../rules/rule';
 
 
 
@@ -20,41 +20,41 @@ export default class Router {
 
 
     // TODO: doc...
-    add(routes: [string, Function][]);
-    add(routes: {[pattern: string]: Function});
-    add(routes: [string, Function][] | {[pattern: string]: Function}) {
+    add(patternHandlerPairs: [string, Function][]);
+    add(patternHandlerMap: {[pattern: string]: Function});
+    add(arg: [string, Function][] | {[pattern: string]: Function}) {
 
-        // Construct flat lists of all the patterns and handlers for the given routes.
+        // Construct flat lists of all the patterns and handlers for the given rules.
         let patterns: Pattern[];
-        let handlers: Handler[];
-        if (Array.isArray(routes)) {
-            patterns = routes.map(route => new Pattern(route[0]));
-            handlers = routes.map((route, i) => new Handler(patterns[i], route[1]));
+        let rules: Rule[];
+        if (Array.isArray(arg)) {
+            patterns = arg.map(pair => new Pattern(pair[0]));
+            rules = arg.map((pair, i) => new Rule(patterns[i], pair[1]));
         }
         else {
-            let keys = Object.keys(routes);
+            let keys = Object.keys(arg);
             patterns = keys.map(key => new Pattern(key));
-            handlers = keys.map((key, i) => new Handler(patterns[i], routes[key]));
+            rules = keys.map((key, i) => new Rule(patterns[i], arg[key]));
         }
 
         // TODO: ...
-        function getHandlersForPattern(patternSignature: string) {
-            return handlers.filter((h, i) => patterns[i].signature === patternSignature);
+        function getRulesForPattern(patternSignature: string) {
+            return rules.filter((_, i) => patterns[i].signature === patternSignature);
         }
 
-        // TODO: add root pattern/handler if not there already
+        // TODO: add root pattern and rule if not there already
         if (!patterns.some(p => p.signature === '…')) {
             let rootPattern = new Pattern('…')
             patterns.push(rootPattern);
-            handlers.push(new Handler(rootPattern, () => { throw new Error('404!');})); // TODO: proper handler?
+            rules.push(new Rule(rootPattern, () => { throw new Error('404!');})); // TODO: proper handler?
         }
 
         // TODO: ...
         let patternHierarchy = hierarchizePatterns(patterns);
-        let allRules = mapPatternsToRules(patternHierarchy, getHandlersForPattern);
-        let allRoutes = mapRulesToRoutes(allRules);
-        makeAllExecuteFunctions(allRoutes, allRules);
-        this.allRules = allRules;
+        let allRuleNodes = mapPatternsToRuleNodes(patternHierarchy, getRulesForPattern);
+        let allRoutes = mapRuleNodesToRoutes(allRuleNodes);
+        makeAllExecuteFunctions(allRoutes, allRuleNodes);
+        this.allRuleNodes = allRuleNodes;
         this.allRoutes = allRoutes;
 
 
@@ -76,7 +76,7 @@ export default class Router {
 
         while (true) {
             path.push(route);
-            let rule = this.allRules[route.signature];
+            let rule = this.allRuleNodes[route.signature];
 
             let foundChild: Route = null;
             for (let i = 0; !foundChild && i < rule.moreSpecific.length; ++i) {
@@ -101,7 +101,7 @@ export default class Router {
     
 
     // TODO: doc...
-    private allRules: {[pattern: string]: Rule};
+    private allRuleNodes: {[pattern: string]: RuleNode};
     private allRoutes: {[pattern: string]: Route};
 }
 
@@ -110,11 +110,11 @@ export default class Router {
 
 
 // TODO: ...
-interface Rule {
+interface RuleNode {
     signature: string;
     lessSpecific: string[];
     moreSpecific: string[];
-    handlers: Handler[];
+    rules: Rule[];
 }
 
 
@@ -133,16 +133,16 @@ interface Route {
 
 
 // TODO: ...
-function mapPatternsToRules(patterns: PatternNode, getHandlersFor: (pattern: string) => Handler[], parentRule?: Rule, allRules?: {[pattern:string]: Rule}) {
+function mapPatternsToRuleNodes(patterns: PatternNode, getHandlersFor: (pattern: string) => Rule[], parentRule?: RuleNode, allRules?: {[pattern:string]: RuleNode}) {
     allRules = allRules || {};
     Object.keys(patterns).forEach(pattern => {
         let childRule = allRules[pattern] || (allRules[pattern] = {
             signature: pattern,
             lessSpecific: [],
             moreSpecific: [],
-            handlers: getHandlersFor(pattern)
+            rules: getHandlersFor(pattern)
         });
-        mapPatternsToRules(patterns[pattern], getHandlersFor, childRule, allRules); // Recurse!
+        mapPatternsToRuleNodes(patterns[pattern], getHandlersFor, childRule, allRules); // Recurse!
         if (!parentRule) return;
         childRule.lessSpecific.push(parentRule.signature);
         parentRule.moreSpecific.push(pattern);
@@ -155,7 +155,7 @@ function mapPatternsToRules(patterns: PatternNode, getHandlersFor: (pattern: str
 
 
 // TODO: ...
-function mapRulesToRoutes(rules: {[pattern:string]: Rule}, allRoutes?: {[pattern:string]: Route}) {
+function mapRuleNodesToRoutes(rules: {[pattern:string]: RuleNode}, allRoutes?: {[pattern:string]: Route}) {
     allRoutes = allRoutes || {};
     Object.keys(rules).forEach(pattern => {
         let rule = rules[pattern];
@@ -173,7 +173,7 @@ function mapRulesToRoutes(rules: {[pattern:string]: Rule}, allRoutes?: {[pattern
 
 
 // TODO: ...
-function makeQuickMatchFunction(rule: Rule) {
+function makeQuickMatchFunction(rule: RuleNode) {
     let quickMatchPattern = new Pattern(rule.signature);
     let isMatch = (pathname: string) => quickMatchPattern.match(pathname) !== null;
     return isMatch;
@@ -184,7 +184,7 @@ function makeQuickMatchFunction(rule: Rule) {
 
 
 // TODO: ... remove?
-function makeExecuteFunction(rule: Rule) {
+function makeExecuteFunction(rule: RuleNode) {
     let result: (request: Request) => Response;
 
     // TODO: ...
@@ -193,7 +193,7 @@ function makeExecuteFunction(rule: Rule) {
         candidates: { length: 0 }
     };
 
-    result = req => rule.handlers[0].execute(req, downstream);
+    result = req => rule.rules[0].execute(req, downstream);
 
     return result;
 }
@@ -204,13 +204,13 @@ function makeExecuteFunction(rule: Rule) {
 
 //TODO: ...
 // TODO: analyse and factor out/memoize repeated calculations/closures below...
-function makeAllExecuteFunctions(allRoutes: {[pattern: string]: Route}, allRules: {[pattern: string]: Rule}) {
+function makeAllExecuteFunctions(allRoutes: {[pattern: string]: Route}, allRules: {[pattern: string]: RuleNode}) {
     Object.keys(allRoutes).forEach(pattern => {
         let route = allRoutes[pattern];
-        let rule = allRules[pattern];
+        let ruleNode = allRules[pattern];
 
-        let incompletePaths: Rule[][] = [[rule]];
-        let completePaths: Rule[][] = [];
+        let incompletePaths: RuleNode[][] = [[ruleNode]];
+        let completePaths: RuleNode[][] = [];
         while (incompletePaths.length > 0) {
             let incompletePath = incompletePaths.pop();
             if (incompletePath[0].signature === '…') {
@@ -226,21 +226,21 @@ function makeAllExecuteFunctions(allRoutes: {[pattern: string]: Route}, allRules
         //return completePaths;
 
         // TODO: handle multiple paths properly... for now just execute the best matching rule and then fall back to 'ambiguous' failure
-        let completePath: Rule[];
+        let completePath: RuleNode[];
         if (completePaths.length > 1) {
             //assert(completePaths.length === 1, `Not implemented: multiple paths to route`);
             completePath = [
                 {
                     signature: '…',
                     lessSpecific: [],
-                    moreSpecific: [rule.signature],
-                    handlers: [
+                    moreSpecific: [ruleNode.signature],
+                    rules: [
                         // TODO: temp... fix this...
                         // for now just execute the best matching rule and then fall back to this 'ambiguous' failure handler
-                        new Handler(new Pattern('…'), () => { throw new Error('ambiguous - which fallback?'); })
+                        new Rule(new Pattern('…'), () => { throw new Error('ambiguous - which fallback?'); })
                     ]
                 },
-                rule
+                ruleNode
             ];            
         }
         else {
@@ -256,57 +256,45 @@ function makeAllExecuteFunctions(allRoutes: {[pattern: string]: Route}, allRules
 
 
         while (completePath.length > 0) {
-            let rule = completePath.pop();
+            let ruleNode = completePath.pop();
 
             // TODO: fail if a path has multiple handlers for now... address this case later...
             //assert(rule.handlers.length <= 1, `Not implemented: multiple handlers for path`);
 
             //let handler = rule.handlers[0] || { execute: (r, d) => d.execute(r) }; // no handler === handler that just does downstream
-            let handlers = rule.handlers;
+            let rules = ruleNode.rules;
             let ds = downstream; // capture in loop
 
             downstream = {
                 execute: (request, index) => {
                     // TODO: fix logic...
-                    let handler: Handler;
+                    let rule: Rule;
                     if (index === void 0) {
                         // no `index` argument provided
-                        if (handlers.length === 0) {
+                        if (rules.length === 0) {
                             // no handlers - make a handler that returns the 'unhandled' sentinel
                             // TODO: memoize this one
-                            handler = <any> { execute: () => null };
+                            rule = <any> { execute: () => null };
                         }
                         else {
                             // Ensure there is exactly one handler available. Else fail.
                             // TODO: proper way to fail?
-                            assert(handlers.length === 1, `ambiguous - which handler?`);
-                            handler = handlers[0];
+                            assert(rules.length === 1, `ambiguous - which rule?`);
+                            rule = rules[0];
                         }
                     }
                     else {
-                        assert(index >= 0 && index < handlers.length, `index out of range`);
-                        handler = handlers[index];
+                        assert(index >= 0 && index < rules.length, `index out of range`);
+                        rule = rules[index];
                     }
-                    return handler.execute(request, ds);
+                    return rule.execute(request, ds);
                 },
-                candidates: { length: handlers.length }
+                candidates: { length: rules.length }
             };
         }
 
         route.execute = downstream.execute;
     });
-
-
-
-
-
-    // allRules.forEach((rule, i) => {
-    //     console.log(`Ending at ${rule.signature}:`);
-    //     x[i].forEach(path => {
-    //         let steps = path.map(step => step.signature);
-    //         console.log(`  ${steps.join(' ==> ')}`);
-    //     });
-    // });
 }
 
 

@@ -1,6 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
-var get_function_parameters_1 = require('../../src/handlers/get-function-parameters');
+var get_function_parameters_1 = require('../../src/rules/get-function-parameters');
 describe(`Identifying a function's formal parameters`, () => {
     let tests = [
         `function () {} ==> `,

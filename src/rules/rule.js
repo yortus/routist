@@ -5,9 +5,9 @@ var get_function_parameters_1 = require('./get-function-parameters');
  * A handler provides a standarized means for transforming a request to a response,
  * according to the particulars of the pattern/action pair it was constructed with.
  */
-class Handler {
+class Rule {
     /**
-     * Constructs a Handler instance.
+     * Constructs a Rule instance.
      * @param {Pattern} pattern - the pattern recognized by this handler.
      * @param {Function} action - a function providing processing logic for producing
      *        a reponse from a given request. The `action` function may be invoked when
@@ -19,10 +19,11 @@ class Handler {
      *        return value from `action` signifies that the action declined to respond to
      *        the given request, even if the pattern matched the request's pathname.
      */
-    constructor(pattern, action) {
-        let paramNames = get_function_parameters_1.default(action);
+    constructor(pattern, handler) {
+        this.pattern = pattern;
+        let paramNames = get_function_parameters_1.default(handler);
         this.isDecorator = paramNames.indexOf('$next') !== -1;
-        this.execute = makeExecuteFunction(pattern, action, paramNames);
+        this.execute = makeExecuteFunction(pattern, handler, paramNames);
         // TODO: temp testing... extract rule's 'priority' from comment in pattern...
         // NB: default is 0.
         // NB: error handling??? throw error if not numeric?
@@ -32,21 +33,21 @@ class Handler {
     }
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Handler;
+exports.default = Rule;
 /**
  * Lists the names of builtins with special meanings when they
- * are used as formal parameter names in action functions.
+ * are used as formal parameter names in handler functions.
  * '$req': injects the current request into the action function.
  * '$yield': marks the action function as a decorator. Injects the
  *           standard `executeDownstreamHandlers` callback into it.
  */
 var builtinNames = ['$req', '$next'];
-/** Internal function used to create the Handler#execute method. */
-function makeExecuteFunction(pattern, action, paramNames) {
+/** Internal function used to create the Rule#execute method. */
+function makeExecuteFunction(pattern, handler, paramNames) {
     // Assert the mutual validity of `pattern` and `paramNames`. This allows the body of
     // the 'execute' function to be simpler, as it can safely forego some extra checks.
     validateNames(pattern, paramNames);
-    // If the `action` function has a formal parameter named '$yield', that signifies it as a decorator.
+    // If the handler function has a formal parameter named '$yield', that signifies this rule as a decorator.
     let isDecorator = paramNames.indexOf('$next') !== -1;
     // Precompute a map with keys that match all of the the `action` function's formal parameter names. The value
     // for each key holds the source code to supply the actual parameter for the corresponding formal parameter.
@@ -54,13 +55,13 @@ function makeExecuteFunction(pattern, action, paramNames) {
     paramMappings['$req'] = 'request';
     paramMappings['$next'] = 'downstream';
     assert(builtinNames.every(bname => !!paramMappings[bname])); // sanity check: ensure all builtins are mapped
-    // Generate the source code for the `execute` function. The `execute` function calls the `action` function,
+    // Generate the source code for the `execute` function. The `execute` function calls the handler function,
     // passing it a set of capture values and/or builtins that correspond to its formal parameter names (a form of DI).
-    // The remaining logic depends on whether the `action` function is a decorator or not, as follows:
-    // - for decorators: just call the `action` function and return it's result. The '$yield' parameter is bound to the
+    // The remaining logic depends on whether the rule is a decorator or not, as follows:
+    // - for decorators: just call the handler function and return it's result. The '$yield' parameter is bound to the
     //   `executeDownstreamHandlers` callback.
     // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
-    //   Otherwise, execute the `action` function and return its response.
+    //   Otherwise, execute the handler function and return its response.
     let source = `(function execute(request, downstream) {
         var paramBindings = pattern.match(typeof request === 'string' ? request : request.pathname);
         if (!paramBindings) return null; // pattern didn't match pathname
@@ -68,7 +69,7 @@ function makeExecuteFunction(pattern, action, paramNames) {
         var response = downstream.execute(request);
         if (response !== null) return response;
         ` : ''}
-        return action(${paramNames.map(name => paramMappings[name])});
+        return handler(${paramNames.map(name => paramMappings[name])});
     })`;
     // Evaluate the source code into a function, and return it. This use of eval here is safe. In particular, the
     // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
@@ -99,4 +100,4 @@ function validateNames(pattern, paramNames) {
     ok = excessParams.length === 0;
     assert(ok, `Handler parameter(s) '${excessParams.join("', '")}' not captured by pattern '${pattern}'`);
 }
-//# sourceMappingURL=handler.js.map
+//# sourceMappingURL=rule.js.map

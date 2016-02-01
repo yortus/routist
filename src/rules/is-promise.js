@@ -1,4 +1,5 @@
 'use strict';
+// TODO: this function is not used anywhere. Remove it?
 /** Tests whether `value` appears to be an A+ Promise instance */
 function isPromise(value) {
     if (!value)
