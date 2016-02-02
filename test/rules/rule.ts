@@ -10,116 +10,116 @@ describe('Constructing a Rule instance', () => {
         {
             pattern: '/api/{...rest}',
             handler: (rest) => {},
-            priority: 0,
+            comment: '',
             error: null
         },
         {
             pattern: '/api/{...rest}',
             handler: ($req, rest) => {},
-            priority: 0,
+            comment: '',
             error: null
         },
         {
             pattern: '/api/…',
             handler: () => {},
-            priority: 0,
+            comment: '',
             error: null
         },
         {
             pattern: '/api/{...rest}',
             handler: () => {},
-            priority: 0,
+            comment: '',
             error: `Capture name(s) 'rest' unused by handler...`
         },
         {
             pattern: '/api/…',
             handler: (rest) => {},
-            priority: 0,
+            comment: '',
             error: `Handler parameter(s) 'rest' not captured by pattern...`
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
             handler: (path, ext, $req, name) => {},
-            priority: 0,
+            comment: '',
             error: null
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
             handler: (path, ext, req, name) => {},
-            priority: 0,
+            comment: '',
             error: `Handler parameter(s) 'req' not captured by pattern...`
         },
         {
             pattern: '/api/{...$req}',
             handler: ($req) => {},
-            priority: 0,
+            comment: '',
             error: `Use of reserved name(s) '$req' as capture(s) in pattern...`
         },
         {
             pattern: '/api/{...req}',
             handler: ($req) => {},
-            priority: 0,
+            comment: '',
             error: `Capture name(s) 'req' unused by handler...`
         },
         {
             pattern: '/api/{...rest}',
             handler: (rest, $req, $next) => {},
-            priority: 0,
+            comment: '',
             error: null
         },
         {
             pattern: '/api/{...rest}',
             handler: (rest, $next) => {},
-            priority: 0,
+            comment: '',
             error: null
         },
         {
             pattern: '/api/{...rest} #2',
             handler: (rest, $next) => {},
-            priority: 2,
+            comment: '2',
             error: null
         },
         {
             pattern: '/api/{...rest} #1000',
             handler: (rest, $next) => {},
-            priority: 1000,
+            comment: '1000',
             error: null
         },
         {
             pattern: '/api/{...rest} #comment',
             handler: (rest, $next) => {},
-            priority: 0,
+            comment: 'comment',
             error: null
         },
         {
             pattern: '#/api/{...rest}',
             handler: (rest, $next) => {},
-            priority: 0,
+            comment: '',
             error: `Handler parameter(s) 'rest' not captured by pattern...`
         },
         {
-            pattern: '/api/{...rest} # 2 0 abc',
+            pattern: '/api/{...rest} # 2 0 abc   ',
             handler: (rest, $next) => {},
-            priority: 2,
+            comment: ' 2 0 abc   ',
             error: null
         },
         {
             pattern: '/api/x # was... /{...rest}',
             handler: () => {},
-            priority: 0,
+            comment: ' was... /{...rest}',
             error: null
         },
     ];
 
     tests.forEach(test => {
         it(`${test.pattern} WITH ${test.handler}`, () => {
-            let expectedPriority = test.priority || 0;
+            let expectedComment = test.comment;
             let expectedError = test.error || '';
-            let actualPriority = 0;
+            let actualComment= '';
             let actualError = '';
             try {
                 let rule = new Rule(new Pattern(test.pattern), test.handler);
-                actualPriority = rule.priority;
+                actualComment = rule.comment;
             }
             catch (ex) {
                 actualError = ex.message;
@@ -127,7 +127,7 @@ describe('Constructing a Rule instance', () => {
                     actualError = actualError.slice(0, expectedError.length - 3) + '...';
                 }
             }
-            expect(actualPriority).equals(expectedPriority);
+            expect(actualComment).equals(expectedComment);
             expect(actualError).equals(expectedError);
         });
     });

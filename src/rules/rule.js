@@ -27,9 +27,7 @@ class Rule {
         // TODO: temp testing... extract rule's 'priority' from comment in pattern...
         // NB: default is 0.
         // NB: error handling??? throw error if not numeric?
-        let comment = pattern.toString().split('#')[1] || '0';
-        let priority = parseInt(comment, 10);
-        this.priority = isNaN(priority) ? 0 : priority;
+        this.comment = pattern.toString().split('#')[1] || '';
     }
 }
 Object.defineProperty(exports, "__esModule", { value: true });

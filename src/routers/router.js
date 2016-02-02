@@ -47,16 +47,16 @@ class Router {
     // TODO: doc...
     dispatch(request) {
         // TODO: ...
-        let pathname = typeof request === 'string' ? request : request.address;
+        let address = typeof request === 'string' ? request : request.address;
         let path = [];
-        let route = this.allRoutes['…']; // matches all pathnames; don't need to check this against pathname
+        let route = this.allRoutes['…']; // matches all addresses; don't need to check this against address
         while (true) {
             path.push(route);
             let rule = this.allRuleNodes[route.signature];
             let foundChild = null;
             for (let i = 0; !foundChild && i < rule.moreSpecific.length; ++i) {
                 let child = this.allRoutes[rule.moreSpecific[i]];
-                foundChild = child.quickMatch(pathname) && child;
+                foundChild = child.quickMatch(address) && child;
             }
             if (!foundChild)
                 break;
@@ -107,7 +107,7 @@ function mapRuleNodesToRoutes(rules, allRoutes) {
 // TODO: ...
 function makeQuickMatchFunction(rule) {
     let quickMatchPattern = new pattern_1.default(rule.signature);
-    let isMatch = (pathname) => quickMatchPattern.match(pathname) !== null;
+    let isMatch = (address) => quickMatchPattern.match(address) !== null;
     return isMatch;
 }
 // TODO: ... remove?
