@@ -73,23 +73,39 @@ class Router {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Router;
+// TODO: ... this should be configurable and stackable
+function isSpecializationOf(special, general) {
+    return null;
+}
 // TODO: ...
-function mapPatternsToRuleNodes(patterns, getHandlersFor, parentRule, allRules) {
-    allRules = allRules || {};
+function mapPatternsToRuleNodes(patterns, getRulesFor, parentRuleNode, allRuleNodes) {
+    allRuleNodes = allRuleNodes || {};
     Object.keys(patterns).forEach(pattern => {
-        let childRule = allRules[pattern] || (allRules[pattern] = {
+        // TODO: get all rules with the same signature. These must all be mutually disambiguated into a definite gen>spec order.
+        let rules = getRulesFor(pattern);
+        rules.sort((a, b) => {
+            let isAMoreSpecific = isSpecializationOf(a, b);
+            let isBMoreSpecific = isSpecializationOf(b, a);
+            if (isAMoreSpecific === true && isBMoreSpecific === false)
+                return 1;
+            if (isBMoreSpecific === true && isAMoreSpecific === false)
+                return -1;
+            // TODO: proper handling?
+            throw new Error(`ambiguous: ${a.pattern} vs ${b.pattern}`);
+        });
+        let childRule = allRuleNodes[pattern] || (allRuleNodes[pattern] = {
             signature: pattern,
             lessSpecific: [],
             moreSpecific: [],
-            rules: getHandlersFor(pattern)
+            juxtaposedRules: getRulesFor(pattern)
         });
-        mapPatternsToRuleNodes(patterns[pattern], getHandlersFor, childRule, allRules); // Recurse!
-        if (!parentRule)
+        mapPatternsToRuleNodes(patterns[pattern], getRulesFor, childRule, allRuleNodes); // Recurse!
+        if (!parentRuleNode)
             return;
-        childRule.lessSpecific.push(parentRule.signature);
-        parentRule.moreSpecific.push(pattern);
+        childRule.lessSpecific.push(parentRuleNode.signature);
+        parentRuleNode.moreSpecific.push(pattern);
     });
-    return allRules;
+    return allRuleNodes;
 }
 // TODO: ...
 function mapRuleNodesToRoutes(rules, allRoutes) {
@@ -118,7 +134,7 @@ function makeExecuteFunction(rule) {
         execute: () => null,
         candidates: { length: 0 }
     };
-    result = req => rule.rules[0].execute(req, downstream);
+    result = req => rule.juxtaposedRules[0].execute(req, downstream);
     return result;
 }
 //TODO: ...
@@ -150,7 +166,7 @@ function makeAllExecuteFunctions(allRoutes, allRules) {
                     signature: '…',
                     lessSpecific: [],
                     moreSpecific: [ruleNode.signature],
-                    rules: [
+                    juxtaposedRules: [
                         // TODO: temp... fix this...
                         // for now just execute the best matching rule and then fall back to this 'ambiguous' failure handler
                         new rule_1.default(new pattern_1.default('…'), () => { throw new Error('ambiguous - which fallback?'); })
@@ -173,7 +189,7 @@ function makeAllExecuteFunctions(allRoutes, allRules) {
             // TODO: fail if a path has multiple handlers for now... address this case later...
             //assert(rule.handlers.length <= 1, `Not implemented: multiple handlers for path`);
             //let handler = rule.handlers[0] || { execute: (r, d) => d.execute(r) }; // no handler === handler that just does downstream
-            let rules = ruleNode.rules;
+            let rules = ruleNode.juxtaposedRules;
             let ds = downstream; // capture in loop
             downstream = {
                 execute: (request, index) => {
