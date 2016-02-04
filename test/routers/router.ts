@@ -3,6 +3,11 @@ import {expect} from 'chai';
 import Router from '../../src/routers/router';
 
 
+// TODO: temp testing...
+import test from '../../src/routers/router2';
+import Pattern from '../../src/patterns/pattern';
+
+
 // TODO: More coverage:
 // - multiple non-decorator handlers for same pattern
 // - multiple decorator handlers for same pattern
@@ -27,7 +32,8 @@ describe('Constructing a router instance', () => {
         '*/d': () => `ends with 'd'`,
         'c/d': () => null,
 
-        'api/**': () => `fallback`,
+        'api/** #a': () => `fallback`,
+        'api/** #b': () => `fallback`, // TODO: temp testing, remove this...
         'api/foo': () => 'FOO',
         'api/bar': () => null,
 
@@ -76,22 +82,32 @@ describe('Constructing a router instance', () => {
         `api/bar ==> fallback`,
     ];
 
-    let router = new Router();
-    router.add(routeTable);
+    it('works', () => {
 
-    tests.forEach(test => it(test, () => {
-        let request = test.split(' ==> ')[0];
-        let expected = test.split(' ==> ')[1];
-        let actual: string;
-        try {
-            actual = <string> router.dispatch(request);
-        }
-        catch (ex) {
-            actual = 'ERROR: ' + ex.message;
-            if (expected.slice(-3) === '...') {
-                actual = actual.slice(0, expected.length - 3) + '...';
-            }
-        }
-        expect(actual).equals(expected);
-    }));
+        test(routeTable);
+
+
+
+
+
+    });
+
+//     let router = new Router();
+//     router.add(routeTable);
+// 
+//     tests.forEach(test => it(test, () => {
+//         let request = test.split(' ==> ')[0];
+//         let expected = test.split(' ==> ')[1];
+//         let actual: string;
+//         try {
+//             actual = <string> router.dispatch(request);
+//         }
+//         catch (ex) {
+//             actual = 'ERROR: ' + ex.message;
+//             if (expected.slice(-3) === '...') {
+//                 actual = actual.slice(0, expected.length - 3) + '...';
+//             }
+//         }
+//         expect(actual).equals(expected);
+//     }));
 });

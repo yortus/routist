@@ -1,6 +1,6 @@
 'use strict';
 import * as assert from 'assert';
-import hierarchizePatterns, {PatternNode} from '../patterns/hierarchize-patterns';
+import hierarchizePatterns, {PatternHierarchy} from '../patterns/hierarchize-patterns';
 import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
@@ -142,7 +142,7 @@ function isSpecializationOf(special: Rule, general: Rule): boolean {
 
 
 // TODO: ...
-function mapPatternsToRuleNodes(patterns: PatternNode, getRulesFor: (pattern: string) => Rule[], parentRuleNode?: RuleNode, allRuleNodes?: {[pattern:string]: RuleNode}) {
+function mapPatternsToRuleNodes(patterns: PatternHierarchy, getRulesFor: (pattern: string) => Rule[], parentRuleNode?: RuleNode, allRuleNodes?: {[pattern:string]: RuleNode}) {
     allRuleNodes = allRuleNodes || {};
     Object.keys(patterns).forEach(pattern => {
 

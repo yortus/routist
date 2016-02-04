@@ -21,6 +21,7 @@ class Rule {
      */
     constructor(pattern, handler) {
         this.pattern = pattern;
+        this.handler = handler;
         let paramNames = get_function_parameters_1.default(handler);
         this.isDecorator = paramNames.indexOf('$next') !== -1;
         this.execute = makeExecuteFunction(pattern, handler, paramNames);
@@ -29,6 +30,8 @@ class Rule {
         // NB: error handling??? throw error if not numeric?
         this.comment = pattern.toString().split('#')[1] || '';
     }
+    /** Returns a textual representation of this Rule instance. */
+    toString() { return `'${this.pattern}': ${this.handler}`; }
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Rule;

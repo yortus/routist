@@ -1,6 +1,6 @@
 'use strict';
-var chai_1 = require('chai');
-var router_1 = require('../../src/routers/router');
+// TODO: temp testing...
+var router2_1 = require('../../src/routers/router2');
 // TODO: More coverage:
 // - multiple non-decorator handlers for same pattern
 // - multiple decorator handlers for same pattern
@@ -19,7 +19,8 @@ describe('Constructing a router instance', () => {
         'c/*': () => `starts with 'c'`,
         '*/d': () => `ends with 'd'`,
         'c/d': () => null,
-        'api/**': () => `fallback`,
+        'api/** #a': () => `fallback`,
+        'api/** #b': () => `fallback`,
         'api/foo': () => 'FOO',
         'api/bar': () => null,
     };
@@ -53,22 +54,26 @@ describe('Constructing a router instance', () => {
         `api/foo ==> FOO`,
         `api/bar ==> fallback`,
     ];
-    let router = new router_1.default();
-    router.add(routeTable);
-    tests.forEach(test => it(test, () => {
-        let request = test.split(' ==> ')[0];
-        let expected = test.split(' ==> ')[1];
-        let actual;
-        try {
-            actual = router.dispatch(request);
-        }
-        catch (ex) {
-            actual = 'ERROR: ' + ex.message;
-            if (expected.slice(-3) === '...') {
-                actual = actual.slice(0, expected.length - 3) + '...';
-            }
-        }
-        chai_1.expect(actual).equals(expected);
-    }));
+    it('works', () => {
+        router2_1.default(routeTable);
+    });
+    //     let router = new Router();
+    //     router.add(routeTable);
+    // 
+    //     tests.forEach(test => it(test, () => {
+    //         let request = test.split(' ==> ')[0];
+    //         let expected = test.split(' ==> ')[1];
+    //         let actual: string;
+    //         try {
+    //             actual = <string> router.dispatch(request);
+    //         }
+    //         catch (ex) {
+    //             actual = 'ERROR: ' + ex.message;
+    //             if (expected.slice(-3) === '...') {
+    //                 actual = actual.slice(0, expected.length - 3) + '...';
+    //             }
+    //         }
+    //         expect(actual).equals(expected);
+    //     }));
 });
 //# sourceMappingURL=router.js.map

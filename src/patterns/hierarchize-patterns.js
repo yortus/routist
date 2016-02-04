@@ -51,8 +51,8 @@ exports.default = hierarchizePatterns;
  * @param {string} pattern - The new pattern to be inserted into the DAG.
  * @param {string} superset - The root pattern of the subgraph of the DAG, below
  *        which `pattern` is to be inserted.
- * @param {(pattern: string) => Node} nodeFor - A callback used by the function to
- *        map patterns to their corresponding nodes on demand.
+ * @param {(pattern: string) => PatternHierarchy} nodeFor - A callback used by the
+ *        function to map patterns to their corresponding nodes on demand.
  */
 function insert(pattern, superset, nodeFor) {
     // Compute information about all the existing direct subsets of `superset`.

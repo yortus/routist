@@ -50,7 +50,7 @@ export default class Rule {
      *        return value from `action` signifies that the action declined to respond to
      *        the given request, even if the pattern matched the request's address.
      */
-    constructor(public pattern: Pattern, handler: Function) {
+    constructor(public pattern: Pattern, private handler: Function) {
         let paramNames = getFunctionParameters(handler);
         this.isDecorator = paramNames.indexOf('$next') !== -1;
         this.execute = <any> makeExecuteFunction(pattern, handler, paramNames);
@@ -98,6 +98,10 @@ export default class Rule {
      *        proceeds upstream until a handler responds are all decorators have run.
      */
     execute: (request: Request, downstream: Downstream) => Response;
+
+
+    /** Returns a textual representation of this Rule instance. */
+    toString() { return `'${this.pattern}': ${this.handler}`; }
 }
 
 
