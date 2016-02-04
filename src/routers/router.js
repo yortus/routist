@@ -126,16 +126,19 @@ function makeQuickMatchFunction(rule) {
     return isMatch;
 }
 // TODO: ... remove?
-function makeExecuteFunction(rule) {
-    let result;
-    // TODO: ...
-    let downstream = {
-        execute: () => null,
-        candidates: { length: 0 }
-    };
-    result = req => rule.juxtaposedRules[0].execute(req, downstream);
-    return result;
-}
+// function makeExecuteFunction(rule: RuleNode) {
+//     let result: (request: Request) => Response;
+// 
+//     // TODO: ...
+//     let downstream = {
+//         execute: () => null,
+//         candidates: { length: 0 }
+//     };
+// 
+//     result = req => rule.juxtaposedRules[0].execute(req, downstream);
+// 
+//     return result;
+// }
 //TODO: ...
 // TODO: analyse and factor out/memoize repeated calculations/closures below...
 function makeAllExecuteFunctions(allRoutes, allRules) {

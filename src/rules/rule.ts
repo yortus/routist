@@ -16,18 +16,6 @@ import Response from '../response';
 
 
 
-// TODO: doc...
-// TODO: simplify this from an interface/object to just a function: (rq) => rs
-export interface Downstream {
-
-    // TODO: doc...
-    execute: (request: Request) => Response;
-}
-
-
-
-
-
 /**
  * A handler provides a standarized means for transforming a request to a response,
  * according to the particulars of the pattern/action pair it was constructed with.
@@ -95,7 +83,7 @@ export default class Rule {
      *        return null to indicate that it declined to produce a response. Processing
      *        proceeds upstream until a handler responds are all decorators have run.
      */
-    execute: (request: Request, downstream: Downstream) => Response;
+    execute: (request: Request, downstream: (request: Request) => Response) => Response;
 
 
     /** Returns a textual representation of this Rule instance. */
@@ -147,7 +135,7 @@ function makeExecuteFunction(pattern: Pattern, handler: Function, paramNames: st
         var paramBindings = pattern.match(typeof request === 'string' ? request : request.address);
         if (!paramBindings) return null; // pattern didn't match address
         ${!isDecorator ? `
-        var response = downstream.execute(request);
+        var response = downstream(request);
         if (response !== null) return response;
         ` : ''}
         return handler(${paramNames.map(name => paramMappings[name])});

@@ -6,7 +6,7 @@ import hierarchizePatterns, {PatternHierarchy} from '../patterns/hierarchize-pat
 import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
-import Rule, {Downstream} from '../rules/rule';
+import Rule from '../rules/rule';
 import walkPatternHierarchy from './walk-pattern-hierarchy';
 
 
@@ -20,7 +20,7 @@ export default function test(routeTable: RouteTable) {
     // TODO: ...
     let rules = generateRuleList(routeTable);
 
-    // // TODO: add root pattern and rule if not there already...
+    // // TODO: add special root rule...
     // // TODO: add it unconditionally and add tieBreak handler that always makes it the least specific rule
     // if (!rules.some(r => r.pattern.signature === '…')) {
     //     let rootRule = new Rule(new Pattern('…'), () => { throw new Error('404!');}); // TODO: proper handler?
@@ -28,23 +28,19 @@ export default function test(routeTable: RouteTable) {
     // }
     
     // TODO: get pattern hierarchy...
-    // TODO: this may introduce synthesized pattern signatures for intersection points,
-    //       for which there is no corresponding rule.
     let patternHierarchy = hierarchizePatterns(rules.map(rule => rule.pattern));
-
-    // TODO: ...
-    let signatures = enumerateSignatures(patternHierarchy);
+    let patternSignatures = enumerateSignatures(patternHierarchy);
 
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
-    let rulesForPattern = signatures.reduce((map, sig) => {
+    let rulesForPattern = patternSignatures.reduce((map, sig) => {
         map[sig] = rules.filter(r => r.pattern.signature === sig);
         return map;
     }, <{[pattern: string]: Rule[]}>{});
 
     // TODO: add no-op rules so that for each signature there are 1..M rules
     // TODO: review this... always correct to use no-op function in these cases? Even for ROOT?
-    signatures.forEach(sig => {
+    patternSignatures.forEach(sig => {
         let rules = rulesForPattern[sig];
         if (rules.length === 0) {
             rules.push(new Rule(new Pattern(sig), noop));
@@ -54,7 +50,7 @@ export default function test(routeTable: RouteTable) {
 
     // Order equal-best rules using tie-break rules. Fail if any ambiguities remain.
     // TODO: improve error message/handling in here...
-    signatures.forEach(pattern => {
+    patternSignatures.forEach(pattern => {
         let rules = rulesForPattern[pattern];
         rules.sort((a, b) => {
            let moreSpecific = tieBreakFn(a, b);
@@ -95,7 +91,7 @@ export default function test(routeTable: RouteTable) {
 
 
     // TODO: for each pattern signature, get the ONE path or fail trying
-    let ruleWalkForPattern = signatures.reduce((map, sig) => {
+    let ruleWalkForPattern = patternSignatures.reduce((map, sig) => {
         let candidates = ruleWalks.filter(walk => walk[walk.length - 1].pattern.signature === sig);
 
         if (candidates.length === 1) {
@@ -155,26 +151,14 @@ export default function test(routeTable: RouteTable) {
 
 
     // reduce each signature's rule walk down to a simple handler function.
-    const noMore: Downstream = { execute: () => null };
-    let finalHandlers = signatures.map(sig => {
-
+    const noMore = (rq: Request) => <Response>null;
+    let finalHandlers = patternSignatures.reduce((map, sig) => {
         let ruleWalk = ruleWalkForPattern[sig];
+        map[sig] = ruleWalk.reduce((ds, rule) => request => rule.execute(request, ds), noMore);
+        return map;
+    }, <{[pattern: string]: (rq: Request) => Response}>{});
 
-        let d = ruleWalk.reduce((ds, rule) => {
-            
-            let downstream: Downstream = {
-                execute: request => rule.execute(request, ds)
-            };
-
-            return downstream;
-
-        }, noMore);
-
-        return d.execute;
-
-    });
-
-//console.log(finalHandlers);
+console.log(finalHandlers);
 
 
 

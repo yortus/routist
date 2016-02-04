@@ -4,7 +4,7 @@ import hierarchizePatterns, {PatternHierarchy} from '../patterns/hierarchize-pat
 import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
-import Rule, {Downstream} from '../rules/rule';
+import Rule from '../rules/rule';
 
 
 
@@ -208,19 +208,19 @@ function makeQuickMatchFunction(rule: RuleNode) {
 
 
 // TODO: ... remove?
-function makeExecuteFunction(rule: RuleNode) {
-    let result: (request: Request) => Response;
-
-    // TODO: ...
-    let downstream = {
-        execute: () => null,
-        candidates: { length: 0 }
-    };
-
-    result = req => rule.juxtaposedRules[0].execute(req, downstream);
-
-    return result;
-}
+// function makeExecuteFunction(rule: RuleNode) {
+//     let result: (request: Request) => Response;
+// 
+//     // TODO: ...
+//     let downstream = {
+//         execute: () => null,
+//         candidates: { length: 0 }
+//     };
+// 
+//     result = req => rule.juxtaposedRules[0].execute(req, downstream);
+// 
+//     return result;
+// }
 
 
 

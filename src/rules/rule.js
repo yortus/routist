@@ -1,6 +1,8 @@
 'use strict';
 var assert = require('assert');
 var get_function_parameters_1 = require('./get-function-parameters');
+// TODO: make async...
+// TODO: review all comments given recent changes (Handler/Rule, $yield/$next, executeDownstreamHandlers/downstream)
 /**
  * A handler provides a standarized means for transforming a request to a response,
  * according to the particulars of the pattern/action pair it was constructed with.
@@ -67,7 +69,7 @@ function makeExecuteFunction(pattern, handler, paramNames) {
         var paramBindings = pattern.match(typeof request === 'string' ? request : request.address);
         if (!paramBindings) return null; // pattern didn't match address
         ${!isDecorator ? `
-        var response = downstream.execute(request);
+        var response = downstream(request);
         if (response !== null) return response;
         ` : ''}
         return handler(${paramNames.map(name => paramMappings[name])});
