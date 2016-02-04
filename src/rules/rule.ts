@@ -17,13 +17,11 @@ import Response from '../response';
 
 
 // TODO: doc...
+// TODO: simplify this from an interface/object to just a function: (rq) => rs
 export interface Downstream {
 
     // TODO: doc...
-    execute: (request: Request, index?: number) => Response;
-
-    // TODO: doc...
-    candidates: { length: number; };
+    execute: (request: Request) => Response;
 }
 
 

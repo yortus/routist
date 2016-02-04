@@ -56,7 +56,7 @@ function test(routeTable) {
     }
     // TODO: for each pattern signature, get the list of paths that lead to it
     let patternWalks = walk_pattern_hierarchy_1.default(patternHierarchy, path => path);
-    console.log(patternWalks);
+    //console.log(patternWalks);
     // TODO: map from walks-of-patterns to walks-of-rules
     let ruleWalks = patternWalks.map(path => {
         let rulePath = [];
@@ -69,7 +69,6 @@ function test(routeTable) {
     });
     //console.log(ruleWalks);
     // TODO: for each pattern signature, get the ONE path or fail trying
-    debugger;
     let ruleWalkForPattern = signatures.reduce((map, sig) => {
         let candidates = ruleWalks.filter(walk => walk[walk.length - 1].pattern.signature === sig);
         if (candidates.length === 1) {
@@ -96,13 +95,6 @@ function test(routeTable) {
                 break;
             ++suffixLength;
         }
-        // console.log('-----CANDIDATES-----');
-        // console.log(candidates);
-        // console.log('-----PREFIX-----');
-        // console.log(commonPrefix);
-        // console.log('-----SUFFIX-----');
-        // console.log(commonSuffix);
-        // debugger;
         // TODO: possible for prefix and suffix to overlap?
         // ensure the non-common parts contain NO decorator rules.
         candidates.forEach(cand => {
@@ -124,7 +116,20 @@ function test(routeTable) {
         map[sig] = [].concat(commonPrefix, crasher, commonSuffix);
         return map;
     }, {});
-    console.log(ruleWalkForPattern);
+    //console.log(ruleWalkForPattern);
+    // reduce each signature's rule walk down to a simple handler function.
+    const noMore = { execute: () => null };
+    let finalHandlers = signatures.map(sig => {
+        let ruleWalk = ruleWalkForPattern[sig];
+        let d = ruleWalk.reduce((ds, rule) => {
+            let downstream = {
+                execute: request => rule.execute(request, ds)
+            };
+            return downstream;
+        }, noMore);
+        return d.execute;
+    });
+    //console.log(finalHandlers);
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = test;

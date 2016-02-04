@@ -77,7 +77,7 @@ export default function test(routeTable: RouteTable) {
 
     // TODO: for each pattern signature, get the list of paths that lead to it
     let patternWalks = walkPatternHierarchy(patternHierarchy, path => path);
-console.log(patternWalks);
+//console.log(patternWalks);
 
     // TODO: map from walks-of-patterns to walks-of-rules
     let ruleWalks = patternWalks.map(path => {
@@ -95,7 +95,6 @@ console.log(patternWalks);
 
 
     // TODO: for each pattern signature, get the ONE path or fail trying
-debugger;
     let ruleWalkForPattern = signatures.reduce((map, sig) => {
         let candidates = ruleWalks.filter(walk => walk[walk.length - 1].pattern.signature === sig);
 
@@ -124,14 +123,6 @@ debugger;
             ++suffixLength;
         }
 
-// console.log('-----CANDIDATES-----');
-// console.log(candidates);
-// console.log('-----PREFIX-----');
-// console.log(commonPrefix);
-// console.log('-----SUFFIX-----');
-// console.log(commonSuffix);
-// debugger;
-
         // TODO: possible for prefix and suffix to overlap?
 
         // ensure the non-common parts contain NO decorator rules.
@@ -157,8 +148,33 @@ debugger;
     }, <{[pattern: string]: Rule[]}>{});
 
 
-console.log(ruleWalkForPattern);
+//console.log(ruleWalkForPattern);
 
+
+
+
+
+    // reduce each signature's rule walk down to a simple handler function.
+    const noMore: Downstream = { execute: () => null };
+    let finalHandlers = signatures.map(sig => {
+
+        let ruleWalk = ruleWalkForPattern[sig];
+
+        let d = ruleWalk.reduce((ds, rule) => {
+            
+            let downstream: Downstream = {
+                execute: request => rule.execute(request, ds)
+            };
+
+            return downstream;
+
+        }, noMore);
+
+        return d.execute;
+
+    });
+
+//console.log(finalHandlers);
 
 
 

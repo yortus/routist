@@ -271,53 +271,53 @@ function makeAllExecuteFunctions(allRoutes: {[pattern: string]: Route}, allRules
             completePath = completePaths[0];
         }
 
-        // TODO: compose all the handlers along the path into an 'execute' function
-        let downstream: Downstream = { // Sentinel value - should make this a singleton somewhere
-            execute: (req, index) => null,
-            candidates: {length: 0}
-        };
-        //let execute: (request: Request) => Response = null;
+//         // TODO: compose all the handlers along the path into an 'execute' function
+//         let downstream: Downstream = { // Sentinel value - should make this a singleton somewhere
+//             execute: (req, index) => null,
+//             candidates: {length: 0}
+//         };
+//         //let execute: (request: Request) => Response = null;
+// 
+// 
+//         while (completePath.length > 0) {
+//             let ruleNode = completePath.pop();
+// 
+//             // TODO: fail if a path has multiple handlers for now... address this case later...
+//             //assert(rule.handlers.length <= 1, `Not implemented: multiple handlers for path`);
+// 
+//             //let handler = rule.handlers[0] || { execute: (r, d) => d.execute(r) }; // no handler === handler that just does downstream
+//             let rules = ruleNode.juxtaposedRules;
+//             let ds = downstream; // capture in loop
+// 
+//             downstream = {
+//                 execute: (request, index) => {
+//                     // TODO: fix logic...
+//                     let rule: Rule;
+//                     if (index === void 0) {
+//                         // no `index` argument provided
+//                         if (rules.length === 0) {
+//                             // no handlers - make a handler that returns the 'unhandled' sentinel
+//                             // TODO: memoize this one
+//                             rule = <any> { execute: () => null };
+//                         }
+//                         else {
+//                             // Ensure there is exactly one handler available. Else fail.
+//                             // TODO: proper way to fail?
+//                             assert(rules.length === 1, `ambiguous - which rule?`);
+//                             rule = rules[0];
+//                         }
+//                     }
+//                     else {
+//                         assert(index >= 0 && index < rules.length, `index out of range`);
+//                         rule = rules[index];
+//                     }
+//                     return rule.execute(request, ds);
+//                 },
+//                 candidates: { length: rules.length }
+//             };
+//         }
 
-
-        while (completePath.length > 0) {
-            let ruleNode = completePath.pop();
-
-            // TODO: fail if a path has multiple handlers for now... address this case later...
-            //assert(rule.handlers.length <= 1, `Not implemented: multiple handlers for path`);
-
-            //let handler = rule.handlers[0] || { execute: (r, d) => d.execute(r) }; // no handler === handler that just does downstream
-            let rules = ruleNode.juxtaposedRules;
-            let ds = downstream; // capture in loop
-
-            downstream = {
-                execute: (request, index) => {
-                    // TODO: fix logic...
-                    let rule: Rule;
-                    if (index === void 0) {
-                        // no `index` argument provided
-                        if (rules.length === 0) {
-                            // no handlers - make a handler that returns the 'unhandled' sentinel
-                            // TODO: memoize this one
-                            rule = <any> { execute: () => null };
-                        }
-                        else {
-                            // Ensure there is exactly one handler available. Else fail.
-                            // TODO: proper way to fail?
-                            assert(rules.length === 1, `ambiguous - which rule?`);
-                            rule = rules[0];
-                        }
-                    }
-                    else {
-                        assert(index >= 0 && index < rules.length, `index out of range`);
-                        rule = rules[index];
-                    }
-                    return rule.execute(request, ds);
-                },
-                candidates: { length: rules.length }
-            };
-        }
-
-        route.execute = downstream.execute;
+//         route.execute = downstream.execute;
     });
 }
 
