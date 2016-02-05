@@ -42,6 +42,8 @@
 
 **Pattern:** A concise regex-like representation that matches a particular set of Addresses.
 
+**[Pattern] Signature:** TODO...
+
 **Handler:** TODO... A procedure for generating the Response for a particular Request.... capture names as params... $req, $next...
 
 **Decorator:** A special Rule... TODO
