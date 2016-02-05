@@ -1,13 +1,13 @@
 'use strict';
 var assert = require('assert');
-var generate_rule_list_1 = require('./generate-rule-list');
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
 var pattern_1 = require('../patterns/pattern');
 var rule_1 = require('../rules/rule');
 var walk_pattern_hierarchy_1 = require('./walk-pattern-hierarchy');
+// TODO: ...
 function test(routeTable) {
     // TODO: ...
-    let rules = generate_rule_list_1.default(routeTable);
+    let rules = Object.keys(routeTable).map(pattern => new rule_1.default(new pattern_1.default(pattern), routeTable[pattern]));
     // // TODO: add special root rule...
     // // TODO: add it unconditionally and add tieBreak handler that always makes it the least specific rule
     // if (!rules.some(r => r.pattern.signature === '…')) {

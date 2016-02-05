@@ -1,7 +1,6 @@
 'use strict';
 import * as assert from 'assert';
 import {inspect} from 'util';
-import generateRuleList from './generate-rule-list';
 import hierarchizePatterns, {PatternHierarchy} from '../patterns/hierarchize-patterns';
 import Pattern from '../patterns/pattern';
 import Request from '../request';
@@ -14,11 +13,10 @@ import walkPatternHierarchy from './walk-pattern-hierarchy';
 
 
 // TODO: ...
-type RouteTable = [string, Function][] | {[pattern: string]: Function};
-export default function test(routeTable: RouteTable) {
+export default function test(routeTable: {[pattern: string]: Function}) {
 
     // TODO: ...
-    let rules = generateRuleList(routeTable);
+    let rules = Object.keys(routeTable).map(pattern => new Rule(new Pattern(pattern), routeTable[pattern]));
 
     // // TODO: add special root rule...
     // // TODO: add it unconditionally and add tieBreak handler that always makes it the least specific rule
