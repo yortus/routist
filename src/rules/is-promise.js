@@ -4,7 +4,7 @@
 function isPromise(value) {
     if (!value)
         return false;
-    let type = typeof value;
+    var type = typeof value;
     if (type !== 'object' && type !== 'function')
         return false;
     return typeof value.then === 'function';

@@ -4,34 +4,35 @@ var parse_pattern_source_1 = require('./parse-pattern-source');
  * A pattern recognizes a set of addresses. It like a RegExp, but tailored
  * specifically to address recognition. Patterns are case-sensitive.
  */
-class Pattern {
+var Pattern = (function () {
     /**
      * Constructs a Pattern instance.
      * @param {string} source - the pattern specified as a pattern DSL string.
      */
-    constructor(source) {
+    function Pattern(source) {
         this.source = source;
-        let patternAST = parse_pattern_source_1.default(source);
+        var patternAST = parse_pattern_source_1.default(source);
         this.signature = patternAST.signature;
-        this.captureNames = patternAST.captureNames.filter(n => n !== '?');
+        this.captureNames = patternAST.captureNames.filter(function (n) { return n !== '?'; });
         this.match = makeMatchFunction(source);
     }
     /** Returns the source string with which this instance was constructed. */
-    toString() { return this.source; }
-}
-/** A singleton pattern that recognises all addresses (i.e., the universal set). */
-Pattern.UNIVERSAL = new Pattern('…');
-/** A singleton pattern that recognises no addresses (i.e., the empty set). */
-Pattern.EMPTY = new Pattern('∅');
+    Pattern.prototype.toString = function () { return this.source; };
+    /** A singleton pattern that recognises all addresses (i.e., the universal set). */
+    Pattern.UNIVERSAL = new Pattern('…');
+    /** A singleton pattern that recognises no addresses (i.e., the empty set). */
+    Pattern.EMPTY = new Pattern('∅');
+    return Pattern;
+}());
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Pattern;
 /** Internal function used to create the Pattern#match method. */
 function makeMatchFunction(pattern) {
     // Gather information about the pattern to be matched.
-    let patternAST = parse_pattern_source_1.default(pattern);
-    let patternSignature = patternAST.signature.replace(/[^*…]+/g, 'A');
-    let literalPart = patternAST.signature.replace(/[*…]/g, '');
-    let captureName0 = patternAST.captureNames[0];
+    var patternAST = parse_pattern_source_1.default(pattern);
+    var patternSignature = patternAST.signature.replace(/[^*…]+/g, 'A');
+    var literalPart = patternAST.signature.replace(/[*…]/g, '');
+    var captureName0 = patternAST.captureNames[0];
     // Construct the match function, using optimizations where possible.
     // Pattern matching may be done frequently, possibly on a critical path.
     // For simpler patterns, we can avoid the overhead of using a regex.
@@ -40,58 +41,61 @@ function makeMatchFunction(pattern) {
     // to using a regex. Note that all but the default case below could be
     // commented out with no change in runtime behaviour. The additional
     // cases are strictly optimizations.
-    let matchFunction;
+    var matchFunction;
     switch (patternSignature) {
         case 'A':
-            matchFunction = (address) => address === pattern ? {} : null;
+            matchFunction = function (address) { return address === pattern ? {} : null; };
             break;
         case '*':
         case '…':
-            matchFunction = (address) => {
+            matchFunction = function (address) {
                 if (patternSignature === '*' && address.indexOf('/') !== -1)
                     return null;
                 if (captureName0 === '?')
                     return {};
-                return { [captureName0]: address };
+                return (_a = {}, _a[captureName0] = address, _a);
+                var _a;
             };
             break;
         case 'A*':
         case 'A…':
-            matchFunction = (address) => {
-                let i = address.indexOf(literalPart);
+            matchFunction = function (address) {
+                var i = address.indexOf(literalPart);
                 if (i !== 0)
                     return null;
-                let captureValue = address.slice(literalPart.length);
+                var captureValue = address.slice(literalPart.length);
                 if (patternSignature === 'A*' && captureValue.indexOf('/') !== -1)
                     return null;
                 if (captureName0 === '?')
                     return {};
-                return { [captureName0]: captureValue };
+                return (_a = {}, _a[captureName0] = captureValue, _a);
+                var _a;
             };
             break;
         case '*A':
         case '…A':
-            matchFunction = (address) => {
-                let i = address.lastIndexOf(literalPart);
+            matchFunction = function (address) {
+                var i = address.lastIndexOf(literalPart);
                 if (i === -1 || i !== address.length - literalPart.length)
                     return null;
-                let captureValue = address.slice(0, -literalPart.length);
+                var captureValue = address.slice(0, -literalPart.length);
                 if (patternSignature === '*A' && captureValue.indexOf('/') !== -1)
                     return null;
                 if (captureName0 === '?')
                     return {};
-                return { [captureName0]: captureValue };
+                return (_a = {}, _a[captureName0] = captureValue, _a);
+                var _a;
             };
             break;
         default:
-            let recogniser = makeAddressRecogniser(patternAST.signature, patternAST.captureNames);
-            matchFunction = (address) => {
-                let matches = address.match(recogniser);
+            var recogniser = makeAddressRecogniser(patternAST.signature, patternAST.captureNames);
+            matchFunction = function (address) {
+                var matches = address.match(recogniser);
                 if (!matches)
                     return null;
-                let result = patternAST.captureNames
-                    .filter(name => name !== '?')
-                    .reduce((hash, name, i) => (hash[name] = matches[i + 1], hash), {});
+                var result = patternAST.captureNames
+                    .filter(function (name) { return name !== '?'; })
+                    .reduce(function (hash, name, i) { return (hash[name] = matches[i + 1], hash); }, {});
                 return result;
             };
     }
@@ -103,21 +107,21 @@ function makeMatchFunction(pattern) {
  * Each globstar/wildcard in the pattern corresponds to a capture group in the regular expression.
  */
 function makeAddressRecogniser(pattern, captureNames) {
-    let captureIndex = 0;
-    let re = pattern.split('').map(c => {
+    var captureIndex = 0;
+    var re = pattern.split('').map(function (c) {
         if (c === '*') {
-            let isAnonymous = captureNames[captureIndex++] === '?';
+            var isAnonymous = captureNames[captureIndex++] === '?';
             return isAnonymous ? '[^\\/]*' : '([^\\/]*)';
         }
         if (c === '…') {
-            let isAnonymous = captureNames[captureIndex++] === '?';
+            var isAnonymous = captureNames[captureIndex++] === '?';
             return isAnonymous ? '.*' : '(.*)';
         }
         if ('/._-'.indexOf(c) !== -1) {
-            return `\\${c}`;
+            return "\\" + c;
         }
         return c;
     }).join('');
-    return new RegExp(`^${re}$`);
+    return new RegExp("^" + re + "$");
 }
 //# sourceMappingURL=pattern.js.map

@@ -12,7 +12,7 @@
  * @returns an array of the return values from each `callback` call.
  */
 function walkPatternHierarchy(patternHierarchy, callback) {
-    let walks = getAllWalksStartingFrom('…', patternHierarchy['…']);
+    var walks = getAllWalksStartingFrom('…', patternHierarchy['…']);
     return walks.map(callback);
 }
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -24,13 +24,13 @@ exports.default = walkPatternHierarchy;
  */
 function getAllWalksStartingFrom(node, children) {
     // Always include the degenerate walk of just [node] in the result.
-    let result = [[node]];
+    var result = [[node]];
     // Recursively get all possible trails starting from each child node.
-    let childTrailLists = Object.keys(children).map(childRoot => getAllWalksStartingFrom(childRoot, children[childRoot]));
+    var childTrailLists = Object.keys(children).map(function (childRoot) { return getAllWalksStartingFrom(childRoot, children[childRoot]); });
     // Flatten the list-of-lists produced by the previous map operation.
-    let childTrails = [].concat.apply([], childTrailLists);
+    var childTrails = [].concat.apply([], childTrailLists);
     // Prepend `node` to each child trail and add them to the result.
-    childTrails.forEach(trail => {
+    childTrails.forEach(function (trail) {
         trail.unshift(node);
         result.push(trail);
     });

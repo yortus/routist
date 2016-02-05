@@ -3,37 +3,37 @@ var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
 var pattern_1 = require('../patterns/pattern');
 var rule_1 = require('../rules/rule');
 // TODO: doc...
-class Router {
+var Router = (function () {
     // TODO: doc...
-    constructor() {
+    function Router() {
     }
-    add(arg) {
+    Router.prototype.add = function (arg) {
         // Construct flat lists of all the patterns and handlers for the given rules.
-        let patterns;
-        let rules;
+        var patterns;
+        var rules;
         if (Array.isArray(arg)) {
-            patterns = arg.map(pair => new pattern_1.default(pair[0]));
-            rules = arg.map((pair, i) => new rule_1.default(patterns[i], pair[1]));
+            patterns = arg.map(function (pair) { return new pattern_1.default(pair[0]); });
+            rules = arg.map(function (pair, i) { return new rule_1.default(patterns[i], pair[1]); });
         }
         else {
-            let keys = Object.keys(arg);
-            patterns = keys.map(key => new pattern_1.default(key));
-            rules = keys.map((key, i) => new rule_1.default(patterns[i], arg[key]));
+            var keys = Object.keys(arg);
+            patterns = keys.map(function (key) { return new pattern_1.default(key); });
+            rules = keys.map(function (key, i) { return new rule_1.default(patterns[i], arg[key]); });
         }
         // TODO: ...
         function getRulesForPattern(patternSignature) {
-            return rules.filter((_, i) => patterns[i].signature === patternSignature);
+            return rules.filter(function (_, i) { return patterns[i].signature === patternSignature; });
         }
         // TODO: add root pattern and rule if not there already
-        if (!patterns.some(p => p.signature === '…')) {
-            let rootPattern = new pattern_1.default('…');
+        if (!patterns.some(function (p) { return p.signature === '…'; })) {
+            var rootPattern = new pattern_1.default('…');
             patterns.push(rootPattern);
-            rules.push(new rule_1.default(rootPattern, () => { throw new Error('404!'); })); // TODO: proper handler?
+            rules.push(new rule_1.default(rootPattern, function () { throw new Error('404!'); })); // TODO: proper handler?
         }
         // TODO: ...
-        let patternHierarchy = hierarchize_patterns_1.default(patterns);
-        let allRuleNodes = mapPatternsToRuleNodes(patternHierarchy, getRulesForPattern);
-        let allRoutes = mapRuleNodesToRoutes(allRuleNodes);
+        var patternHierarchy = hierarchize_patterns_1.default(patterns);
+        var allRuleNodes = mapPatternsToRuleNodes(patternHierarchy, getRulesForPattern);
+        var allRoutes = mapRuleNodesToRoutes(allRuleNodes);
         makeAllExecuteFunctions(allRoutes, allRuleNodes);
         this.allRuleNodes = allRuleNodes;
         this.allRoutes = allRoutes;
@@ -42,19 +42,19 @@ class Router {
         //         // TODO: this is more restrictive that necessary. Better way?
         //         // let dupliDecors = Object.keys(allNodes).filter(key => allNodes[key].handler.isDecorator && allNodes[key].lessSpecialized.length > 1);
         //         // assert(dupliDecors.length === 0, `split decorators: '${dupliDecors.join("', '")}'`); // TODO: improve error message
-    }
+    };
     // TODO: doc...
-    dispatch(request) {
+    Router.prototype.dispatch = function (request) {
         // TODO: ...
-        let address = typeof request === 'string' ? request : request.address;
-        let path = [];
-        let route = this.allRoutes['…']; // matches all addresses; don't need to check this against address
+        var address = typeof request === 'string' ? request : request.address;
+        var path = [];
+        var route = this.allRoutes['…']; // matches all addresses; don't need to check this against address
         while (true) {
             path.push(route);
-            let rule = this.allRuleNodes[route.signature];
-            let foundChild = null;
-            for (let i = 0; !foundChild && i < rule.moreSpecific.length; ++i) {
-                let child = this.allRoutes[rule.moreSpecific[i]];
+            var rule = this.allRuleNodes[route.signature];
+            var foundChild = null;
+            for (var i = 0; !foundChild && i < rule.moreSpecific.length; ++i) {
+                var child = this.allRoutes[rule.moreSpecific[i]];
                 foundChild = child.quickMatch(address) && child;
             }
             if (!foundChild)
@@ -62,14 +62,15 @@ class Router {
             route = foundChild;
         }
         // TODO: temp testing...
-        let response = route.execute(request);
+        var response = route.execute(request);
         return response;
         // // should have a path here...
         // let fullPath = path.map(n => n.signature).join('   ==>   ');
         // //debugger;
         // return null;
-    }
-}
+    };
+    return Router;
+}());
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Router;
 // TODO: ... this should be configurable and stackable
@@ -79,20 +80,20 @@ function isSpecializationOf(special, general) {
 // TODO: ...
 function mapPatternsToRuleNodes(patterns, getRulesFor, parentRuleNode, allRuleNodes) {
     allRuleNodes = allRuleNodes || {};
-    Object.keys(patterns).forEach(pattern => {
+    Object.keys(patterns).forEach(function (pattern) {
         // TODO: get all rules with the same signature. These must all be mutually disambiguated into a definite gen>spec order.
-        let rules = getRulesFor(pattern);
-        rules.sort((a, b) => {
-            let isAMoreSpecific = isSpecializationOf(a, b);
-            let isBMoreSpecific = isSpecializationOf(b, a);
+        var rules = getRulesFor(pattern);
+        rules.sort(function (a, b) {
+            var isAMoreSpecific = isSpecializationOf(a, b);
+            var isBMoreSpecific = isSpecializationOf(b, a);
             if (isAMoreSpecific === true && isBMoreSpecific === false)
                 return 1;
             if (isBMoreSpecific === true && isAMoreSpecific === false)
                 return -1;
             // TODO: proper handling?
-            throw new Error(`ambiguous: ${a.pattern} vs ${b.pattern}`);
+            throw new Error("ambiguous: " + a.pattern + " vs " + b.pattern);
         });
-        let childRule = allRuleNodes[pattern] || (allRuleNodes[pattern] = {
+        var childRule = allRuleNodes[pattern] || (allRuleNodes[pattern] = {
             signature: pattern,
             lessSpecific: [],
             moreSpecific: [],
@@ -109,8 +110,8 @@ function mapPatternsToRuleNodes(patterns, getRulesFor, parentRuleNode, allRuleNo
 // TODO: ...
 function mapRuleNodesToRoutes(rules, allRoutes) {
     allRoutes = allRoutes || {};
-    Object.keys(rules).forEach(pattern => {
-        let rule = rules[pattern];
+    Object.keys(rules).forEach(function (pattern) {
+        var rule = rules[pattern];
         allRoutes[pattern] = {
             signature: rule.signature,
             quickMatch: makeQuickMatchFunction(rule),
@@ -121,8 +122,8 @@ function mapRuleNodesToRoutes(rules, allRoutes) {
 }
 // TODO: ...
 function makeQuickMatchFunction(rule) {
-    let quickMatchPattern = new pattern_1.default(rule.signature);
-    let isMatch = (address) => quickMatchPattern.match(address) !== null;
+    var quickMatchPattern = new pattern_1.default(rule.signature);
+    var isMatch = function (address) { return quickMatchPattern.match(address) !== null; };
     return isMatch;
 }
 // TODO: ... remove?
@@ -142,25 +143,29 @@ function makeQuickMatchFunction(rule) {
 //TODO: ...
 // TODO: analyse and factor out/memoize repeated calculations/closures below...
 function makeAllExecuteFunctions(allRoutes, allRules) {
-    Object.keys(allRoutes).forEach(pattern => {
-        let route = allRoutes[pattern];
-        let ruleNode = allRules[pattern];
-        let incompletePaths = [[ruleNode]];
-        let completePaths = [];
-        while (incompletePaths.length > 0) {
-            let incompletePath = incompletePaths.pop();
+    Object.keys(allRoutes).forEach(function (pattern) {
+        var route = allRoutes[pattern];
+        var ruleNode = allRules[pattern];
+        var incompletePaths = [[ruleNode]];
+        var completePaths = [];
+        var _loop_1 = function() {
+            var incompletePath = incompletePaths.pop();
             if (incompletePath[0].signature === '…') {
                 completePaths.push(incompletePath);
-                continue;
+                return "continue";
             }
-            let longer = incompletePath[0].lessSpecific.map(parent => {
+            var longer = incompletePath[0].lessSpecific.map(function (parent) {
                 return [].concat(allRules[parent], incompletePath);
             });
             incompletePaths.push.apply(incompletePaths, longer);
+        };
+        while (incompletePaths.length > 0) {
+            var state_1 = _loop_1();
+            if (state_1 === "continue") continue;
         }
         //return completePaths;
         // TODO: handle multiple paths properly... for now just execute the best matching rule and then fall back to 'ambiguous' failure
-        let completePath;
+        var completePath;
         if (completePaths.length > 1) {
             //assert(completePaths.length === 1, `Not implemented: multiple paths to route`);
             completePath = [
@@ -171,7 +176,7 @@ function makeAllExecuteFunctions(allRoutes, allRules) {
                     juxtaposedRules: [
                         // TODO: temp... fix this...
                         // for now just execute the best matching rule and then fall back to this 'ambiguous' failure handler
-                        new rule_1.default(new pattern_1.default('…'), () => { throw new Error('ambiguous - which fallback?'); })
+                        new rule_1.default(new pattern_1.default('…'), function () { throw new Error('ambiguous - which fallback?'); })
                     ]
                 },
                 ruleNode

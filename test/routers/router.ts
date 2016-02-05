@@ -89,9 +89,12 @@ describe('Constructing a router instance', () => {
         // let finalHandlers = test(routeTable);
         // console.log(finalHandlers);
 
+
         let patterns = Object.keys(routeTable).map(key => new Pattern(key));
         let patternHierarchy = hierarchizePatterns(patterns);
         let decisionTree = makeDecisionTree(patternHierarchy);
+console.log(decisionTree.toString());
+debugger;
 
         let addresses = tests.map(test => test.split(' ==> ')[0]);
         let decisions = addresses.map(decisionTree);
@@ -100,6 +103,7 @@ describe('Constructing a router instance', () => {
             console.log(`${addr}   MAPS TO   ${decisions[i]}`);
         });
 
+//        test2(patternHierarchy);
 
     });
 

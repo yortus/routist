@@ -17,11 +17,11 @@
  */
 function getFunctionParameters(func) {
     // strip all whitespace and comments.
-    let result = func.toString();
+    var result = func.toString();
     result = result.replace(/\s+/g, '');
     result = result.replace(/[/][*][^/*]*[*][/]/g, '');
     // Detect special case 'foo=>...' (no parentheses around parameter).
-    let id = result.split('=>')[0];
+    var id = result.split('=>')[0];
     if (/^[a-z0-9$_]+$/i.test(id))
         return [id];
     // Extract the parameter names.
@@ -30,7 +30,7 @@ function getFunctionParameters(func) {
     result = result.replace(/\.\.\..*/g, '');
     // Detect unsupported ES6 features and fail if found (ie default params, destructuring).
     if (result.replace(/[^=\[{]*/g, '').length > 0) {
-        throw new Error(`getFunctionParameters: unsupported function syntax in ${func}`);
+        throw new Error("getFunctionParameters: unsupported function syntax in " + func);
     }
     // Convert to array, filter out blanks, and return result.
     result = result.split(',').filter(Boolean);

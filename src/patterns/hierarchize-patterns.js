@@ -33,13 +33,13 @@ function hierarchizePatterns(patterns) {
     // Create the nodeFor() function to return nodes from a single associative array
     // of patterns, creating them on demand if they don't exist. This ensures every
     // request for the same pattern gets the same singleton node.
-    let map = {};
-    let nodeFor = (pattern) => map[pattern] || (map[pattern] = {});
+    var map = {};
+    var nodeFor = function (pattern) { return map[pattern] || (map[pattern] = {}); };
     // Insert each of the given patterns (except '…' and '∅') into a DAG rooted at '…'.
-    let root = new pattern_1.default('…');
+    var root = new pattern_1.default('…');
     patterns
-        .filter(p => p.signature !== '…' && p.signature !== '∅')
-        .forEach(pattern => insert(pattern.signature, '…', nodeFor));
+        .filter(function (p) { return p.signature !== '…' && p.signature !== '∅'; })
+        .forEach(function (pattern) { return insert(pattern.signature, '…', nodeFor); });
     // Return a top-level node with the single key '…'.
     return { '…': nodeFor('…') };
 }
@@ -57,9 +57,9 @@ exports.default = hierarchizePatterns;
 function insert(pattern, superset, nodeFor) {
     // Compute information about all the existing direct subsets of `superset`.
     // We only care about the ones that are non-disjoint with `pattern`.
-    let nonDisjointComparands = Object.keys(nodeFor(superset))
-        .map(p => ({ pattern: p, intersection: intersect_patterns_1.default(pattern, p).signature }))
-        .filter(cmp => cmp.intersection !== '∅');
+    var nonDisjointComparands = Object.keys(nodeFor(superset))
+        .map(function (p) { return ({ pattern: p, intersection: intersect_patterns_1.default(pattern, p).signature }); })
+        .filter(function (cmp) { return cmp.intersection !== '∅'; });
     // If `superset` has no direct subsets that are non-disjoint with `pattern`, then we
     // simply add `pattern` as a direct subset of `superset`.
     if (nonDisjointComparands.length === 0) {
@@ -71,10 +71,10 @@ function insert(pattern, superset, nodeFor) {
         return;
     // `pattern` has subset/superset/overlapping relationships with one or more of
     // `superset`'s existing direct subsets. Work out how and where to insert it.
-    nonDisjointComparands.forEach(comparand => {
-        let isSubsetOfComparand = comparand.intersection === pattern;
-        let isSupersetOfComparand = comparand.intersection === comparand.pattern;
-        let isOverlappingComparand = !isSubsetOfComparand && !isSupersetOfComparand;
+    nonDisjointComparands.forEach(function (comparand) {
+        var isSubsetOfComparand = comparand.intersection === pattern;
+        var isSupersetOfComparand = comparand.intersection === comparand.pattern;
+        var isOverlappingComparand = !isSubsetOfComparand && !isSupersetOfComparand;
         if (isSupersetOfComparand) {
             // Remove the comparand from `superset`. It will be re-inserted as a subset of `pattern` below.
             delete nodeFor(superset)[comparand.pattern];

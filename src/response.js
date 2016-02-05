@@ -1,5 +1,8 @@
 'use strict';
-class ResponseObject {
-}
+var ResponseObject = (function () {
+    function ResponseObject() {
+    }
+    return ResponseObject;
+}());
 exports.ResponseObject = ResponseObject;
 //# sourceMappingURL=response.js.map
