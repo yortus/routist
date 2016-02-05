@@ -55,7 +55,8 @@ describe('Constructing a router instance', () => {
         `api/bar ==> fallback`,
     ];
     it('works', () => {
-        router2_1.default(routeTable);
+        let finalHandlers = router2_1.default(routeTable);
+        console.log(finalHandlers);
     });
     //     let router = new Router();
     //     router.add(routeTable);

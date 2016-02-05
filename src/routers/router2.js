@@ -5,6 +5,8 @@ var pattern_1 = require('../patterns/pattern');
 var rule_1 = require('../rules/rule');
 var walk_pattern_hierarchy_1 = require('./walk-pattern-hierarchy');
 // TODO: ...
+const getKeysDeep = (obj) => Object.keys(obj).reduce((keys, key) => keys.concat(key, getKeysDeep(obj[key])), []);
+// TODO: ...
 function test(routeTable) {
     // TODO: ...
     let rules = Object.keys(routeTable).map(pattern => new rule_1.default(new pattern_1.default(pattern), routeTable[pattern]));
@@ -16,7 +18,7 @@ function test(routeTable) {
     // }
     // TODO: get pattern hierarchy...
     let patternHierarchy = hierarchize_patterns_1.default(rules.map(rule => rule.pattern));
-    let patternSignatures = enumerateSignatures(patternHierarchy);
+    let patternSignatures = getKeysDeep(patternHierarchy);
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
     let rulesForPattern = patternSignatures.reduce((map, sig) => {
@@ -121,17 +123,8 @@ function test(routeTable) {
         map[sig] = ruleWalk.reduce((ds, rule) => request => rule.execute(request, ds), noMore);
         return map;
     }, {});
-    console.log(finalHandlers);
+    return finalHandlers;
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = test;
-// TODO: ...
-function enumerateSignatures(patternHierarchy, map) {
-    map = map || {};
-    Object.keys(patternHierarchy).forEach(pattern => {
-        map[pattern] = true;
-        enumerateSignatures(patternHierarchy[pattern], map);
-    });
-    return arguments.length === 1 ? Object.keys(map) : null;
-}
 //# sourceMappingURL=router2.js.map

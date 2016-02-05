@@ -84,7 +84,8 @@ describe('Constructing a router instance', () => {
 
     it('works', () => {
 
-        test(routeTable);
+        let finalHandlers = test(routeTable);
+        console.log(finalHandlers);
 
 
 

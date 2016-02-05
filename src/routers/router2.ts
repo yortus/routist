@@ -13,7 +13,21 @@ import walkPatternHierarchy from './walk-pattern-hierarchy';
 
 
 // TODO: ...
-export default function test(routeTable: {[pattern: string]: Function}) {
+const getKeysDeep = (obj) => Object.keys(obj).reduce((keys, key) => keys.concat(key, getKeysDeep(obj[key])), []);
+
+
+
+
+
+// TODO: remove this? rename to finalExecutors? all internal anyway...
+type FinalHandlers = {[pattern: string]: (rq: Request) => Response};
+
+
+
+
+
+// TODO: ...
+export default function test(routeTable: {[pattern: string]: Function}): FinalHandlers {
 
     // TODO: ...
     let rules = Object.keys(routeTable).map(pattern => new Rule(new Pattern(pattern), routeTable[pattern]));
@@ -27,7 +41,7 @@ export default function test(routeTable: {[pattern: string]: Function}) {
     
     // TODO: get pattern hierarchy...
     let patternHierarchy = hierarchizePatterns(rules.map(rule => rule.pattern));
-    let patternSignatures = enumerateSignatures(patternHierarchy);
+    let patternSignatures = getKeysDeep(patternHierarchy);
 
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
@@ -156,22 +170,7 @@ export default function test(routeTable: {[pattern: string]: Function}) {
         return map;
     }, <{[pattern: string]: (rq: Request) => Response}>{});
 
-console.log(finalHandlers);
+    return finalHandlers;
 
 
-
-}
-
-
-
-
-// TODO: ...
-function enumerateSignatures(patternHierarchy: PatternHierarchy, map?: {}): string[] {
-    map = map || {};
-
-    Object.keys(patternHierarchy).forEach(pattern => {
-        map[pattern] = true;
-        enumerateSignatures(patternHierarchy[pattern], map);
-    });    
-    return arguments.length === 1 ? Object.keys(map) : null;
 }
