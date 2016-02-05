@@ -48,16 +48,14 @@ export default function makeDecisionTree(patternHierarchy: PatternHierarchy): Ge
         let signatures = Object.keys(childPatterns);
         let hasKids = signatures.length > 0;
 
-        if (hasKids) {
-            signatures.forEach((sig, i) => {
-                let id = `${idPrefix || ''}_${i}`;
-                lines.push(
-                    `${i > 0 ? 'else ' : ''}if (${id}(address)) {`,
-                    ...getBodyLines(sig, childPatterns[sig], id).map(line => '    ' + line),
-                    `}`
-                );
-            });
-        }
+        signatures.forEach((sig, i) => {
+            let id = `${idPrefix || ''}_${i}`;
+            lines.push(
+                `${i > 0 ? 'else ' : ''}if (${id}(address)) {`,
+                ...getBodyLines(sig, childPatterns[sig], id).map(line => '    ' + line),
+                `}`
+            );
+        });
 
         lines.push(`${hasKids ? 'else ' : ''}return '${thisPattern}';`);
 

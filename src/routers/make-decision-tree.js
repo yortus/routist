@@ -29,12 +29,10 @@ function makeDecisionTree(patternHierarchy) {
         var lines = [];
         var signatures = Object.keys(childPatterns);
         var hasKids = signatures.length > 0;
-        if (hasKids) {
-            signatures.forEach(function (sig, i) {
-                var id = (idPrefix || '') + "_" + i;
-                lines.push.apply(lines, [(i > 0 ? 'else ' : '') + "if (" + id + "(address)) {"].concat(getBodyLines(sig, childPatterns[sig], id).map(function (line) { return '    ' + line; }), ["}"]));
-            });
-        }
+        signatures.forEach(function (sig, i) {
+            var id = (idPrefix || '') + "_" + i;
+            lines.push.apply(lines, [(i > 0 ? 'else ' : '') + "if (" + id + "(address)) {"].concat(getBodyLines(sig, childPatterns[sig], id).map(function (line) { return '    ' + line; }), ["}"]));
+        });
         lines.push((hasKids ? 'else ' : '') + "return '" + thisPattern + "';");
         return lines;
     }
