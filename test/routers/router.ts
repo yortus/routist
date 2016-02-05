@@ -6,6 +6,8 @@ import Router from '../../src/routers/router';
 // TODO: temp testing...
 import test from '../../src/routers/router2';
 import Pattern from '../../src/patterns/pattern';
+import hierarchizePatterns from '../../src/patterns/hierarchize-patterns';
+import makeDecisionTree from '../../src/routers/make-decision-tree';
 
 
 // TODO: More coverage:
@@ -84,11 +86,19 @@ describe('Constructing a router instance', () => {
 
     it('works', () => {
 
-        let finalHandlers = test(routeTable);
-        console.log(finalHandlers);
+        // let finalHandlers = test(routeTable);
+        // console.log(finalHandlers);
 
+        let patterns = Object.keys(routeTable).map(key => new Pattern(key));
+        let patternHierarchy = hierarchizePatterns(patterns);
+        let decisionTree = makeDecisionTree(patternHierarchy);
 
+        let addresses = tests.map(test => test.split(' ==> ')[0]);
+        let decisions = addresses.map(decisionTree);
 
+        addresses.forEach((addr, i) => {
+            console.log(`${addr}   MAPS TO   ${decisions[i]}`);
+        });
 
 
     });

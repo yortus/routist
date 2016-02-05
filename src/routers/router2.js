@@ -1,11 +1,10 @@
 'use strict';
 var assert = require('assert');
+var get_keys_deep_1 = require('./get-keys-deep');
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
 var pattern_1 = require('../patterns/pattern');
 var rule_1 = require('../rules/rule');
 var walk_pattern_hierarchy_1 = require('./walk-pattern-hierarchy');
-// TODO: ...
-const getKeysDeep = (obj) => Object.keys(obj).reduce((keys, key) => keys.concat(key, getKeysDeep(obj[key])), []);
 // TODO: ...
 function test(routeTable) {
     // TODO: ...
@@ -18,7 +17,7 @@ function test(routeTable) {
     // }
     // TODO: get pattern hierarchy...
     let patternHierarchy = hierarchize_patterns_1.default(rules.map(rule => rule.pattern));
-    let patternSignatures = getKeysDeep(patternHierarchy);
+    let patternSignatures = get_keys_deep_1.default(patternHierarchy);
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
     let rulesForPattern = patternSignatures.reduce((map, sig) => {

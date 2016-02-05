@@ -1,6 +1,7 @@
 'use strict';
-// TODO: temp testing...
-var router2_1 = require('../../src/routers/router2');
+var pattern_1 = require('../../src/patterns/pattern');
+var hierarchize_patterns_1 = require('../../src/patterns/hierarchize-patterns');
+var make_decision_tree_1 = require('../../src/routers/make-decision-tree');
 // TODO: More coverage:
 // - multiple non-decorator handlers for same pattern
 // - multiple decorator handlers for same pattern
@@ -55,8 +56,16 @@ describe('Constructing a router instance', () => {
         `api/bar ==> fallback`,
     ];
     it('works', () => {
-        let finalHandlers = router2_1.default(routeTable);
-        console.log(finalHandlers);
+        // let finalHandlers = test(routeTable);
+        // console.log(finalHandlers);
+        let patterns = Object.keys(routeTable).map(key => new pattern_1.default(key));
+        let patternHierarchy = hierarchize_patterns_1.default(patterns);
+        let decisionTree = make_decision_tree_1.default(patternHierarchy);
+        let addresses = tests.map(test => test.split(' ==> ')[0]);
+        let decisions = addresses.map(decisionTree);
+        addresses.forEach((addr, i) => {
+            console.log(`${addr}   MAPS TO   ${decisions[i]}`);
+        });
     });
     //     let router = new Router();
     //     router.add(routeTable);
