@@ -12,34 +12,47 @@ function makeDecisionTree(patternHierarchy) {
     }, {});
     // TODO: ...
     function getPrologLines(patterns, idPrefix) {
-        var result = [];
-        if (!idPrefix)
-            result.push('let _ = patternMatchers;\n');
-        Object.keys(patterns).forEach(function (sig, i) {
+        var lines = Object.keys(patterns).map(function (sig, i) {
             var id = (idPrefix || '') + "_" + i;
-            var first = "let " + id + "   =   _['" + sig + "'];\n";
-            var rest = getPrologLines(patterns[sig], id);
-            result.push(first);
-            result.push.apply(result, rest);
+            return [
+                ("let " + id + "   =   _['" + sig + "'];")
+            ].concat(getPrologLines(patterns[sig], id));
         });
-        return result;
+        return (_a = []).concat.apply(_a, lines);
+        var _a;
     }
-    var prolog = getPrologLines(patternHierarchy['…']);
+    // TODO: doc...
     function getBodyLines(thisPattern, childPatterns, idPrefix) {
-        var lines = [];
-        var signatures = Object.keys(childPatterns);
-        var hasKids = signatures.length > 0;
-        signatures.forEach(function (sig, i) {
+        var childLines = Object.keys(childPatterns).map(function (signature, i) {
             var id = (idPrefix || '') + "_" + i;
-            lines.push.apply(lines, [(i > 0 ? 'else ' : '') + "if (" + id + "(address)) {"].concat(getBodyLines(sig, childPatterns[sig], id).map(function (line) { return '    ' + line; }), ["}"]));
+            return [
+                ((i > 0 ? 'else ' : '') + "if (" + id + "(address)) {")
+            ].concat(getBodyLines(signature, childPatterns[signature], id).map(function (line) { return '    ' + line; }), [
+                "}"
+            ]);
         });
-        lines.push((hasKids ? 'else ' : '') + "return '" + thisPattern + "';");
-        return lines;
+        var lastLine = (childLines.length > 0 ? 'else ' : '') + "return '" + thisPattern + "';";
+        return (_a = []).concat.apply(_a, childLines.concat([lastLine]));
+        var _a;
     }
-    var body = getBodyLines('…', patternHierarchy['…']).map(function (line) { return line + '\n'; });
-    var source = prolog.concat(['\n'], body).map(function (line) { return '    ' + line; }).join('');
+    var firstLine = "let _ = patternMatchers;";
+    var prolog = getPrologLines(patternHierarchy['…']);
+    var body = getBodyLines('…', patternHierarchy['…']);
+    var source = [firstLine, ''].concat(prolog, [''], body).map(function (line) { return '    ' + line; }).join('\n') + '\n';
     var fn = eval("(function bestMatch(address) {\n" + source + "})");
-    return fn;
+    //if (1===1)return fn;
+    var lines = [
+        'let _ = patternMatchers;',
+        ''
+    ].concat(getPrologLines(patternHierarchy['…']), [
+        '',
+        'return function bestMatch(address) {'
+    ], getBodyLines('…', patternHierarchy['…']).map(function (line) { return '    ' + line; }), [
+        '};'
+    ]);
+    var source2 = lines.join('\n') + '\n';
+    console.log(source2);
+    debugger;
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = makeDecisionTree;

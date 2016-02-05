@@ -29,46 +29,55 @@ export default function makeDecisionTree(patternHierarchy: PatternHierarchy): Ge
 
     // TODO: ...
     function getPrologLines(patterns: PatternHierarchy, idPrefix?: string): string[] {
-        let result: string[] = [];
-        if (!idPrefix) result.push('let _ = patternMatchers;\n');
-        Object.keys(patterns).forEach((sig, i) => {
+        let lines = Object.keys(patterns).map((sig, i) => {
             let id = `${idPrefix || ''}_${i}`;
-            let first = `let ${id}   =   _['${sig}'];\n`;
-            let rest = getPrologLines(patterns[sig], id);
-            result.push(first);
-            result.push.apply(result, rest);
+            return [
+                `let ${id}   =   _['${sig}'];`,
+                ...getPrologLines(patterns[sig], id)
+            ];
         });
-        return result;
+        return [].concat(...lines);
     }
-    let prolog = getPrologLines(patternHierarchy['…']);
 
 
+    // TODO: doc...
     function getBodyLines(thisPattern: string, childPatterns: PatternHierarchy, idPrefix?: string): string[] {
-        let lines: string[] = [];
-        let signatures = Object.keys(childPatterns);
-        let hasKids = signatures.length > 0;
-
-        signatures.forEach((sig, i) => {
+        let childLines = Object.keys(childPatterns).map((signature, i) => {
             let id = `${idPrefix || ''}_${i}`;
-            lines.push(
+            return [
                 `${i > 0 ? 'else ' : ''}if (${id}(address)) {`,
-                ...getBodyLines(sig, childPatterns[sig], id).map(line => '    ' + line),
+                ...getBodyLines(signature, childPatterns[signature], id).map(line => '    ' + line),
                 `}`
-            );
+            ];
         });
-
-        lines.push(`${hasKids ? 'else ' : ''}return '${thisPattern}';`);
-
-
-        return lines;
+        let lastLine = `${childLines.length > 0 ? 'else ' : ''}return '${thisPattern}';`;
+        return [].concat(...childLines, lastLine);
     }
-    let body = getBodyLines('…', patternHierarchy['…']).map(line => line + '\n');
 
 
-    let source = prolog.concat(['\n'], body).map(line => '    ' + line).join('');
+
+
+
+    let firstLine = `let _ = patternMatchers;`;
+    let prolog = getPrologLines(patternHierarchy['…']);
+    let body = getBodyLines('…', patternHierarchy['…']);
+    let source = [firstLine, '', ...prolog, '', ...body].map(line => '    ' + line).join('\n') + '\n';
     let fn = eval(`(function bestMatch(address) {\n${source}})`);
+    //if (1===1)return fn;
 
-    return fn;
 
 
+    let lines = [
+        'let _ = patternMatchers;',
+        '',
+        ...getPrologLines(patternHierarchy['…']),
+        '',
+        'return function bestMatch(address) {',
+        ...getBodyLines('…', patternHierarchy['…']).map(line => '    ' + line),
+        '};'
+    ];
+
+    let source2 = lines.join('\n') + '\n';
+    console.log(source2);
+debugger;
 }
