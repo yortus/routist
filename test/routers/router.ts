@@ -18,13 +18,14 @@ import makeDecisionTree from '../../src/routers/make-decision-tree';
 // - decorators along ambiguous paths (not same decorators on all paths)
 
 
-describe('Constructing a router instance', () => {
+describe('Constructing a Router instance', () => {
 
     let routeTable: {[pattern: string]: Function} = {
+        '**': () => null, // no-op catch-all rule (tests for 'clash' with always-added 404 rule)
         '/foo': () => 'foo',
         '/bar': () => 'bar',
         '/baz': () => 'baz',
-        //'/*': ($req, $next) => `---${$next.execute($req) || 'NONE'}---`,
+        '/*a*': ($req, $next) => `---${$next($req) || 'NONE'}---`,
 
         'a/*': () => `starts with 'a'`,
         '*/b': () => `ends with 'b'`,
@@ -38,11 +39,6 @@ describe('Constructing a router instance', () => {
         'api/** #b': () => `fallback`, // TODO: temp testing, remove this...
         'api/foo': () => 'FOO',
         'api/bar': () => null,
-
-        // '/** #1': ($next) => `!`,
-        // '/**  #5ish': ($next) => `!`,
-        // '/** #5ish': ($next) => `!`,
-        // '/** #50': ($next) => `!`,
     };
 
     let testTable2 = {
@@ -66,10 +62,13 @@ describe('Constructing a router instance', () => {
 
 
     let tests = [
-        `/foo ==> ---foo---`,
+        `/foo ==> foo`,
         `/bar ==> ---bar---`,
         `/baz ==> ---baz---`,
-        `/quux ==> ---NONE---`,
+        `/quux ==> ERROR: 404!`, // TODO: using temp error code... will fail when fixed
+        `/qaax ==> ---NONE---`,
+        `/a ==> ---NONE---`,
+        `/ ==> ERROR: 404!`, // TODO: using temp error code... will fail when fixed
 
         `a/foo ==> starts with 'a'`,
         `foo/b ==> ends with 'b'`,
@@ -77,51 +76,29 @@ describe('Constructing a router instance', () => {
 
         `c/foo ==> starts with 'c'`,
         `foo/d ==> ends with 'd'`,
-        `c/d ==> ERROR: ambiguous...`,
+        `c/d ==> ERROR: Multiple possible fallbacks...`,
 
         `api/ ==> fallback`,
         `api/foo ==> FOO`,
         `api/bar ==> fallback`,
     ];
 
-    it('works', () => {
+    let router = new Router();
+    router.add(routeTable);
 
-        // let finalHandlers = test(routeTable);
-        // console.log(finalHandlers);
-
-
-        let patterns = Object.keys(routeTable).map(key => new Pattern(key));
-        let patternHierarchy = hierarchizePatterns(patterns);
-        let decisionTree = makeDecisionTree(patternHierarchy);
-console.log(decisionTree.toString());
-
-        let addresses = tests.map(test => test.split(' ==> ')[0]);
-        let decisions = addresses.map(decisionTree);
-
-        addresses.forEach((addr, i) => {
-            console.log(`${addr}   MAPS TO   ${decisions[i]}`);
-        });
-
-//        test2(patternHierarchy);
-
-    });
-
-//     let router = new Router();
-//     router.add(routeTable);
-// 
-//     tests.forEach(test => it(test, () => {
-//         let request = test.split(' ==> ')[0];
-//         let expected = test.split(' ==> ')[1];
-//         let actual: string;
-//         try {
-//             actual = <string> router.dispatch(request);
-//         }
-//         catch (ex) {
-//             actual = 'ERROR: ' + ex.message;
-//             if (expected.slice(-3) === '...') {
-//                 actual = actual.slice(0, expected.length - 3) + '...';
-//             }
-//         }
-//         expect(actual).equals(expected);
-//     }));
+    tests.forEach(test => it(test, () => {
+        let request = test.split(' ==> ')[0];
+        let expected = test.split(' ==> ')[1];
+        let actual: string;
+        try {
+            actual = <string> router.dispatch(request);
+        }
+        catch (ex) {
+            actual = 'ERROR: ' + ex.message;
+            if (expected.slice(-3) === '...') {
+                actual = actual.slice(0, expected.length - 3) + '...';
+            }
+        }
+        expect(actual).equals(expected);
+    }));
 });

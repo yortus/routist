@@ -18,6 +18,7 @@ import walkPatternHierarchy from './walk-pattern-hierarchy';
 
 
 // TODO: remove this? rename to finalExecutors? all internal anyway...
+// TODO: fix terminology: 'handler' is taken...
 type FinalHandlers = {[pattern: string]: (rq: Request) => Response};
 
 
@@ -32,11 +33,9 @@ export default function test(routeTable: {[pattern: string]: Function}): FinalHa
 
     // // TODO: add special root rule...
     // // TODO: add it unconditionally and add tieBreak handler that always makes it the least specific rule
-    // if (!rules.some(r => r.pattern.signature === '…')) {
-    //     let rootRule = new Rule(new Pattern('…'), () => { throw new Error('404!');}); // TODO: proper handler?
-    //     rules.unshift(rootRule);
-    // }
-    
+    let _404 = new Rule(Pattern.UNIVERSAL, () => { throw new Error('404!');});
+    rules.push(_404);
+
     // TODO: get pattern hierarchy...
     let patternHierarchy = hierarchizePatterns(rules.map(rule => rule.pattern));
     let patternSignatures = getKeysDeep(patternHierarchy);
@@ -73,6 +72,8 @@ export default function test(routeTable: {[pattern: string]: Function}): FinalHa
     // TODO: this should be passed in or somehow provided from outside...
     // TODO: return the WINNER, a.k.a. the MORE SPECIFIC rule
     function tieBreakFn(a: Rule, b: Rule): Rule {
+        if (a === _404) return b;
+        if (b === _404) return a;
         if (a.comment < b.comment) return a;
         if (b.comment < a.comment) return b;
     }    
@@ -163,8 +164,8 @@ export default function test(routeTable: {[pattern: string]: Function}): FinalHa
     // reduce each signature's rule walk down to a simple handler function.
     const noMore = (rq: Request) => <Response>null;
     let finalHandlers = patternSignatures.reduce((map, sig) => {
-        let ruleWalk = ruleWalkForPattern[sig];
-        map[sig] = ruleWalk.reduce((ds, rule) => request => rule.execute(request, ds), noMore);
+        let reverseRuleWalk = ruleWalkForPattern[sig].slice().reverse();
+        map[sig] = reverseRuleWalk.reduce((ds, rule) => request => rule.execute(request, ds), noMore);
         return map;
     }, <{[pattern: string]: (rq: Request) => Response}>{});
 

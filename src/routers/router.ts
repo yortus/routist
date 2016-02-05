@@ -10,6 +10,14 @@ import Rule from '../rules/rule';
 
 
 
+// temp testing...
+import test from './router2';
+import makeDecisionTree from './make-decision-tree';
+
+
+
+
+
 // TODO: doc...
 export default class Router {
 
@@ -20,84 +28,26 @@ export default class Router {
 
 
     // TODO: doc...
-    add(patternHandlerPairs: [string, Function][]);
-    add(patternHandlerMap: {[pattern: string]: Function});
-    add(arg: [string, Function][] | {[pattern: string]: Function}) {
+    add(routeTable: {[pattern: string]: Function}) {
+        let patternHierarchy = hierarchizePatterns(Object.keys(routeTable).map(key => new Pattern(key)));
+        let finalHandlers = test(routeTable); // TODO: fix terminology: 'handler' is taken...
+        let makeDecision = makeDecisionTree(patternHierarchy);
 
-        // Construct flat lists of all the patterns and handlers for the given rules.
-        let patterns: Pattern[];
-        let rules: Rule[];
-        if (Array.isArray(arg)) {
-            patterns = arg.map(pair => new Pattern(pair[0]));
-            rules = arg.map((pair, i) => new Rule(patterns[i], pair[1]));
-        }
-        else {
-            let keys = Object.keys(arg);
-            patterns = keys.map(key => new Pattern(key));
-            rules = keys.map((key, i) => new Rule(patterns[i], arg[key]));
-        }
+        this.dispatch = (request: Request) => {
+            let address = typeof request === 'string' ? request : request.address;
+            let signature = makeDecision(address);
+            let handler = finalHandlers[signature];
+            let response = handler(request);
+            return response;
+        };
 
-        // TODO: ...
-        function getRulesForPattern(patternSignature: string) {
-            return rules.filter((_, i) => patterns[i].signature === patternSignature);
-        }
-
-        // TODO: add root pattern and rule if not there already
-        if (!patterns.some(p => p.signature === '…')) {
-            let rootPattern = new Pattern('…')
-            patterns.push(rootPattern);
-            rules.push(new Rule(rootPattern, () => { throw new Error('404!');})); // TODO: proper handler?
-        }
-
-        // TODO: ...
-        let patternHierarchy = hierarchizePatterns(patterns);
-        let allRuleNodes = mapPatternsToRuleNodes(patternHierarchy, getRulesForPattern);
-        let allRoutes = mapRuleNodesToRoutes(allRuleNodes);
-        makeAllExecuteFunctions(allRoutes, allRuleNodes);
-        this.allRuleNodes = allRuleNodes;
-        this.allRoutes = allRoutes;
-
-
-// TODO: restore...
-//         // Ensure each decorator appears only once in the DAG
-//         // TODO: this is more restrictive that necessary. Better way?
-//         // let dupliDecors = Object.keys(allNodes).filter(key => allNodes[key].handler.isDecorator && allNodes[key].lessSpecialized.length > 1);
-//         // assert(dupliDecors.length === 0, `split decorators: '${dupliDecors.join("', '")}'`); // TODO: improve error message
+        
     }
-
 
     // TODO: doc...
     dispatch(request: Request): Response {
-        // TODO: ...
-
-        let address = typeof request === 'string' ? request : request.address;
-        let path: Route[] = [];
-        let route = this.allRoutes['…']; // matches all addresses; don't need to check this against address
-
-        while (true) {
-            path.push(route);
-            let rule = this.allRuleNodes[route.signature];
-
-            let foundChild: Route = null;
-            for (let i = 0; !foundChild && i < rule.moreSpecific.length; ++i) {
-                let child = this.allRoutes[rule.moreSpecific[i]];
-                foundChild = child.quickMatch(address) && child;
-            }
-
-            if (!foundChild) break;
-
-            route = foundChild;
-        }
-
-        // TODO: temp testing...
-        let response = route.execute(request);
-        return response;
-
-        // // should have a path here...
-        // let fullPath = path.map(n => n.signature).join('   ==>   ');
-        // //debugger;
-        // return null;
-    }
+        throw new Error(`Not ready!!! Call add first...`); // TODO: fix this...
+    };
     
 
     // TODO: doc...

@@ -2,73 +2,32 @@
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
 var pattern_1 = require('../patterns/pattern');
 var rule_1 = require('../rules/rule');
+// temp testing...
+var router2_1 = require('./router2');
+var make_decision_tree_1 = require('./make-decision-tree');
 // TODO: doc...
 var Router = (function () {
     // TODO: doc...
     function Router() {
     }
-    Router.prototype.add = function (arg) {
-        // Construct flat lists of all the patterns and handlers for the given rules.
-        var patterns;
-        var rules;
-        if (Array.isArray(arg)) {
-            patterns = arg.map(function (pair) { return new pattern_1.default(pair[0]); });
-            rules = arg.map(function (pair, i) { return new rule_1.default(patterns[i], pair[1]); });
-        }
-        else {
-            var keys = Object.keys(arg);
-            patterns = keys.map(function (key) { return new pattern_1.default(key); });
-            rules = keys.map(function (key, i) { return new rule_1.default(patterns[i], arg[key]); });
-        }
-        // TODO: ...
-        function getRulesForPattern(patternSignature) {
-            return rules.filter(function (_, i) { return patterns[i].signature === patternSignature; });
-        }
-        // TODO: add root pattern and rule if not there already
-        if (!patterns.some(function (p) { return p.signature === '…'; })) {
-            var rootPattern = new pattern_1.default('…');
-            patterns.push(rootPattern);
-            rules.push(new rule_1.default(rootPattern, function () { throw new Error('404!'); })); // TODO: proper handler?
-        }
-        // TODO: ...
-        var patternHierarchy = hierarchize_patterns_1.default(patterns);
-        var allRuleNodes = mapPatternsToRuleNodes(patternHierarchy, getRulesForPattern);
-        var allRoutes = mapRuleNodesToRoutes(allRuleNodes);
-        makeAllExecuteFunctions(allRoutes, allRuleNodes);
-        this.allRuleNodes = allRuleNodes;
-        this.allRoutes = allRoutes;
-        // TODO: restore...
-        //         // Ensure each decorator appears only once in the DAG
-        //         // TODO: this is more restrictive that necessary. Better way?
-        //         // let dupliDecors = Object.keys(allNodes).filter(key => allNodes[key].handler.isDecorator && allNodes[key].lessSpecialized.length > 1);
-        //         // assert(dupliDecors.length === 0, `split decorators: '${dupliDecors.join("', '")}'`); // TODO: improve error message
+    // TODO: doc...
+    Router.prototype.add = function (routeTable) {
+        var patternHierarchy = hierarchize_patterns_1.default(Object.keys(routeTable).map(function (key) { return new pattern_1.default(key); }));
+        var finalHandlers = router2_1.default(routeTable); // TODO: fix terminology: 'handler' is taken...
+        var makeDecision = make_decision_tree_1.default(patternHierarchy);
+        this.dispatch = function (request) {
+            var address = typeof request === 'string' ? request : request.address;
+            var signature = makeDecision(address);
+            var handler = finalHandlers[signature];
+            var response = handler(request);
+            return response;
+        };
     };
     // TODO: doc...
     Router.prototype.dispatch = function (request) {
-        // TODO: ...
-        var address = typeof request === 'string' ? request : request.address;
-        var path = [];
-        var route = this.allRoutes['…']; // matches all addresses; don't need to check this against address
-        while (true) {
-            path.push(route);
-            var rule = this.allRuleNodes[route.signature];
-            var foundChild = null;
-            for (var i = 0; !foundChild && i < rule.moreSpecific.length; ++i) {
-                var child = this.allRoutes[rule.moreSpecific[i]];
-                foundChild = child.quickMatch(address) && child;
-            }
-            if (!foundChild)
-                break;
-            route = foundChild;
-        }
-        // TODO: temp testing...
-        var response = route.execute(request);
-        return response;
-        // // should have a path here...
-        // let fullPath = path.map(n => n.signature).join('   ==>   ');
-        // //debugger;
-        // return null;
+        throw new Error("Not ready!!! Call add first..."); // TODO: fix this...
     };
+    ;
     return Router;
 }());
 Object.defineProperty(exports, "__esModule", { value: true });

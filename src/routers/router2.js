@@ -11,10 +11,8 @@ function test(routeTable) {
     var rules = Object.keys(routeTable).map(function (pattern) { return new rule_1.default(new pattern_1.default(pattern), routeTable[pattern]); });
     // // TODO: add special root rule...
     // // TODO: add it unconditionally and add tieBreak handler that always makes it the least specific rule
-    // if (!rules.some(r => r.pattern.signature === '…')) {
-    //     let rootRule = new Rule(new Pattern('…'), () => { throw new Error('404!');}); // TODO: proper handler?
-    //     rules.unshift(rootRule);
-    // }
+    var _404 = new rule_1.default(pattern_1.default.UNIVERSAL, function () { throw new Error('404!'); });
+    rules.push(_404);
     // TODO: get pattern hierarchy...
     var patternHierarchy = hierarchize_patterns_1.default(rules.map(function (rule) { return rule.pattern; }));
     var patternSignatures = get_keys_deep_1.default(patternHierarchy);
@@ -47,6 +45,10 @@ function test(routeTable) {
     // TODO: this should be passed in or somehow provided from outside...
     // TODO: return the WINNER, a.k.a. the MORE SPECIFIC rule
     function tieBreakFn(a, b) {
+        if (a === _404)
+            return b;
+        if (b === _404)
+            return a;
         if (a.comment < b.comment)
             return a;
         if (b.comment < a.comment)
@@ -126,8 +128,8 @@ function test(routeTable) {
     // reduce each signature's rule walk down to a simple handler function.
     var noMore = function (rq) { return null; };
     var finalHandlers = patternSignatures.reduce(function (map, sig) {
-        var ruleWalk = ruleWalkForPattern[sig];
-        map[sig] = ruleWalk.reduce(function (ds, rule) { return function (request) { return rule.execute(request, ds); }; }, noMore);
+        var reverseRuleWalk = ruleWalkForPattern[sig].slice().reverse();
+        map[sig] = reverseRuleWalk.reduce(function (ds, rule) { return function (request) { return rule.execute(request, ds); }; }, noMore);
         return map;
     }, {});
     return finalHandlers;
