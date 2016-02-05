@@ -62,7 +62,6 @@ describe('Constructing a router instance', function () {
         var patternHierarchy = hierarchize_patterns_1.default(patterns);
         var decisionTree = make_decision_tree_1.default(patternHierarchy);
         console.log(decisionTree.toString());
-        debugger;
         var addresses = tests.map(function (test) { return test.split(' ==> ')[0]; });
         var decisions = addresses.map(decisionTree);
         addresses.forEach(function (addr, i) {

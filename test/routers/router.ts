@@ -94,7 +94,6 @@ describe('Constructing a router instance', () => {
         let patternHierarchy = hierarchizePatterns(patterns);
         let decisionTree = makeDecisionTree(patternHierarchy);
 console.log(decisionTree.toString());
-debugger;
 
         let addresses = tests.map(test => test.split(' ==> ')[0]);
         let decisions = addresses.map(decisionTree);
