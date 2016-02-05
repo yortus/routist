@@ -27,26 +27,27 @@ export default function makeDecisionTree(patternHierarchy: PatternHierarchy): Ge
         return map;
     }, <{[pattern: string]: QuickMatch}>{});
 
+
     // TODO: ...
-    function getPrologLines(patterns: PatternHierarchy, getNextId: () => number): string[] {
-        let lines = Object.keys(patterns).map((sig, i) => {
-            let id = `_${getNextId()}`;
+    function getPrologLines(patterns: PatternHierarchy): string[] {
+        let lines = Object.keys(patterns).map(signature => {
+            let id = getIdForPatternSignature(signature, '__', '__');
             return [
-                `let ${id}   =   _['${sig}'];`,
-                ...getPrologLines(patterns[sig], getNextId)
+                `let ${id} = patternMatchers['${signature}'];`,
+                ...getPrologLines(patterns[signature])
             ];
         });
-        return [].concat(...lines);
+        return dedupe([].concat(...lines));
     }
 
 
     // TODO: doc...
-    function getBodyLines(thisPattern: string, childPatterns: PatternHierarchy, getNextId: () => number): string[] {
+    function getBodyLines(thisPattern: string, childPatterns: PatternHierarchy): string[] {
         let childLines = Object.keys(childPatterns).map((signature, i) => {
-            let id = `_${getNextId()}`;
+            let id = getIdForPatternSignature(signature, '__', '__');
             return [
                 `${i > 0 ? 'else ' : ''}if (${id}(address)) {`,
-                ...getBodyLines(signature, childPatterns[signature], getNextId).map(line => '    ' + line),
+                ...getBodyLines(signature, childPatterns[signature]).map(line => '    ' + line),
                 `}`
             ];
         });
@@ -55,45 +56,25 @@ export default function makeDecisionTree(patternHierarchy: PatternHierarchy): Ge
     }
 
 
-
-
-    function makeGetNextId() {
-        let id = 0;
-        return () => ++id;
-    }
-
-debugger;
-    let firstLine = `let _ = patternMatchers;`;
-    let prolog = getPrologLines(patternHierarchy['…'], makeGetNextId());
-    let body = getBodyLines('…', patternHierarchy['…'], makeGetNextId());
-    let source = [firstLine, '', ...prolog, '', ...body].map(line => '    ' + line).join('\n') + '\n';
-    let fn = eval(`(function bestMatch(address) {\n${source}})`);
-    if (1===1)return fn;
-
-
-
-//     let lines = [
-//         'let _ = patternMatchers;',
-//         '',
-//         ...getPrologLines(patternHierarchy['…']),
-//         '',
-//         'return function bestMatch(address) {',
-//         ...getBodyLines('…', patternHierarchy['…']).map(line => '    ' + line),
-//         '};'
-//     ];
-// 
-//     let source2 = lines.join('\n') + '\n';
-//     console.log(source2);
-// debugger;
+    let lines = [
+        ...getPrologLines(patternHierarchy['…']),
+        '',
+        'return function getBestMatchingPatternSignature(address) {',
+        ...getBodyLines('…', patternHierarchy['…']).map(line => '    ' + line),
+        '};'
+    ];
+    let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();
+    return fn;
 }
 
 
-function getIdForPatternSignature(signature: string, prefix?: string) {
+// TODO: ...
+function getIdForPatternSignature(signature: string, prefix?: string, suffix?: string) {
     return (prefix || '') + signature
         .split('')
         .map(c => {
             if (/[a-zA-Z0-9_]/.test(c)) return c;
-            if (c === '/') return '〳'; // (U+3033)
+            if (c === '/') return 'ﾉ'; // (U+FF89)
             if (c === '.') return 'ˌ'; // (U+02CC)
             if (c === '-') return 'ー'; // (U+30FC)
             if (c === ' ') return 'ㆍ'; // (U+318D)
@@ -101,5 +82,12 @@ function getIdForPatternSignature(signature: string, prefix?: string) {
             if (c === '*') return 'ᕽ'; // (U+157D)
             throw new Error(`Unrecognized character '${c}' in pattern signature '${signature}'`);
         })
-        .join('');
+        .join('') + (suffix || '');
+}
+
+
+// TODO: this is a util. Use it also in/with getKeysDeep
+function dedupe(strs: string[]): string[] {
+    let map = strs.reduce((map, str) => (map[str] = true, map), {});
+    return Object.keys(map);
 }
