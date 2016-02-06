@@ -1,6 +1,6 @@
 'use strict';
 import * as assert from 'assert';
-import getFunctionParameters from './get-function-parameters';
+import getFunctionParameterNames from '../utils/get-function-parameter-names';
 import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
@@ -37,7 +37,7 @@ export default class Rule {
      *        the given request, even if the pattern matched the request's address.
      */
     constructor(public pattern: Pattern, private handler: Function) {
-        let paramNames = getFunctionParameters(handler);
+        let paramNames = getFunctionParameterNames(handler);
         this.isDecorator = paramNames.indexOf('$next') !== -1;
         this.execute = <any> makeExecuteFunction(pattern, handler, paramNames);
 

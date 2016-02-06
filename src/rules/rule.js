@@ -1,6 +1,6 @@
 'use strict';
 var assert = require('assert');
-var get_function_parameters_1 = require('./get-function-parameters');
+var get_function_parameter_names_1 = require('../utils/get-function-parameter-names');
 // TODO: make async...
 // TODO: review all comments given recent changes (Handler/Rule, $yield/$next, executeDownstreamHandlers/downstream)
 /**
@@ -24,7 +24,7 @@ var Rule = (function () {
     function Rule(pattern, handler) {
         this.pattern = pattern;
         this.handler = handler;
-        var paramNames = get_function_parameters_1.default(handler);
+        var paramNames = get_function_parameter_names_1.default(handler);
         this.isDecorator = paramNames.indexOf('$next') !== -1;
         this.execute = makeExecuteFunction(pattern, handler, paramNames);
         // TODO: temp testing... extract rule's 'priority' from comment in pattern...

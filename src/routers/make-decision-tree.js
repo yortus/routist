@@ -1,5 +1,5 @@
 'use strict';
-var get_keys_deep_1 = require('./get-keys-deep');
+var get_keys_deep_1 = require('../utils/get-keys-deep');
 var pattern_1 = require('../patterns/pattern');
 // TODO: ...
 function makeDecisionTree(patternHierarchy) {

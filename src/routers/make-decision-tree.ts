@@ -1,5 +1,5 @@
 'use strict';
-import getKeysDeep from './get-keys-deep';
+import getKeysDeep from '../utils/get-keys-deep';
 import {PatternHierarchy} from '../patterns/hierarchize-patterns';
 import Pattern from '../patterns/pattern';
 

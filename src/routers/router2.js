@@ -1,6 +1,6 @@
 'use strict';
 var assert = require('assert');
-var get_keys_deep_1 = require('./get-keys-deep');
+var get_keys_deep_1 = require('../utils/get-keys-deep');
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
 var pattern_1 = require('../patterns/pattern');
 var rule_1 = require('../rules/rule');

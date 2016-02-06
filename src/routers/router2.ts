@@ -1,6 +1,6 @@
 'use strict';
 import * as assert from 'assert';
-import getKeysDeep from './get-keys-deep';
+import getKeysDeep from '../utils/get-keys-deep';
 import hierarchizePatterns, {PatternHierarchy} from '../patterns/hierarchize-patterns';
 import Pattern from '../patterns/pattern';
 import Request from '../request';

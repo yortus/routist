@@ -15,7 +15,7 @@
  * - destructured parameters.
  * Adapted from http://stackoverflow.com/a/31194949/1075886.
  */
-function getFunctionParameters(func) {
+function getFunctionParameterNames(func) {
     // strip all whitespace and comments.
     var result = func.toString();
     result = result.replace(/\s+/g, '');
@@ -37,5 +37,5 @@ function getFunctionParameters(func) {
     return result;
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = getFunctionParameters;
-//# sourceMappingURL=get-function-parameters.js.map
+exports.default = getFunctionParameterNames;
+//# sourceMappingURL=get-function-parameter-names.js.map

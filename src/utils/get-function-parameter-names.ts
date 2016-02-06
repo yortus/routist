@@ -20,7 +20,7 @@
  * - destructured parameters.
  * Adapted from http://stackoverflow.com/a/31194949/1075886.
  */
-export default function getFunctionParameters(func: Function): string[] {
+export default function getFunctionParameterNames(func: Function): string[] {
 
     // strip all whitespace and comments.
     let result: any = func.toString();
