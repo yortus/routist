@@ -39,7 +39,7 @@ import Pattern from './pattern';
 export default function hierarchizePatterns(patternSources: string[]) {
 
     // TODO: temp ensure we are working with normalised patterns! review this...
-    patternSources = patternSources.map(ps => new Pattern(ps).signature);
+    patternSources = patternSources.map(ps => new Pattern(ps).normalized.source); // TODO: review this line
 
     // Create the nodeFor() function to return nodes from a single associative array
     // of patterns, creating them on demand if they don't exist. This ensures every
@@ -82,7 +82,7 @@ function insert(pattern: string, superset: string, nodeFor: (pattern: string) =>
     // Compute information about all the existing direct subsets of `superset`.
     // We only care about the ones that are non-disjoint with `pattern`.
     let nonDisjointComparands = Object.keys(nodeFor(superset))
-        .map(p => ({ pattern: p, intersection: intersectPatterns(pattern, p).signature }))
+        .map(p => ({ pattern: p, intersection: intersectPatterns(pattern, p).normalized.source })) // TODO: review this line
         .filter(cmp => cmp.intersection !== '∅');
 
     // If `superset` has no direct subsets that are non-disjoint with `pattern`, then we

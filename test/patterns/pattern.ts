@@ -5,6 +5,37 @@ import parsePatternSource from '../../src/patterns/parse-pattern-source';
 import Pattern from '../../src/patterns/pattern';
 
 
+// TODO: temp... move this out...
+describe('Singleton patterns', () => {
+    it('works', () => {
+        let p1 = new Pattern('/*/bar/{...baz}');
+        let p2 = new Pattern('/{n}/bar/**');
+        let p3 = new Pattern('/*/bar/…');
+        let p4 = new Pattern('/*/bAr/…');
+        let p5 = new Pattern('/*/bar/…');
+        expect(p1).not.equals(p2);
+        expect(p2).not.equals(p3);
+        expect(p3).not.equals(p4);
+        expect(p4).not.equals(p5);
+        expect(p3).equals(p5); // both same normal pattern
+
+        expect(p1.normalized).equals(p2.normalized);
+        expect(p2.normalized).equals(p3.normalized);
+        expect(p3.normalized).not.equals(p4.normalized);
+        expect(p4.normalized).not.equals(p5.normalized);
+        expect(p3.normalized).equals(p5.normalized); // both same normal pattern
+
+        expect(p1).not.equals(p1.normalized);
+        expect(p2).not.equals(p2.normalized);
+        expect(p3).equals(p3.normalized);
+        expect(p4).equals(p4.normalized);
+        expect(p5).equals(p5.normalized);
+    });
+});
+
+
+
+
 describe('Constructing a Pattern instance', () => {
 
     let tests = [
@@ -56,7 +87,7 @@ describe('Constructing a Pattern instance', () => {
             let actualCaptureNames = [];
             try {
                 let pattern = new Pattern(patternSource);
-                actualSignature = pattern.signature;
+                actualSignature = pattern.normalized.source; // TODO: review this line
                 actualCaptureNames = parsePatternSource(patternSource).captureNames.filter(n => n !== '?'); // TODO: test parsePatternSource separately?
             }
             catch (ex) { }

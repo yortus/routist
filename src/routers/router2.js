@@ -19,7 +19,7 @@ function test(routeTable) {
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
     var rulesForPattern = patternSignatures.reduce(function (map, sig) {
-        map[sig] = rules.filter(function (r) { return new pattern_1.default(r.patternSource).signature === sig; }); // TODO: inefficient! review this...
+        map[sig] = rules.filter(function (r) { return new pattern_1.default(r.patternSource).normalized.source === sig; }); // TODO: inefficient! review this...
         return map;
     }, {});
     // TODO: add no-op rules so that for each signature there are 1..M rules
@@ -70,7 +70,7 @@ function test(routeTable) {
     //console.log(ruleWalks);
     // TODO: for each pattern signature, get the ONE path or fail trying
     var ruleWalkForPattern = patternSignatures.reduce(function (map, sig) {
-        var candidates = ruleWalks.filter(function (walk) { return new pattern_1.default(walk[walk.length - 1].patternSource).signature === sig; }); // TODO: inefficient! review this...
+        var candidates = ruleWalks.filter(function (walk) { return new pattern_1.default(walk[walk.length - 1].patternSource).normalized.source === sig; }); // TODO: inefficient! review this...
         if (candidates.length === 1) {
             map[sig] = candidates[0];
             return map;

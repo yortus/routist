@@ -1,6 +1,8 @@
 'use strict';
 var parse_pattern_source_1 = require('./parse-pattern-source');
 // TODO: review jsdocs after pattern overhaul
+// TODO: ...
+var normalizedPatternCache = new Map();
 /**
  * A pattern recognizes a set of addresses. It like a RegExp, but tailored
  * specifically to address recognition. Patterns are case-sensitive.
@@ -12,8 +14,20 @@ var Pattern = (function () {
      */
     function Pattern(source) {
         this.source = source;
+        // TODO: ...
         var patternAST = parse_pattern_source_1.default(source);
-        this.signature = patternAST.signature;
+        // TODO: If the source is already normalised, return the singleton instance from the normalised pattern cache.
+        // TODO: If not already cached, add this instance to the cache and preceed with construction.
+        if (source === patternAST.signature) {
+            var instance = normalizedPatternCache.get(source);
+            if (instance)
+                return instance;
+            normalizedPatternCache.set(source, this);
+        }
+        // // TODO: ...
+        // this.signature = patternAST.signature;
+        // TODO: ...
+        this.normalized = new Pattern(patternAST.signature);
     }
     /** Returns the source string with which this instance was constructed. */
     Pattern.prototype.toString = function () { return this.source; };

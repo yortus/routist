@@ -32,7 +32,7 @@ var pattern_1 = require('./pattern');
  */
 function hierarchizePatterns(patternSources) {
     // TODO: temp ensure we are working with normalised patterns! review this...
-    patternSources = patternSources.map(function (ps) { return new pattern_1.default(ps).signature; });
+    patternSources = patternSources.map(function (ps) { return new pattern_1.default(ps).normalized.source; }); // TODO: review this line
     // Create the nodeFor() function to return nodes from a single associative array
     // of patterns, creating them on demand if they don't exist. This ensures every
     // request for the same pattern gets the same singleton node.
@@ -61,7 +61,7 @@ function insert(pattern, superset, nodeFor) {
     // Compute information about all the existing direct subsets of `superset`.
     // We only care about the ones that are non-disjoint with `pattern`.
     var nonDisjointComparands = Object.keys(nodeFor(superset))
-        .map(function (p) { return ({ pattern: p, intersection: intersect_patterns_1.default(pattern, p).signature }); })
+        .map(function (p) { return ({ pattern: p, intersection: intersect_patterns_1.default(pattern, p).normalized.source }); }) // TODO: review this line
         .filter(function (cmp) { return cmp.intersection !== '∅'; });
     // If `superset` has no direct subsets that are non-disjoint with `pattern`, then we
     // simply add `pattern` as a direct subset of `superset`.

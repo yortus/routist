@@ -83,7 +83,7 @@ describe('Intersecting two pattern strings', () => {
             let actual: string, expected = rhs;
             try {
                 actual = 'ERROR';
-                actual = intersectPatterns(lhsA, lhsB).signature;
+                actual = intersectPatterns(lhsA, lhsB).source;
             }
             catch(ex) { }
             expect(actual).equals(expected);

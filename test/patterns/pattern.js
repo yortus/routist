@@ -3,6 +3,31 @@ var chai_1 = require('chai');
 var make_match_function_1 = require('../../src/patterns/make-match-function');
 var parse_pattern_source_1 = require('../../src/patterns/parse-pattern-source');
 var pattern_1 = require('../../src/patterns/pattern');
+// TODO: temp... move this out...
+describe('Singleton patterns', function () {
+    it('works', function () {
+        var p1 = new pattern_1.default('/*/bar/{...baz}');
+        var p2 = new pattern_1.default('/{n}/bar/**');
+        var p3 = new pattern_1.default('/*/bar/…');
+        var p4 = new pattern_1.default('/*/bAr/…');
+        var p5 = new pattern_1.default('/*/bar/…');
+        chai_1.expect(p1).not.equals(p2);
+        chai_1.expect(p2).not.equals(p3);
+        chai_1.expect(p3).not.equals(p4);
+        chai_1.expect(p4).not.equals(p5);
+        chai_1.expect(p3).equals(p5); // both same normal pattern
+        chai_1.expect(p1.normalized).equals(p2.normalized);
+        chai_1.expect(p2.normalized).equals(p3.normalized);
+        chai_1.expect(p3.normalized).not.equals(p4.normalized);
+        chai_1.expect(p4.normalized).not.equals(p5.normalized);
+        chai_1.expect(p3.normalized).equals(p5.normalized); // both same normal pattern
+        chai_1.expect(p1).not.equals(p1.normalized);
+        chai_1.expect(p2).not.equals(p2.normalized);
+        chai_1.expect(p3).equals(p3.normalized);
+        chai_1.expect(p4).equals(p4.normalized);
+        chai_1.expect(p5).equals(p5.normalized);
+    });
+});
 describe('Constructing a Pattern instance', function () {
     var tests = [
         '/api/foo ==> /api/foo WITH []',
@@ -52,7 +77,7 @@ describe('Constructing a Pattern instance', function () {
             var actualCaptureNames = [];
             try {
                 var pattern = new pattern_1.default(patternSource);
-                actualSignature = pattern.signature;
+                actualSignature = pattern.normalized.source; // TODO: review this line
                 actualCaptureNames = parse_pattern_source_1.default(patternSource).captureNames.filter(function (n) { return n !== '?'; }); // TODO: test parsePatternSource separately?
             }
             catch (ex) { }
