@@ -1,6 +1,7 @@
 'use strict';
 var parse_pattern_source_1 = require('./parse-pattern-source');
 var pattern_1 = require('./pattern');
+// TODO: review jsdocs after pattern overhaul
 /**
  * Generates a pattern that matches all the addresses that are matched by *both*
  * patterns `a` and `b`. Returns the empty pattern '∅' if `a` and `b` are disjoint.
@@ -13,8 +14,9 @@ var pattern_1 = require('./pattern');
  * @returns {Pattern} - the pattern that matches all addresses matched by both `a` and `b`.
  */
 function intersectPatterns(a, b) {
-    var p = typeof a === 'string' ? parse_pattern_source_1.default(a).signature : a.signature;
-    var q = typeof b === 'string' ? parse_pattern_source_1.default(b).signature : b.signature;
+    // TODO: ensure a and b are normal patterns. Review this... inefficient...
+    var p = parse_pattern_source_1.default(a).signature;
+    var q = parse_pattern_source_1.default(b).signature;
     var allIntersections = getAllIntersections(p, q);
     var distinctIntersections = getDistinctPatterns(allIntersections);
     if (distinctIntersections.length === 0)

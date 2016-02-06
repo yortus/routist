@@ -1,6 +1,7 @@
 'use strict';
 import parsePatternSource from './parse-pattern-source';
 import Pattern from './pattern';
+// TODO: review jsdocs after pattern overhaul
 
 
 
@@ -17,9 +18,12 @@ import Pattern from './pattern';
  *        instance, or as a pattern string.
  * @returns {Pattern} - the pattern that matches all addresses matched by both `a` and `b`.
  */
-export default function intersectPatterns(a: Pattern|string, b: Pattern|string): Pattern {
-    let p = typeof a === 'string' ? parsePatternSource(a).signature : a.signature;
-    let q = typeof b === 'string' ? parsePatternSource(b).signature : b.signature;
+export default function intersectPatterns(a: string, b: string): Pattern {
+
+    // TODO: ensure a and b are normal patterns. Review this... inefficient...
+    let p = parsePatternSource(a).signature;
+    let q = parsePatternSource(b).signature;
+
     let allIntersections = getAllIntersections(p, q);
     let distinctIntersections = getDistinctPatterns(allIntersections);
     if (distinctIntersections.length === 0) return Pattern.EMPTY;

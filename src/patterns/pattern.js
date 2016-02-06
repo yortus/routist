@@ -1,5 +1,6 @@
 'use strict';
 var parse_pattern_source_1 = require('./parse-pattern-source');
+// TODO: review jsdocs after pattern overhaul
 /**
  * A pattern recognizes a set of addresses. It like a RegExp, but tailored
  * specifically to address recognition. Patterns are case-sensitive.

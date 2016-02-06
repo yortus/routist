@@ -6,6 +6,7 @@ import parsePatternSource from '../patterns/parse-pattern-source'; // TODO: revi
 import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
+// TODO: review jsdocs after pattern overhaul
 
 
 

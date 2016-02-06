@@ -1,5 +1,6 @@
 'use strict';
 import parsePatternSource from './parse-pattern-source';
+// TODO: review jsdocs after pattern overhaul
 
 
 

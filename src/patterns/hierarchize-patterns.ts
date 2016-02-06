@@ -2,6 +2,7 @@
 import * as assert from 'assert';
 import intersectPatterns from './intersect-patterns';
 import Pattern from './pattern';
+// TODO: review jsdocs after pattern overhaul
 
 
 

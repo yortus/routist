@@ -1,6 +1,7 @@
 'use strict';
 import makeMatchFunction from './make-match-function';
 import parsePatternSource from './parse-pattern-source';
+// TODO: review jsdocs after pattern overhaul
 
 
 

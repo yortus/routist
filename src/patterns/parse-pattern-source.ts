@@ -1,5 +1,6 @@
 'use strict';
 import * as PEG from 'pegjs';
+// TODO: review jsdocs after pattern overhaul
 // TODO: move detailed jsdocs below into README
 
 

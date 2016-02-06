@@ -3,6 +3,7 @@ var assert = require('assert');
 var get_function_parameter_names_1 = require('../utils/get-function-parameter-names');
 var make_match_function_1 = require('../patterns/make-match-function'); // TODO: review if needed here?
 var parse_pattern_source_1 = require('../patterns/parse-pattern-source'); // TODO: review if needed here?
+// TODO: review jsdocs after pattern overhaul
 // TODO: make async...
 // TODO: review all comments given recent changes (Handler/Rule, $yield/$next, executeDownstreamHandlers/downstream)
 /**
