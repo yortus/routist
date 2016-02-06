@@ -1,6 +1,7 @@
 'use strict';
 var chai_1 = require('chai');
 var intersect_patterns_1 = require('../../src/patterns/intersect-patterns');
+var pattern_1 = require('../../src/patterns/pattern');
 describe('Intersecting two pattern strings', function () {
     var tests = [
         '… ∩ ∅ = ∅',
@@ -74,7 +75,7 @@ describe('Intersecting two pattern strings', function () {
             var actual, expected = rhs;
             try {
                 actual = 'ERROR';
-                actual = intersect_patterns_1.default(lhsA, lhsB).source;
+                actual = intersect_patterns_1.default(new pattern_1.default(lhsA), new pattern_1.default(lhsB)).source;
             }
             catch (ex) { }
             chai_1.expect(actual).equals(expected);

@@ -82,7 +82,7 @@ function insert(pattern: string, superset: string, nodeFor: (pattern: string) =>
     // Compute information about all the existing direct subsets of `superset`.
     // We only care about the ones that are non-disjoint with `pattern`.
     let nonDisjointComparands = Object.keys(nodeFor(superset))
-        .map(p => ({ pattern: p, intersection: intersectPatterns(pattern, p).normalized.source })) // TODO: review this line
+        .map(p => ({ pattern: p, intersection: intersectPatterns(new Pattern(pattern), new Pattern(p)).normalized.source })) // TODO: review this line
         .filter(cmp => cmp.intersection !== '∅');
 
     // If `superset` has no direct subsets that are non-disjoint with `pattern`, then we

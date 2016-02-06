@@ -61,7 +61,7 @@ function insert(pattern, superset, nodeFor) {
     // Compute information about all the existing direct subsets of `superset`.
     // We only care about the ones that are non-disjoint with `pattern`.
     var nonDisjointComparands = Object.keys(nodeFor(superset))
-        .map(function (p) { return ({ pattern: p, intersection: intersect_patterns_1.default(pattern, p).normalized.source }); }) // TODO: review this line
+        .map(function (p) { return ({ pattern: p, intersection: intersect_patterns_1.default(new pattern_1.default(pattern), new pattern_1.default(p)).normalized.source }); }) // TODO: review this line
         .filter(function (cmp) { return cmp.intersection !== '∅'; });
     // If `superset` has no direct subsets that are non-disjoint with `pattern`, then we
     // simply add `pattern` as a direct subset of `superset`.

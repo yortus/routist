@@ -1,5 +1,4 @@
 'use strict';
-var parse_pattern_source_1 = require('./parse-pattern-source');
 var pattern_1 = require('./pattern');
 // TODO: review jsdocs after pattern overhaul
 /**
@@ -14,10 +13,7 @@ var pattern_1 = require('./pattern');
  * @returns {Pattern} - the pattern that matches all addresses matched by both `a` and `b`.
  */
 function intersectPatterns(a, b) {
-    // TODO: ensure a and b are normal patterns. Review this... inefficient...
-    var p = parse_pattern_source_1.default(a).signature;
-    var q = parse_pattern_source_1.default(b).signature;
-    var allIntersections = getAllIntersections(p, q);
+    var allIntersections = getAllIntersections(a.normalized.source, b.normalized.source);
     var distinctIntersections = getDistinctPatterns(allIntersections);
     if (distinctIntersections.length === 0)
         return pattern_1.default.EMPTY;
