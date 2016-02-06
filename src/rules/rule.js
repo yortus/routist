@@ -3,6 +3,7 @@ var assert = require('assert');
 var get_function_parameter_names_1 = require('../utils/get-function-parameter-names');
 var make_match_function_1 = require('../patterns/make-match-function'); // TODO: review if needed here?
 var parse_pattern_source_1 = require('../patterns/parse-pattern-source'); // TODO: review if needed here?
+var pattern_1 = require('../patterns/pattern');
 // TODO: review jsdocs after pattern overhaul
 // TODO: make async...
 // TODO: review all comments given recent changes (Handler/Rule, $yield/$next, executeDownstreamHandlers/downstream)
@@ -24,19 +25,19 @@ var Rule = (function () {
      *        return value from `action` signifies that the action declined to respond to
      *        the given request, even if the pattern matched the request's address.
      */
-    function Rule(patternSource, handler) {
-        this.patternSource = patternSource;
+    function Rule(pattern, handler) {
+        this.pattern = pattern;
         this.handler = handler;
         var paramNames = get_function_parameter_names_1.default(handler);
         this.isDecorator = paramNames.indexOf('$next') !== -1;
-        this.execute = makeExecuteFunction(patternSource, handler, paramNames);
+        this.execute = makeExecuteFunction(pattern, handler, paramNames);
         // TODO: temp testing... extract rule's 'priority' from comment in pattern...
         // NB: default is 0.
         // NB: error handling??? throw error if not numeric?
-        this.comment = patternSource.split('#')[1] || '';
+        this.comment = pattern.source.split('#')[1] || '';
     }
     /** Returns a textual representation of this Rule instance. */
-    Rule.prototype.toString = function () { return "'" + this.patternSource + "': " + this.handler; };
+    Rule.prototype.toString = function () { return "'" + this.pattern.source + "': " + this.handler; };
     return Rule;
 }());
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -50,13 +51,13 @@ exports.default = Rule;
  */
 var builtinNames = ['$req', '$next'];
 /** Internal function used to create the Rule#execute method. */
-function makeExecuteFunction(patternSource, handler, paramNames) {
+function makeExecuteFunction(pattern, handler, paramNames) {
     // TODO: get capture names and match function... review these lines...
-    var captureNames = parse_pattern_source_1.default(patternSource).captureNames.filter(function (n) { return n !== '?'; });
-    var match = make_match_function_1.default(patternSource);
+    var captureNames = parse_pattern_source_1.default(pattern.source).captureNames.filter(function (n) { return n !== '?'; });
+    var match = make_match_function_1.default(pattern.source);
     // Assert the mutual validity of `pattern` and `paramNames`. This allows the body of
     // the 'execute' function to be simpler, as it can safely forego some extra checks.
-    validateNames(patternSource, captureNames, paramNames);
+    validateNames(pattern, captureNames, paramNames);
     // If the handler function has a formal parameter named '$yield', that signifies this rule as a decorator.
     var isDecorator = paramNames.indexOf('$next') !== -1;
     // Precompute a map with keys that match all of the the `action` function's formal parameter names. The value
@@ -85,21 +86,21 @@ function makeExecuteFunction(patternSource, handler, paramNames) {
  * - Every capture name in the pattern must also be present among the action's parameter names.
  * - None of the pattern's capture names may match a builtin name.
  */
-function validateNames(patternSource, captureNames, paramNames) {
+function validateNames(pattern, captureNames, paramNames) {
     var bnames = builtinNames;
     var pnames = paramNames;
     var cnames = captureNames;
     // We already know the capture names are valid JS identifiers. Now also ensure they don't clash with builtin names.
     var badCaptures = cnames.filter(function (cname) { return bnames.indexOf(cname) !== -1; });
     var ok = badCaptures.length === 0;
-    assert(ok, "Use of reserved name(s) '" + badCaptures.join("', '") + "' as capture(s) in pattern '" + patternSource + "'");
+    assert(ok, "Use of reserved name(s) '" + badCaptures.join("', '") + "' as capture(s) in pattern '" + pattern_1.default + "'");
     // Ensure that all capture names appear among the handler's parameter names (i.e. check for unused capture names).
     var excessCaptures = cnames.filter(function (cname) { return pnames.indexOf(cname) === -1; });
     ok = excessCaptures.length === 0;
-    assert(ok, "Capture name(s) '" + excessCaptures.join("', '") + "' unused by handler in pattern '" + patternSource + "'");
+    assert(ok, "Capture name(s) '" + excessCaptures.join("', '") + "' unused by handler in pattern '" + pattern + "'");
     // Ensure every parameter name matches either a capture name or a builtin name (i.e. check for unsatisfied params).
     var excessParams = pnames.filter(function (pname) { return bnames.indexOf(pname) === -1 && cnames.indexOf(pname) === -1; });
     ok = excessParams.length === 0;
-    assert(ok, "Handler parameter(s) '" + excessParams.join("', '") + "' not captured by pattern '" + patternSource + "'");
+    assert(ok, "Handler parameter(s) '" + excessParams.join("', '") + "' not captured by pattern '" + pattern + "'");
 }
 //# sourceMappingURL=rule.js.map

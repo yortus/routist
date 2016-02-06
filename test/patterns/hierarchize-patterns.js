@@ -1,6 +1,7 @@
 'use strict';
 var chai_1 = require('chai');
 var hierarchize_patterns_1 = require('../../src/patterns/hierarchize-patterns');
+var pattern_1 = require('../../src/patterns/pattern');
 describe('Hierarchizing a set of patterns', function () {
     var patternSources = [
         'a*',
@@ -90,8 +91,14 @@ describe('Hierarchizing a set of patterns', function () {
         }
     };
     it('works', function () {
-        var actual = hierarchize_patterns_1.default(patternSources);
+        var patterns = patternSources.map(function (ps) { return new pattern_1.default(ps); });
+        var actual = mapToObj(hierarchize_patterns_1.default(patterns)); // TODO: review this line...
         chai_1.expect(actual).deep.equal(expected);
     });
 });
+// TODO: doc...
+function mapToObj(map) {
+    var patterns = Array.from(map.keys());
+    return patterns.reduce(function (obj, pat) { return (obj[pat.source] = mapToObj(map.get(pat)), obj); }, {});
+}
 //# sourceMappingURL=hierarchize-patterns.js.map

@@ -27,7 +27,7 @@ export default class Router {
 
     // TODO: doc...
     add(routeTable: {[pattern: string]: Function}) {
-        let patternHierarchy = hierarchizePatterns(Object.keys(routeTable));
+        let patternHierarchy = hierarchizePatterns(Object.keys(routeTable).map(src => new Pattern(src)));
         let finalHandlers = test(routeTable); // TODO: fix terminology: 'handler' is taken...
         let makeDecision = makeDecisionTree(patternHierarchy);
 

@@ -1,4 +1,6 @@
 'use strict';
+var pattern_1 = require('../patterns/pattern');
+// TODO: review jsdocs after Pattern reforms...
 /**
  * Enumerates each walk through the nodes of the `patternHierarchy` DAG that begins at the
  * root node. The provided `callback` function is called once for each such walk. The walk
@@ -12,7 +14,7 @@
  * @returns an array of the return values from each `callback` call.
  */
 function walkPatternHierarchy(patternHierarchy, callback) {
-    var walks = getAllWalksStartingFrom('…', patternHierarchy['…']);
+    var walks = getAllWalksStartingFrom(pattern_1.default.UNIVERSAL, patternHierarchy.get(pattern_1.default.UNIVERSAL));
     return walks.map(callback);
 }
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -26,7 +28,7 @@ function getAllWalksStartingFrom(node, children) {
     // Always include the degenerate walk of just [node] in the result.
     var result = [[node]];
     // Recursively get all possible trails starting from each child node.
-    var childTrailLists = Object.keys(children).map(function (childRoot) { return getAllWalksStartingFrom(childRoot, children[childRoot]); });
+    var childTrailLists = Array.from(children.keys()).map(function (childPat) { return getAllWalksStartingFrom(childPat, children.get(childPat)); });
     // Flatten the list-of-lists produced by the previous map operation.
     var childTrails = [].concat.apply([], childTrailLists);
     // Prepend `node` to each child trail and add them to the result.

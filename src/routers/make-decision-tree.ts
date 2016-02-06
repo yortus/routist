@@ -1,7 +1,7 @@
 'use strict';
 import getKeysDeep from '../utils/get-keys-deep';
+import Hierarchy from '../utils/hierarchy';
 import makeMatchFunction from '../patterns/make-match-function';
-import {PatternHierarchy} from '../patterns/hierarchize-patterns';
 import Pattern from '../patterns/pattern';
 
 
@@ -16,27 +16,27 @@ type GetBestMatchingPatternSignature = (address: string) => string;
 
 
 // TODO: ...
-export default function makeDecisionTree(patternHierarchy: PatternHierarchy): GetBestMatchingPatternSignature {
+export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): GetBestMatchingPatternSignature {
 
     // TODO: ...
-    let patternSignatures = getKeysDeep(patternHierarchy);
+    let patterns = getKeysDeep(patternHierarchy);
 
     // TODO: ...
     type QuickMatch = (address: string) => boolean;
-    let patternMatchers = patternSignatures.reduce((map, sig) => {
-        let match = makeMatchFunction(sig);
-        map[sig] = (address: string) => match(address) !== null;
+    let patternMatchers = patterns.reduce((map, pat) => {
+        let match = makeMatchFunction(pat.normalized.source);
+        map[pat.source] = (address: string) => match(address) !== null;
         return map;
     }, <{[pattern: string]: QuickMatch}>{});
 
 
     // TODO: ...
-    function getPrologLines(patterns: PatternHierarchy): string[] {
-        let lines = Object.keys(patterns).map(signature => {
-            let id = getIdForPatternSignature(signature, '__', '__');
+    function getPrologLines(patterns: Hierarchy<Pattern>): string[] {
+        let lines = Array.from(patterns.keys()).map(pat => {
+            let id = getIdForPatternSignature(pat.normalized.source, '__', '__');
             return [
-                `let ${id} = patternMatchers['${signature}'];`,
-                ...getPrologLines(patterns[signature])
+                `let ${id} = patternMatchers['${pat}'];`,
+                ...getPrologLines(patterns.get(pat))
             ];
         });
         return dedupe([].concat(...lines));
@@ -44,12 +44,12 @@ export default function makeDecisionTree(patternHierarchy: PatternHierarchy): Ge
 
 
     // TODO: doc...
-    function getBodyLines(thisPattern: string, childPatterns: PatternHierarchy): string[] {
-        let childLines = Object.keys(childPatterns).map((signature, i) => {
-            let id = getIdForPatternSignature(signature, '__', '__');
+    function getBodyLines(thisPattern: Pattern, childPatterns: Hierarchy<Pattern>): string[] {
+        let childLines = Array.from(childPatterns.keys()).map((pat, i) => {
+            let id = getIdForPatternSignature(pat.normalized.source, '__', '__');
             return [
                 `${i > 0 ? 'else ' : ''}if (${id}(address)) {`,
-                ...getBodyLines(signature, childPatterns[signature]).map(line => '    ' + line),
+                ...getBodyLines(pat, childPatterns.get(pat)).map(line => '    ' + line),
                 `}`
             ];
         });
@@ -59,10 +59,10 @@ export default function makeDecisionTree(patternHierarchy: PatternHierarchy): Ge
 
 
     let lines = [
-        ...getPrologLines(patternHierarchy['…']),
+        ...getPrologLines(patternHierarchy.get(Pattern.UNIVERSAL)),
         '',
         'return function getBestMatchingPatternSignature(address) {',
-        ...getBodyLines('…', patternHierarchy['…']).map(line => '    ' + line),
+        ...getBodyLines(Pattern.UNIVERSAL, patternHierarchy.get(Pattern.UNIVERSAL)).map(line => '    ' + line),
         '};'
     ];
     let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();

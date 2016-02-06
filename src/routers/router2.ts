@@ -29,38 +29,38 @@ type FinalHandlers = {[pattern: string]: (rq: Request) => Response};
 export default function test(routeTable: {[patternSource: string]: Function}): FinalHandlers {
 
     // TODO: ...
-    let rules = Object.keys(routeTable).map(patternSource => new Rule(patternSource, routeTable[patternSource]));
+    let rules = Object.keys(routeTable).map(ps => new Rule(new Pattern(ps), routeTable[ps]));
 
     // // TODO: add special root rule...
     // // TODO: add it unconditionally and add tieBreak handler that always makes it the least specific rule
-    let _404 = new Rule('…', () => { throw new Error('404!');});
+    let _404 = new Rule(Pattern.UNIVERSAL, () => { throw new Error('404!');});
     rules.push(_404);
 
     // TODO: get pattern hierarchy...
-    let patternHierarchy = hierarchizePatterns(rules.map(rule => rule.patternSource));
-    let patternSignatures = getKeysDeep(patternHierarchy);
+    let patternHierarchy = hierarchizePatterns(rules.map(rule => rule.pattern)); // TODO: review this line...
+    let patterns = getKeysDeep(patternHierarchy);
 
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
-    let rulesForPattern = patternSignatures.reduce((map, sig) => {
-        map[sig] = rules.filter(r => new Pattern(r.patternSource).normalized.source === sig); // TODO: inefficient! review this...
+    let rulesForPattern = patterns.reduce((map, pat) => {
+        map[pat.source] = rules.filter(r => r.pattern.normalized === pat); // TODO: inefficient! review this...
         return map;
-    }, <{[pattern: string]: Rule[]}>{});
+    }, <{[pattern: string]: Rule[]}>{}); // TODO: use Map not obj here...
 
     // TODO: add no-op rules so that for each signature there are 1..M rules
     // TODO: review this... always correct to use no-op function in these cases? Even for ROOT?
-    patternSignatures.forEach(sig => {
-        let rules = rulesForPattern[sig];
+    patterns.forEach(pat => {
+        let rules = rulesForPattern[pat.source];
         if (rules.length === 0) {
-            rules.push(new Rule(sig, noop));
+            rules.push(new Rule(pat, noop));
         }
     });
     function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
 
     // Order equal-best rules using tie-break rules. Fail if any ambiguities remain.
     // TODO: improve error message/handling in here...
-    patternSignatures.forEach(pattern => {
-        let rules = rulesForPattern[pattern];
+    patterns.forEach(pattern => {
+        let rules = rulesForPattern[pattern.source];
         rules.sort((a, b) => {
            let moreSpecific = tieBreakFn(a, b);
            assert(moreSpecific === a || moreSpecific === b, `ambiguous rules - which is more specific? A: ${a}, B: ${b}`);
@@ -90,7 +90,7 @@ export default function test(routeTable: {[patternSource: string]: Function}): F
     let ruleWalks = patternWalks.map(path => {
         let rulePath: Rule[] = [];
         for (let i = 0; i < path.length; ++i) {
-            let signature = path[i];
+            let signature = path[i].source;
             let rules = rulesForPattern[signature];
             rulePath = rulePath.concat(rules);
         }
@@ -102,13 +102,15 @@ export default function test(routeTable: {[patternSource: string]: Function}): F
 
 
     // TODO: for each pattern signature, get the ONE path or fail trying
-    let ruleWalkForPattern = patternSignatures.reduce((map, sig) => {
-        let candidates = ruleWalks.filter(walk => new Pattern(walk[walk.length - 1].patternSource).normalized.source === sig); // TODO: inefficient! review this...
+    let ruleWalkForPattern = patterns.reduce((map, pat) => {
+        let candidates = ruleWalks.filter(walk => walk[walk.length - 1].pattern.normalized === pat.normalized); // TODO: inefficient! review this...
 
         if (candidates.length === 1) {
-            map[sig] = candidates[0];
+            map[pat.source] = candidates[0];
             return map;
         }
+
+
 
 
         
@@ -137,20 +139,20 @@ export default function test(routeTable: {[patternSource: string]: Function}): F
             let choppedRules = cand.slice(prefixLength, -suffixLength);
             if (choppedRules.every(rule => !rule.isDecorator)) return;
             // TODO: improve error message/handling
-            throw new Error(`Multiple routes to '${sig}' with different decorators`);
+            throw new Error(`Multiple routes to '${pat}' with different decorators`);
         });
 
         // synthesize a 'crasher' rule that throws an 'ambiguous' error.
         let fallbacks = candidates.map(cand => cand[cand.length - suffixLength - 1]);
-        let crasher = new Rule(sig, function crasher() {
+        let crasher = new Rule(pat, function crasher() {
             // TODO: improve error message/handling
-            throw new Error(`Multiple possible fallbacks from '${sig}: ${fallbacks.map(r => r.toString())}`);
+            throw new Error(`Multiple possible fallbacks from '${pat}: ${fallbacks.map(r => r.toString())}`);
         });
 
         // final composite rule: splice of common prefix + crasher + common suffix
         let commonPrefix = candidates[0].slice(0, prefixLength);
         let commonSuffix = candidates[0].slice(-suffixLength);
-        map[sig] = [].concat(commonPrefix, crasher, commonSuffix);
+        map[pat.source] = [].concat(commonPrefix, crasher, commonSuffix);
         return map;
     }, <{[pattern: string]: Rule[]}>{});
 
@@ -163,11 +165,11 @@ export default function test(routeTable: {[patternSource: string]: Function}): F
 
     // reduce each signature's rule walk down to a simple handler function.
     const noMore = (rq: Request) => <Response>null;
-    let finalHandlers = patternSignatures.reduce((map, sig) => {
-        let reverseRuleWalk = ruleWalkForPattern[sig].slice().reverse();
-        map[sig] = reverseRuleWalk.reduce((ds, rule) => request => rule.execute(request, ds), noMore);
+    let finalHandlers = patterns.reduce((map, pat) => {
+        let reverseRuleWalk = ruleWalkForPattern[pat.source].slice().reverse();
+        map[pat.source] = reverseRuleWalk.reduce((ds, rule) => request => rule.execute(request, ds), noMore);
         return map;
-    }, <{[pattern: string]: (rq: Request) => Response}>{});
+    }, <{[pattern: string]: (rq: Request) => Response}>{}); // TODO: use Map not obj here...
 
     return finalHandlers;
 

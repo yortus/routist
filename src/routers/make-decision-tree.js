@@ -1,33 +1,34 @@
 'use strict';
 var get_keys_deep_1 = require('../utils/get-keys-deep');
 var make_match_function_1 = require('../patterns/make-match-function');
+var pattern_1 = require('../patterns/pattern');
 // TODO: ...
 function makeDecisionTree(patternHierarchy) {
     // TODO: ...
-    var patternSignatures = get_keys_deep_1.default(patternHierarchy);
-    var patternMatchers = patternSignatures.reduce(function (map, sig) {
-        var match = make_match_function_1.default(sig);
-        map[sig] = function (address) { return match(address) !== null; };
+    var patterns = get_keys_deep_1.default(patternHierarchy);
+    var patternMatchers = patterns.reduce(function (map, pat) {
+        var match = make_match_function_1.default(pat.normalized.source);
+        map[pat.source] = function (address) { return match(address) !== null; };
         return map;
     }, {});
     // TODO: ...
     function getPrologLines(patterns) {
-        var lines = Object.keys(patterns).map(function (signature) {
-            var id = getIdForPatternSignature(signature, '__', '__');
+        var lines = Array.from(patterns.keys()).map(function (pat) {
+            var id = getIdForPatternSignature(pat.normalized.source, '__', '__');
             return [
-                ("let " + id + " = patternMatchers['" + signature + "'];")
-            ].concat(getPrologLines(patterns[signature]));
+                ("let " + id + " = patternMatchers['" + pat + "'];")
+            ].concat(getPrologLines(patterns.get(pat)));
         });
         return dedupe((_a = []).concat.apply(_a, lines));
         var _a;
     }
     // TODO: doc...
     function getBodyLines(thisPattern, childPatterns) {
-        var childLines = Object.keys(childPatterns).map(function (signature, i) {
-            var id = getIdForPatternSignature(signature, '__', '__');
+        var childLines = Array.from(childPatterns.keys()).map(function (pat, i) {
+            var id = getIdForPatternSignature(pat.normalized.source, '__', '__');
             return [
                 ((i > 0 ? 'else ' : '') + "if (" + id + "(address)) {")
-            ].concat(getBodyLines(signature, childPatterns[signature]).map(function (line) { return '    ' + line; }), [
+            ].concat(getBodyLines(pat, childPatterns.get(pat)).map(function (line) { return '    ' + line; }), [
                 "}"
             ]);
         });
@@ -35,10 +36,10 @@ function makeDecisionTree(patternHierarchy) {
         return (_a = []).concat.apply(_a, childLines.concat([lastLine]));
         var _a;
     }
-    var lines = getPrologLines(patternHierarchy['…']).concat([
+    var lines = getPrologLines(patternHierarchy.get(pattern_1.default.UNIVERSAL)).concat([
         '',
         'return function getBestMatchingPatternSignature(address) {'
-    ], getBodyLines('…', patternHierarchy['…']).map(function (line) { return '    ' + line; }), [
+    ], getBodyLines(pattern_1.default.UNIVERSAL, patternHierarchy.get(pattern_1.default.UNIVERSAL)).map(function (line) { return '    ' + line; }), [
         '};'
     ]);
     var fn = eval("(() => {\n" + lines.join('\n') + "\n})")();

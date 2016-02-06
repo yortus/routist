@@ -39,15 +39,15 @@ export default class Rule {
      *        return value from `action` signifies that the action declined to respond to
      *        the given request, even if the pattern matched the request's address.
      */
-    constructor(public patternSource: string, private handler: Function) {
+    constructor(public pattern: Pattern, private handler: Function) {
         let paramNames = getFunctionParameterNames(handler);
         this.isDecorator = paramNames.indexOf('$next') !== -1;
-        this.execute = <any> makeExecuteFunction(patternSource, handler, paramNames);
+        this.execute = <any> makeExecuteFunction(pattern, handler, paramNames);
 
         // TODO: temp testing... extract rule's 'priority' from comment in pattern...
         // NB: default is 0.
         // NB: error handling??? throw error if not numeric?
-        this.comment = patternSource.split('#')[1] || '';
+        this.comment = pattern.source.split('#')[1] || '';
     }
 
 
@@ -90,7 +90,7 @@ export default class Rule {
 
 
     /** Returns a textual representation of this Rule instance. */
-    toString() { return `'${this.patternSource}': ${this.handler}`; }
+    toString() { return `'${this.pattern.source}': ${this.handler}`; }
 }
 
 
@@ -111,15 +111,15 @@ var builtinNames = ['$req', '$next'];
 
 
 /** Internal function used to create the Rule#execute method. */
-function makeExecuteFunction(patternSource: string, handler: Function, paramNames: string[]) {
+function makeExecuteFunction(pattern: Pattern, handler: Function, paramNames: string[]) {
 
     // TODO: get capture names and match function... review these lines...
-    let captureNames = parsePatternSource(patternSource).captureNames.filter(n => n !== '?');
-    let match = makeMatchFunction(patternSource);
+    let captureNames = parsePatternSource(pattern.source).captureNames.filter(n => n !== '?');
+    let match = makeMatchFunction(pattern.source);
 
     // Assert the mutual validity of `pattern` and `paramNames`. This allows the body of
     // the 'execute' function to be simpler, as it can safely forego some extra checks.
-    validateNames(patternSource, captureNames, paramNames);
+    validateNames(pattern, captureNames, paramNames);
 
     // If the handler function has a formal parameter named '$yield', that signifies this rule as a decorator.
     let isDecorator = paramNames.indexOf('$next') !== -1;
@@ -165,7 +165,7 @@ function makeExecuteFunction(patternSource: string, handler: Function, paramName
  * - Every capture name in the pattern must also be present among the action's parameter names.
  * - None of the pattern's capture names may match a builtin name.
  */
-function validateNames(patternSource: string, captureNames: string[], paramNames: string[]) {
+function validateNames(pattern: Pattern, captureNames: string[], paramNames: string[]) {
     let bnames = builtinNames;
     let pnames = paramNames;
     let cnames = captureNames;
@@ -173,15 +173,15 @@ function validateNames(patternSource: string, captureNames: string[], paramNames
     // We already know the capture names are valid JS identifiers. Now also ensure they don't clash with builtin names.
     let badCaptures = cnames.filter(cname => bnames.indexOf(cname) !== -1);
     let ok = badCaptures.length === 0;
-    assert(ok, `Use of reserved name(s) '${badCaptures.join("', '")}' as capture(s) in pattern '${patternSource}'`);
+    assert(ok, `Use of reserved name(s) '${badCaptures.join("', '")}' as capture(s) in pattern '${Pattern}'`);
 
     // Ensure that all capture names appear among the handler's parameter names (i.e. check for unused capture names).
     let excessCaptures = cnames.filter(cname => pnames.indexOf(cname) === -1);
     ok = excessCaptures.length === 0;
-    assert(ok, `Capture name(s) '${excessCaptures.join("', '")}' unused by handler in pattern '${patternSource}'`);
+    assert(ok, `Capture name(s) '${excessCaptures.join("', '")}' unused by handler in pattern '${pattern}'`);
 
     // Ensure every parameter name matches either a capture name or a builtin name (i.e. check for unsatisfied params).
     let excessParams = pnames.filter(pname => bnames.indexOf(pname) === -1 && cnames.indexOf(pname) === -1);
     ok = excessParams.length === 0;
-    assert(ok, `Handler parameter(s) '${excessParams.join("', '")}' not captured by pattern '${patternSource}'`);
+    assert(ok, `Handler parameter(s) '${excessParams.join("', '")}' not captured by pattern '${pattern}'`);
 }

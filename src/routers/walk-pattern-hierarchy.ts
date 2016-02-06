@@ -1,5 +1,7 @@
 'use strict';
-import {PatternHierarchy} from '../patterns/hierarchize-patterns';
+import Hierarchy from '../utils/hierarchy';
+import Pattern from '../patterns/pattern';
+// TODO: review jsdocs after Pattern reforms...
 
 
 
@@ -17,8 +19,8 @@ import {PatternHierarchy} from '../patterns/hierarchize-patterns';
  * @param {(path: string[]) => any} callback - the function to be called for each walk.
  * @returns an array of the return values from each `callback` call.
  */
-export default function walkPatternHierarchy<T>(patternHierarchy: PatternHierarchy, callback: (path: string[]) => T): T[] {
-    let walks = getAllWalksStartingFrom('…',  patternHierarchy['…']);
+export default function walkPatternHierarchy<T>(patternHierarchy: Hierarchy<Pattern>, callback: (path: Pattern[]) => T): T[] {
+    let walks = getAllWalksStartingFrom(Pattern.UNIVERSAL, patternHierarchy.get(Pattern.UNIVERSAL));
     return walks.map(callback);
 }
 
@@ -31,16 +33,16 @@ export default function walkPatternHierarchy<T>(patternHierarchy: PatternHierarc
  * via `children`. The degenerate walk consisting of just `node` is included in the result.
  * The returned value is an array of paths, which are themselves arrays of signature strings.
  */
-function getAllWalksStartingFrom(node: string, children: PatternHierarchy): string[][] {
+function getAllWalksStartingFrom(node: Pattern, children: Hierarchy<Pattern>): Pattern[][] {
 
     // Always include the degenerate walk of just [node] in the result.
     let result = [[node]];
 
     // Recursively get all possible trails starting from each child node.
-    let childTrailLists = Object.keys(children).map(childRoot => getAllWalksStartingFrom(childRoot, children[childRoot]));
+    let childTrailLists = Array.from(children.keys()).map(childPat => getAllWalksStartingFrom(childPat, children.get(childPat)));
 
     // Flatten the list-of-lists produced by the previous map operation.
-    let childTrails: string[][] = [].concat.apply([], childTrailLists);
+    let childTrails: Pattern[][] = [].concat.apply([], childTrailLists);
 
     // Prepend `node` to each child trail and add them to the result.
     childTrails.forEach(trail => {

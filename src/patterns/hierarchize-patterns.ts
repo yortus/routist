@@ -1,5 +1,6 @@
 'use strict';
 import * as assert from 'assert';
+import Hierarchy from '../utils/hierarchy';
 import intersectPatterns from './intersect-patterns';
 import Pattern from './pattern';
 // TODO: review jsdocs after pattern overhaul
@@ -36,25 +37,30 @@ import Pattern from './pattern';
  *        whose values are more 'nodes'. The returned node always contains the
  *        single key '…'.
  */
-export default function hierarchizePatterns(patternSources: string[]) {
+export default function hierarchizePatterns(patterns: Pattern[]): Hierarchy<Pattern> {
 
-    // TODO: temp ensure we are working with normalised patterns! review this...
-    patternSources = patternSources.map(ps => new Pattern(ps).normalized.source); // TODO: review this line
+    // TODO: we only need to deal with normalised patterns in here. Simpler to map to them now...
+    patterns = patterns.map(pat => pat.normalized);
 
     // Create the nodeFor() function to return nodes from a single associative array
     // of patterns, creating them on demand if they don't exist. This ensures every
     // request for the same pattern gets the same singleton node.
-    let map: PatternHierarchy = {};
-    let nodeFor = (pattern: string) => map[pattern] || (map[pattern] = {});
+    let map = <Hierarchy<Pattern>> new Map();
+    let nodeFor = (pattern: Pattern) => {
+        let node = map.get(pattern);
+        if (node) return node;
+        node = <any> new Map();
+        map.set(pattern, node);
+        return node;
+    }
 
     // Insert each of the given patterns (except '…' and '∅') into a DAG rooted at '…'.
-    let root = new Pattern('…');
-    patternSources
-        .filter(ps => ps !== '…' && ps !== '∅')
-        .forEach(ps => insert(ps, '…', nodeFor));
+    patterns
+        .filter(p => p !== Pattern.UNIVERSAL && p !== Pattern.EMPTY)
+        .forEach(p => insert(p, Pattern.UNIVERSAL, nodeFor));
 
     // Return a top-level node with the single key '…'.
-    return <PatternHierarchy> {'…': nodeFor('…')};
+    return <Hierarchy<Pattern>> new Map().set(Pattern.UNIVERSAL, nodeFor(Pattern.UNIVERSAL));
 }
 
 
@@ -77,23 +83,23 @@ export type PatternHierarchy = {[patternSource: string]: PatternHierarchy};
  * @param {(pattern: string) => PatternHierarchy} nodeFor - A callback used by the
  *        function to map patterns to their corresponding nodes on demand.
  */
-function insert(pattern: string, superset: string, nodeFor: (pattern: string) => PatternHierarchy) {
+function insert(pattern: Pattern, superset: Pattern, nodeFor: (pattern: Pattern) => Hierarchy<Pattern>) {
 
     // Compute information about all the existing direct subsets of `superset`.
     // We only care about the ones that are non-disjoint with `pattern`.
-    let nonDisjointComparands = Object.keys(nodeFor(superset))
-        .map(p => ({ pattern: p, intersection: intersectPatterns(new Pattern(pattern), new Pattern(p)).normalized.source })) // TODO: review this line
-        .filter(cmp => cmp.intersection !== '∅');
+    let nonDisjointComparands = Array.from(nodeFor(superset).keys())
+        .map(p => ({ pattern: p, intersection: intersectPatterns(pattern, p) })) // TODO: review this line
+        .filter(cmp => cmp.intersection !== Pattern.EMPTY);
 
     // If `superset` has no direct subsets that are non-disjoint with `pattern`, then we
     // simply add `pattern` as a direct subset of `superset`.
     if (nonDisjointComparands.length === 0) {
-        nodeFor(superset)[pattern] = nodeFor(pattern);
+        nodeFor(superset).set(pattern, nodeFor(pattern));
     }
 
     // If `pattern` already exists as a direct subset of `superset` at this stage
     // (including if it was just added above), then we are done.
-    if (nodeFor(superset)[pattern]) return;
+    if (nodeFor(superset).has(pattern)) return;
 
     // `pattern` has subset/superset/overlapping relationships with one or more of
     // `superset`'s existing direct subsets. Work out how and where to insert it.
@@ -104,12 +110,12 @@ function insert(pattern: string, superset: string, nodeFor: (pattern: string) =>
 
         if (isSupersetOfComparand) {
             // Remove the comparand from `superset`. It will be re-inserted as a subset of `pattern` below.
-            delete nodeFor(superset)[comparand.pattern];
+            nodeFor(superset).delete(comparand.pattern);
         }
 
         if (isSupersetOfComparand || isOverlappingComparand) {
             // Add `pattern` as a direct subset of `superset`.
-            nodeFor(superset)[pattern] = nodeFor(pattern);
+            nodeFor(superset).set(pattern, nodeFor(pattern));
 
             // Recursively re-insert the comparand (or insert the overlap) as a subset of `pattern`.
             insert(comparand.intersection, pattern, nodeFor);

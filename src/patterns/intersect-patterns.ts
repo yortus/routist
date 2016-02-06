@@ -2,7 +2,7 @@
 import parsePatternSource from './parse-pattern-source';
 import Pattern from './pattern';
 // TODO: review jsdocs after pattern overhaul
-
+// TODO: document: return value is guaranteed to be normalized
 
 
 

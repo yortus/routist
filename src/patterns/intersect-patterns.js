@@ -1,6 +1,7 @@
 'use strict';
 var pattern_1 = require('./pattern');
 // TODO: review jsdocs after pattern overhaul
+// TODO: document: return value is guaranteed to be normalized
 /**
  * Generates a pattern that matches all the addresses that are matched by *both*
  * patterns `a` and `b`. Returns the empty pattern '∅' if `a` and `b` are disjoint.

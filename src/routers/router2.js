@@ -8,33 +8,33 @@ var walk_pattern_hierarchy_1 = require('./walk-pattern-hierarchy');
 // TODO: ...
 function test(routeTable) {
     // TODO: ...
-    var rules = Object.keys(routeTable).map(function (patternSource) { return new rule_1.default(patternSource, routeTable[patternSource]); });
+    var rules = Object.keys(routeTable).map(function (ps) { return new rule_1.default(new pattern_1.default(ps), routeTable[ps]); });
     // // TODO: add special root rule...
     // // TODO: add it unconditionally and add tieBreak handler that always makes it the least specific rule
-    var _404 = new rule_1.default('…', function () { throw new Error('404!'); });
+    var _404 = new rule_1.default(pattern_1.default.UNIVERSAL, function () { throw new Error('404!'); });
     rules.push(_404);
     // TODO: get pattern hierarchy...
-    var patternHierarchy = hierarchize_patterns_1.default(rules.map(function (rule) { return rule.patternSource; }));
-    var patternSignatures = get_keys_deep_1.default(patternHierarchy);
+    var patternHierarchy = hierarchize_patterns_1.default(rules.map(function (rule) { return rule.pattern; })); // TODO: review this line...
+    var patterns = get_keys_deep_1.default(patternHierarchy);
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
-    var rulesForPattern = patternSignatures.reduce(function (map, sig) {
-        map[sig] = rules.filter(function (r) { return new pattern_1.default(r.patternSource).normalized.source === sig; }); // TODO: inefficient! review this...
+    var rulesForPattern = patterns.reduce(function (map, pat) {
+        map[pat.source] = rules.filter(function (r) { return r.pattern.normalized === pat; }); // TODO: inefficient! review this...
         return map;
-    }, {});
+    }, {}); // TODO: use Map not obj here...
     // TODO: add no-op rules so that for each signature there are 1..M rules
     // TODO: review this... always correct to use no-op function in these cases? Even for ROOT?
-    patternSignatures.forEach(function (sig) {
-        var rules = rulesForPattern[sig];
+    patterns.forEach(function (pat) {
+        var rules = rulesForPattern[pat.source];
         if (rules.length === 0) {
-            rules.push(new rule_1.default(sig, noop));
+            rules.push(new rule_1.default(pat, noop));
         }
     });
     function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
     // Order equal-best rules using tie-break rules. Fail if any ambiguities remain.
     // TODO: improve error message/handling in here...
-    patternSignatures.forEach(function (pattern) {
-        var rules = rulesForPattern[pattern];
+    patterns.forEach(function (pattern) {
+        var rules = rulesForPattern[pattern.source];
         rules.sort(function (a, b) {
             var moreSpecific = tieBreakFn(a, b);
             assert(moreSpecific === a || moreSpecific === b, "ambiguous rules - which is more specific? A: " + a + ", B: " + b);
@@ -61,7 +61,7 @@ function test(routeTable) {
     var ruleWalks = patternWalks.map(function (path) {
         var rulePath = [];
         for (var i = 0; i < path.length; ++i) {
-            var signature = path[i];
+            var signature = path[i].source;
             var rules_1 = rulesForPattern[signature];
             rulePath = rulePath.concat(rules_1);
         }
@@ -69,10 +69,10 @@ function test(routeTable) {
     });
     //console.log(ruleWalks);
     // TODO: for each pattern signature, get the ONE path or fail trying
-    var ruleWalkForPattern = patternSignatures.reduce(function (map, sig) {
-        var candidates = ruleWalks.filter(function (walk) { return new pattern_1.default(walk[walk.length - 1].patternSource).normalized.source === sig; }); // TODO: inefficient! review this...
+    var ruleWalkForPattern = patterns.reduce(function (map, pat) {
+        var candidates = ruleWalks.filter(function (walk) { return walk[walk.length - 1].pattern.normalized === pat.normalized; }); // TODO: inefficient! review this...
         if (candidates.length === 1) {
-            map[sig] = candidates[0];
+            map[pat.source] = candidates[0];
             return map;
         }
         // find the longest common prefix of all the candidates.
@@ -110,28 +110,28 @@ function test(routeTable) {
             if (choppedRules.every(function (rule) { return !rule.isDecorator; }))
                 return;
             // TODO: improve error message/handling
-            throw new Error("Multiple routes to '" + sig + "' with different decorators");
+            throw new Error("Multiple routes to '" + pat + "' with different decorators");
         });
         // synthesize a 'crasher' rule that throws an 'ambiguous' error.
         var fallbacks = candidates.map(function (cand) { return cand[cand.length - suffixLength - 1]; });
-        var crasher = new rule_1.default(sig, function crasher() {
+        var crasher = new rule_1.default(pat, function crasher() {
             // TODO: improve error message/handling
-            throw new Error("Multiple possible fallbacks from '" + sig + ": " + fallbacks.map(function (r) { return r.toString(); }));
+            throw new Error("Multiple possible fallbacks from '" + pat + ": " + fallbacks.map(function (r) { return r.toString(); }));
         });
         // final composite rule: splice of common prefix + crasher + common suffix
         var commonPrefix = candidates[0].slice(0, prefixLength);
         var commonSuffix = candidates[0].slice(-suffixLength);
-        map[sig] = [].concat(commonPrefix, crasher, commonSuffix);
+        map[pat.source] = [].concat(commonPrefix, crasher, commonSuffix);
         return map;
     }, {});
     //console.log(ruleWalkForPattern);
     // reduce each signature's rule walk down to a simple handler function.
     var noMore = function (rq) { return null; };
-    var finalHandlers = patternSignatures.reduce(function (map, sig) {
-        var reverseRuleWalk = ruleWalkForPattern[sig].slice().reverse();
-        map[sig] = reverseRuleWalk.reduce(function (ds, rule) { return function (request) { return rule.execute(request, ds); }; }, noMore);
+    var finalHandlers = patterns.reduce(function (map, pat) {
+        var reverseRuleWalk = ruleWalkForPattern[pat.source].slice().reverse();
+        map[pat.source] = reverseRuleWalk.reduce(function (ds, rule) { return function (request) { return rule.execute(request, ds); }; }, noMore);
         return map;
-    }, {});
+    }, {}); // TODO: use Map not obj here...
     return finalHandlers;
 }
 Object.defineProperty(exports, "__esModule", { value: true });

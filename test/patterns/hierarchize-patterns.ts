@@ -1,6 +1,7 @@
 'use strict';
 import {expect} from 'chai';
 import hierarchizePatterns from '../../src/patterns/hierarchize-patterns';
+import Hierarchy from '../../src/utils/hierarchy';
 import Pattern from '../../src/patterns/pattern';
 
 
@@ -96,7 +97,15 @@ describe('Hierarchizing a set of patterns', () => {
     };
 
     it('works', () => {
-        let actual = hierarchizePatterns(patternSources);
+        let patterns = patternSources.map(ps => new Pattern(ps));
+        let actual = mapToObj(hierarchizePatterns(patterns)); // TODO: review this line...
         expect(actual).deep.equal(expected);
     });
 });
+
+
+// TODO: doc...
+function mapToObj(map: Hierarchy<any>) {
+    let patterns = Array.from(map.keys());
+    return patterns.reduce((obj, pat) => (obj[pat.source] = mapToObj(map.get(pat)), obj), {});
+}
