@@ -5,6 +5,21 @@ import parsePatternSource from './parse-pattern-source';
 
 
 
+/**
+ * Attempts to match a given address against the bound pattern. For successful matches, a
+ * hash is returned containing the name/value pairs for each named capture in the pattern.
+ * For failed matches the return value is null.
+ * @param {string} address - the address to match against the pattern.
+ * @returns {Object} null if the match failed, otherwise a hash of captured name/value pairs.
+ */
+export interface MatchFunction {
+    (address: string): {[captureName: string]: string};
+}
+
+
+
+
+
 // TODO: revise jsdoc...
 // TODO: add separate tests for this?
 /** Internal function used to create the Pattern#match method. */
@@ -24,7 +39,7 @@ export default function makeMatchFunction(patternSource: string) {
     // to using a regex. Note that all but the default case below could be
     // commented out with no change in runtime behaviour. The additional
     // cases are strictly optimizations.
-    let matchFunction: (address: string) => {[captureName: string]: string};
+    let matchFunction: MatchFunction;
     switch (patternSignature) {
         case 'A':
             matchFunction = (address: string) => address === patternSource ? {} : null;
