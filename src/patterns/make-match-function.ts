@@ -8,10 +8,10 @@ import parsePatternSource from './parse-pattern-source';
 // TODO: revise jsdoc...
 // TODO: add separate tests for this?
 /** Internal function used to create the Pattern#match method. */
-export default function makeMatchFunction(pattern: string) {
+export default function makeMatchFunction(patternSource: string) {
 
     // Gather information about the pattern to be matched.
-    let patternAST = parsePatternSource(pattern); // TODO: Pattern ctor already called this! just pass in AST props directly?
+    let patternAST = parsePatternSource(patternSource); // TODO: Pattern ctor already called this! just pass in AST props directly?
     let patternSignature = patternAST.signature.replace(/[^*…]+/g, 'A');
     let literalPart = patternAST.signature.replace(/[*…]/g, '');
     let captureName0 = patternAST.captureNames[0];
@@ -24,10 +24,10 @@ export default function makeMatchFunction(pattern: string) {
     // to using a regex. Note that all but the default case below could be
     // commented out with no change in runtime behaviour. The additional
     // cases are strictly optimizations.
-    let matchFunction: any;
+    let matchFunction: (address: string) => {[captureName: string]: string};
     switch (patternSignature) {
         case 'A':
-            matchFunction = (address: string) => address === pattern ? {} : null;
+            matchFunction = (address: string) => address === patternSource ? {} : null;
             break;
 
         case '*':
@@ -70,7 +70,7 @@ export default function makeMatchFunction(pattern: string) {
                 if (!matches) return null;
                 let result = patternAST.captureNames
                     .filter(name => name !== '?')
-                    .reduce((hash, name, i) => (hash[name] = matches[i + 1], hash), {});
+                    .reduce((hash, name, i) => (hash[name] = matches[i + 1], hash), <any>{});
                 return result;
             };
     }

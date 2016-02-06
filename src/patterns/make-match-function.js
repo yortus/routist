@@ -3,9 +3,9 @@ var parse_pattern_source_1 = require('./parse-pattern-source');
 // TODO: revise jsdoc...
 // TODO: add separate tests for this?
 /** Internal function used to create the Pattern#match method. */
-function makeMatchFunction(pattern) {
+function makeMatchFunction(patternSource) {
     // Gather information about the pattern to be matched.
-    var patternAST = parse_pattern_source_1.default(pattern); // TODO: Pattern ctor already called this! just pass in AST props directly?
+    var patternAST = parse_pattern_source_1.default(patternSource); // TODO: Pattern ctor already called this! just pass in AST props directly?
     var patternSignature = patternAST.signature.replace(/[^*…]+/g, 'A');
     var literalPart = patternAST.signature.replace(/[*…]/g, '');
     var captureName0 = patternAST.captureNames[0];
@@ -20,7 +20,7 @@ function makeMatchFunction(pattern) {
     var matchFunction;
     switch (patternSignature) {
         case 'A':
-            matchFunction = function (address) { return address === pattern ? {} : null; };
+            matchFunction = function (address) { return address === patternSource ? {} : null; };
             break;
         case '*':
         case '…':
