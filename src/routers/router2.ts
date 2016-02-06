@@ -26,24 +26,24 @@ type FinalHandlers = {[pattern: string]: (rq: Request) => Response};
 
 
 // TODO: ...
-export default function test(routeTable: {[pattern: string]: Function}): FinalHandlers {
+export default function test(routeTable: {[patternSource: string]: Function}): FinalHandlers {
 
     // TODO: ...
-    let rules = Object.keys(routeTable).map(pattern => new Rule(new Pattern(pattern), routeTable[pattern]));
+    let rules = Object.keys(routeTable).map(patternSource => new Rule(patternSource, routeTable[patternSource]));
 
     // // TODO: add special root rule...
     // // TODO: add it unconditionally and add tieBreak handler that always makes it the least specific rule
-    let _404 = new Rule(Pattern.UNIVERSAL, () => { throw new Error('404!');});
+    let _404 = new Rule('…', () => { throw new Error('404!');});
     rules.push(_404);
 
     // TODO: get pattern hierarchy...
-    let patternHierarchy = hierarchizePatterns(rules.map(rule => rule.pattern));
+    let patternHierarchy = hierarchizePatterns(rules.map(rule => rule.patternSource));
     let patternSignatures = getKeysDeep(patternHierarchy);
 
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
     let rulesForPattern = patternSignatures.reduce((map, sig) => {
-        map[sig] = rules.filter(r => r.pattern.signature === sig);
+        map[sig] = rules.filter(r => new Pattern(r.patternSource).signature === sig); // TODO: inefficient! review this...
         return map;
     }, <{[pattern: string]: Rule[]}>{});
 
@@ -52,7 +52,7 @@ export default function test(routeTable: {[pattern: string]: Function}): FinalHa
     patternSignatures.forEach(sig => {
         let rules = rulesForPattern[sig];
         if (rules.length === 0) {
-            rules.push(new Rule(new Pattern(sig), noop));
+            rules.push(new Rule(sig, noop));
         }
     });
     function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
@@ -103,7 +103,7 @@ export default function test(routeTable: {[pattern: string]: Function}): FinalHa
 
     // TODO: for each pattern signature, get the ONE path or fail trying
     let ruleWalkForPattern = patternSignatures.reduce((map, sig) => {
-        let candidates = ruleWalks.filter(walk => walk[walk.length - 1].pattern.signature === sig);
+        let candidates = ruleWalks.filter(walk => new Pattern(walk[walk.length - 1].patternSource).signature === sig); // TODO: inefficient! review this...
 
         if (candidates.length === 1) {
             map[sig] = candidates[0];
@@ -142,7 +142,7 @@ export default function test(routeTable: {[pattern: string]: Function}): FinalHa
 
         // synthesize a 'crasher' rule that throws an 'ambiguous' error.
         let fallbacks = candidates.map(cand => cand[cand.length - suffixLength - 1]);
-        let crasher = new Rule(new Pattern(sig), function crasher() {
+        let crasher = new Rule(sig, function crasher() {
             // TODO: improve error message/handling
             throw new Error(`Multiple possible fallbacks from '${sig}: ${fallbacks.map(r => r.toString())}`);
         });

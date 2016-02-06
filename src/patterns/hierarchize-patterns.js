@@ -29,7 +29,9 @@ var pattern_1 = require('./pattern');
  *        whose values are more 'nodes'. The returned node always contains the
  *        single key '…'.
  */
-function hierarchizePatterns(patterns) {
+function hierarchizePatterns(patternSources) {
+    // TODO: temp ensure we are working with normalised patterns! review this...
+    patternSources = patternSources.map(function (ps) { return new pattern_1.default(ps).signature; });
     // Create the nodeFor() function to return nodes from a single associative array
     // of patterns, creating them on demand if they don't exist. This ensures every
     // request for the same pattern gets the same singleton node.
@@ -37,9 +39,9 @@ function hierarchizePatterns(patterns) {
     var nodeFor = function (pattern) { return map[pattern] || (map[pattern] = {}); };
     // Insert each of the given patterns (except '…' and '∅') into a DAG rooted at '…'.
     var root = new pattern_1.default('…');
-    patterns
-        .filter(function (p) { return p.signature !== '…' && p.signature !== '∅'; })
-        .forEach(function (pattern) { return insert(pattern.signature, '…', nodeFor); });
+    patternSources
+        .filter(function (ps) { return ps !== '…' && ps !== '∅'; })
+        .forEach(function (ps) { return insert(ps, '…', nodeFor); });
     // Return a top-level node with the single key '…'.
     return { '…': nodeFor('…') };
 }

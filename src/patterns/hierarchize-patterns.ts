@@ -35,7 +35,10 @@ import Pattern from './pattern';
  *        whose values are more 'nodes'. The returned node always contains the
  *        single key '…'.
  */
-export default function hierarchizePatterns(patterns: Pattern[]) {
+export default function hierarchizePatterns(patternSources: string[]) {
+
+    // TODO: temp ensure we are working with normalised patterns! review this...
+    patternSources = patternSources.map(ps => new Pattern(ps).signature);
 
     // Create the nodeFor() function to return nodes from a single associative array
     // of patterns, creating them on demand if they don't exist. This ensures every
@@ -45,9 +48,9 @@ export default function hierarchizePatterns(patterns: Pattern[]) {
 
     // Insert each of the given patterns (except '…' and '∅') into a DAG rooted at '…'.
     let root = new Pattern('…');
-    patterns
-        .filter(p => p.signature !== '…' && p.signature !== '∅')
-        .forEach(pattern => insert(pattern.signature, '…', nodeFor));
+    patternSources
+        .filter(ps => ps !== '…' && ps !== '∅')
+        .forEach(ps => insert(ps, '…', nodeFor));
 
     // Return a top-level node with the single key '…'.
     return <PatternHierarchy> {'…': nodeFor('…')};
@@ -58,7 +61,7 @@ export default function hierarchizePatterns(patterns: Pattern[]) {
 
 
 /** Recursive structure used for representing a DAG whose nodes are patterns. */
-export type PatternHierarchy = {[pattern: string]: PatternHierarchy};
+export type PatternHierarchy = {[patternSource: string]: PatternHierarchy};
 
 
 

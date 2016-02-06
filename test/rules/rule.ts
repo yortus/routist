@@ -118,7 +118,7 @@ describe('Constructing a Rule instance', () => {
             let actualComment= '';
             let actualError = '';
             try {
-                let rule = new Rule(new Pattern(test.pattern), test.handler);
+                let rule = new Rule(test.pattern, test.handler);
                 actualComment = rule.comment;
             }
             catch (ex) {
@@ -252,7 +252,7 @@ describe('Executing a rule against an address', () => {
 
     tests.forEach(test => {
         it(`${test.pattern} WITH ${test.handler}`, () => {
-            let rule = new Rule(new Pattern(test.pattern), test.handler);
+            let rule = new Rule(test.pattern, test.handler);
             let expectedResponse = test.response;
             let actualResponse;
             try {

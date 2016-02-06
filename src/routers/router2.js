@@ -8,18 +8,18 @@ var walk_pattern_hierarchy_1 = require('./walk-pattern-hierarchy');
 // TODO: ...
 function test(routeTable) {
     // TODO: ...
-    var rules = Object.keys(routeTable).map(function (pattern) { return new rule_1.default(new pattern_1.default(pattern), routeTable[pattern]); });
+    var rules = Object.keys(routeTable).map(function (patternSource) { return new rule_1.default(patternSource, routeTable[patternSource]); });
     // // TODO: add special root rule...
     // // TODO: add it unconditionally and add tieBreak handler that always makes it the least specific rule
-    var _404 = new rule_1.default(pattern_1.default.UNIVERSAL, function () { throw new Error('404!'); });
+    var _404 = new rule_1.default('…', function () { throw new Error('404!'); });
     rules.push(_404);
     // TODO: get pattern hierarchy...
-    var patternHierarchy = hierarchize_patterns_1.default(rules.map(function (rule) { return rule.pattern; }));
+    var patternHierarchy = hierarchize_patterns_1.default(rules.map(function (rule) { return rule.patternSource; }));
     var patternSignatures = get_keys_deep_1.default(patternHierarchy);
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
     var rulesForPattern = patternSignatures.reduce(function (map, sig) {
-        map[sig] = rules.filter(function (r) { return r.pattern.signature === sig; });
+        map[sig] = rules.filter(function (r) { return new pattern_1.default(r.patternSource).signature === sig; }); // TODO: inefficient! review this...
         return map;
     }, {});
     // TODO: add no-op rules so that for each signature there are 1..M rules
@@ -27,7 +27,7 @@ function test(routeTable) {
     patternSignatures.forEach(function (sig) {
         var rules = rulesForPattern[sig];
         if (rules.length === 0) {
-            rules.push(new rule_1.default(new pattern_1.default(sig), noop));
+            rules.push(new rule_1.default(sig, noop));
         }
     });
     function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
@@ -70,7 +70,7 @@ function test(routeTable) {
     //console.log(ruleWalks);
     // TODO: for each pattern signature, get the ONE path or fail trying
     var ruleWalkForPattern = patternSignatures.reduce(function (map, sig) {
-        var candidates = ruleWalks.filter(function (walk) { return walk[walk.length - 1].pattern.signature === sig; });
+        var candidates = ruleWalks.filter(function (walk) { return new pattern_1.default(walk[walk.length - 1].patternSource).signature === sig; }); // TODO: inefficient! review this...
         if (candidates.length === 1) {
             map[sig] = candidates[0];
             return map;
@@ -114,7 +114,7 @@ function test(routeTable) {
         });
         // synthesize a 'crasher' rule that throws an 'ambiguous' error.
         var fallbacks = candidates.map(function (cand) { return cand[cand.length - suffixLength - 1]; });
-        var crasher = new rule_1.default(new pattern_1.default(sig), function crasher() {
+        var crasher = new rule_1.default(sig, function crasher() {
             // TODO: improve error message/handling
             throw new Error("Multiple possible fallbacks from '" + sig + ": " + fallbacks.map(function (r) { return r.toString(); }));
         });

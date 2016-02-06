@@ -6,7 +6,7 @@ import Pattern from '../../src/patterns/pattern';
 
 describe('Hierarchizing a set of patterns', () => {
 
-    let patterns = [
+    let patternSources = [
         'a*',
         '*m*',
         '*z',
@@ -96,7 +96,7 @@ describe('Hierarchizing a set of patterns', () => {
     };
 
     it('works', () => {
-        let actual = hierarchizePatterns(patterns.map(p => new Pattern(p)));
+        let actual = hierarchizePatterns(patternSources);
         expect(actual).deep.equal(expected);
     });
 });

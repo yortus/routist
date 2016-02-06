@@ -1,6 +1,5 @@
 'use strict';
 var chai_1 = require('chai');
-var pattern_1 = require('../../src/patterns/pattern');
 var rule_1 = require('../../src/rules/rule');
 describe('Constructing a Rule instance', function () {
     var tests = [
@@ -114,7 +113,7 @@ describe('Constructing a Rule instance', function () {
             var actualComment = '';
             var actualError = '';
             try {
-                var rule = new rule_1.default(new pattern_1.default(test.pattern), test.handler);
+                var rule = new rule_1.default(test.pattern, test.handler);
                 actualComment = rule.comment;
             }
             catch (ex) {
@@ -245,7 +244,7 @@ describe('Executing a rule against an address', function () {
     ];
     tests.forEach(function (test) {
         it(test.pattern + " WITH " + test.handler, function () {
-            var rule = new rule_1.default(new pattern_1.default(test.pattern), test.handler);
+            var rule = new rule_1.default(test.pattern, test.handler);
             var expectedResponse = test.response;
             var actualResponse;
             try {

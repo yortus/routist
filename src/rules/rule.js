@@ -12,8 +12,8 @@ var parse_pattern_source_1 = require('../patterns/parse-pattern-source'); // TOD
 var Rule = (function () {
     /**
      * Constructs a Rule instance.
-     * @param {Pattern} pattern - the pattern recognized by this handler.
-     * @param {Function} action - a function providing processing logic for producing
+     * @param {string} patternSource - the pattern recognized by this handler.
+     * @param {Function} handler - a function providing processing logic for producing
      *        a reponse from a given request. The `action` function may be invoked when
      *        the `Handler#execute` method is called. Each of the `action` function's
      *        formal parameter names must match either a capture name from `pattern`, or
@@ -23,19 +23,19 @@ var Rule = (function () {
      *        return value from `action` signifies that the action declined to respond to
      *        the given request, even if the pattern matched the request's address.
      */
-    function Rule(pattern, handler) {
-        this.pattern = pattern;
+    function Rule(patternSource, handler) {
+        this.patternSource = patternSource;
         this.handler = handler;
         var paramNames = get_function_parameter_names_1.default(handler);
         this.isDecorator = paramNames.indexOf('$next') !== -1;
-        this.execute = makeExecuteFunction(pattern.toString(), handler, paramNames);
+        this.execute = makeExecuteFunction(patternSource, handler, paramNames);
         // TODO: temp testing... extract rule's 'priority' from comment in pattern...
         // NB: default is 0.
         // NB: error handling??? throw error if not numeric?
-        this.comment = pattern.toString().split('#')[1] || '';
+        this.comment = patternSource.split('#')[1] || '';
     }
     /** Returns a textual representation of this Rule instance. */
-    Rule.prototype.toString = function () { return "'" + this.pattern + "': " + this.handler; };
+    Rule.prototype.toString = function () { return "'" + this.patternSource + "': " + this.handler; };
     return Rule;
 }());
 Object.defineProperty(exports, "__esModule", { value: true });

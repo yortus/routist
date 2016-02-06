@@ -27,8 +27,8 @@ export default class Rule {
 
     /**
      * Constructs a Rule instance.
-     * @param {Pattern} pattern - the pattern recognized by this handler.
-     * @param {Function} action - a function providing processing logic for producing
+     * @param {string} patternSource - the pattern recognized by this handler.
+     * @param {Function} handler - a function providing processing logic for producing
      *        a reponse from a given request. The `action` function may be invoked when
      *        the `Handler#execute` method is called. Each of the `action` function's
      *        formal parameter names must match either a capture name from `pattern`, or
@@ -38,15 +38,15 @@ export default class Rule {
      *        return value from `action` signifies that the action declined to respond to
      *        the given request, even if the pattern matched the request's address.
      */
-    constructor(public pattern: Pattern, private handler: Function) {
+    constructor(public patternSource: string, private handler: Function) {
         let paramNames = getFunctionParameterNames(handler);
         this.isDecorator = paramNames.indexOf('$next') !== -1;
-        this.execute = <any> makeExecuteFunction(pattern.toString(), handler, paramNames);
+        this.execute = <any> makeExecuteFunction(patternSource, handler, paramNames);
 
         // TODO: temp testing... extract rule's 'priority' from comment in pattern...
         // NB: default is 0.
         // NB: error handling??? throw error if not numeric?
-        this.comment = pattern.toString().split('#')[1] || '';
+        this.comment = patternSource.split('#')[1] || '';
     }
 
 
@@ -89,7 +89,7 @@ export default class Rule {
 
 
     /** Returns a textual representation of this Rule instance. */
-    toString() { return `'${this.pattern}': ${this.handler}`; }
+    toString() { return `'${this.patternSource}': ${this.handler}`; }
 }
 
 
