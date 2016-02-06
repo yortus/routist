@@ -1,7 +1,9 @@
 'use strict';
 import getKeysDeep from '../utils/get-keys-deep';
+import makeMatchFunction from '../patterns/make-match-function';
 import {PatternHierarchy} from '../patterns/hierarchize-patterns';
 import Pattern from '../patterns/pattern';
+
 
 
 
@@ -22,8 +24,8 @@ export default function makeDecisionTree(patternHierarchy: PatternHierarchy): Ge
     // TODO: ...
     type QuickMatch = (address: string) => boolean;
     let patternMatchers = patternSignatures.reduce((map, sig) => {
-        let p = new Pattern(sig);
-        map[sig] = (address: string) => p.match(address) !== null;
+        let match = makeMatchFunction(sig);
+        map[sig] = (address: string) => match(address) !== null;
         return map;
     }, <{[pattern: string]: QuickMatch}>{});
 

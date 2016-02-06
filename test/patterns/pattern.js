@@ -1,5 +1,7 @@
 'use strict';
 var chai_1 = require('chai');
+var make_match_function_1 = require('../../src/patterns/make-match-function');
+var parse_pattern_source_1 = require('../../src/patterns/parse-pattern-source');
 var pattern_1 = require('../../src/patterns/pattern');
 describe('Constructing a Pattern instance', function () {
     var tests = [
@@ -51,7 +53,7 @@ describe('Constructing a Pattern instance', function () {
             try {
                 var pattern = new pattern_1.default(patternSource);
                 actualSignature = pattern.signature;
-                actualCaptureNames = pattern.captureNames;
+                actualCaptureNames = parse_pattern_source_1.default(patternSource).captureNames.filter(function (n) { return n !== '?'; }); // TODO: test parsePatternSource separately?
             }
             catch (ex) { }
             chai_1.expect(actualSignature).equals(expectedSignature);
@@ -102,12 +104,12 @@ describe('Matching a pattern against an address', function () {
             var address = rhs.split(' WITH ')[0];
             var expectedCaptures = isMatch ? eval("(" + rhs.split(' WITH ')[1] + ")") || {} : null;
             var pattern = new pattern_1.default(patternSource);
-            var actualCaptures = pattern.match(address);
+            var actualCaptures = make_match_function_1.default(patternSource)(address); // TODO: test makeMatchFunction separately?
             chai_1.expect(actualCaptures).to.deep.equal(expectedCaptures);
             if (!isMatch)
                 return;
             var expectedCaptureNames = Object.keys(expectedCaptures);
-            var actualCaptureNames = pattern.captureNames;
+            var actualCaptureNames = parse_pattern_source_1.default(patternSource).captureNames.filter(function (n) { return n !== '?'; }); // TODO: test parsePatternSource separately?
             chai_1.expect(actualCaptureNames).to.include.members(expectedCaptureNames);
             chai_1.expect(expectedCaptureNames).to.include.members(actualCaptureNames);
         });

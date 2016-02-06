@@ -1,5 +1,4 @@
 'use strict';
-var make_match_function_1 = require('./make-match-function');
 var parse_pattern_source_1 = require('./parse-pattern-source');
 /**
  * A pattern recognizes a set of addresses. It like a RegExp, but tailored
@@ -14,9 +13,24 @@ var Pattern = (function () {
         this.source = source;
         var patternAST = parse_pattern_source_1.default(source);
         this.signature = patternAST.signature;
-        this.captureNames = patternAST.captureNames.filter(function (n) { return n !== '?'; });
-        this.match = make_match_function_1.default(source);
+        // this.captureNames = patternAST.captureNames.filter(n => n !== '?');
+        // this.match = makeMatchFunction(source);
     }
+    //     /**
+    //      * An array of the named captures present in the pattern, in order. For example, the pattern
+    //      * '{...path}/*.{ext}' will have a `captureNames` property with the value ['path', 'ext'].
+    //      */
+    //     captureNames: string[];
+    // 
+    // 
+    //     /**
+    //      * Attempts to match a given address against the pattern. For successful matches, a hash
+    //      * is returned containing the name/value pairs for each named capture in the pattern. For
+    //      * failed matches the return value is null.
+    //      * @param {string} address - the address to match against the pattern.
+    //      * @returns {Object} null if the match failed, otherwise a hash of captured name/value pairs.
+    //      */
+    //     match: (address: string) => {[captureName: string]: string};
     /** Returns the source string with which this instance was constructed. */
     Pattern.prototype.toString = function () { return this.source; };
     /** A singleton pattern that recognises all addresses (i.e., the universal set). */

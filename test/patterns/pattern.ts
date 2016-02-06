@@ -1,5 +1,7 @@
 'use strict';
 import {expect} from 'chai';
+import makeMatchFunction from '../../src/patterns/make-match-function';
+import parsePatternSource from '../../src/patterns/parse-pattern-source';
 import Pattern from '../../src/patterns/pattern';
 
 
@@ -55,7 +57,7 @@ describe('Constructing a Pattern instance', () => {
             try {
                 let pattern = new Pattern(patternSource);
                 actualSignature = pattern.signature;
-                actualCaptureNames = pattern.captureNames;
+                actualCaptureNames = parsePatternSource(patternSource).captureNames.filter(n => n !== '?'); // TODO: test parsePatternSource separately?
             }
             catch (ex) { }
             expect(actualSignature).equals(expectedSignature);
@@ -110,11 +112,11 @@ describe('Matching a pattern against an address', () => {
             let address = rhs.split(' WITH ')[0];
             let expectedCaptures = isMatch ? eval(`(${rhs.split(' WITH ')[1]})`) || {} : null;
             let pattern = new Pattern(patternSource);
-            let actualCaptures = pattern.match(address);
+            let actualCaptures = makeMatchFunction(patternSource)(address); // TODO: test makeMatchFunction separately?
             expect(actualCaptures).to.deep.equal(expectedCaptures);
             if (!isMatch) return;
             let expectedCaptureNames = Object.keys(expectedCaptures);
-            let actualCaptureNames = pattern.captureNames;
+            let actualCaptureNames = parsePatternSource(patternSource).captureNames.filter(n => n !== '?'); // TODO: test parsePatternSource separately?
             expect(actualCaptureNames).to.include.members(expectedCaptureNames);
             expect(expectedCaptureNames).to.include.members(actualCaptureNames);
         });
