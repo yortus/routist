@@ -34,9 +34,9 @@ var PEG = require('pegjs');
  *          pattern. Each element holds the name of its corresponding capture, or '?'
  *          if the corresponding capture is anonymous (i.e. '*' or '…').
  */
-function parsePatternSource(pattern) {
+function parsePatternSource(patternSource) {
     try {
-        var ast = parser.parse(pattern);
+        var ast = parser.parse(patternSource);
         return ast;
     }
     catch (ex) {
@@ -45,7 +45,7 @@ function parsePatternSource(pattern) {
         if (endCol <= startCol)
             endCol = startCol + 1;
         var indicator = Array(startCol).join(' ') + Array(endCol - startCol + 1).join('^');
-        var msg = ex.message + ":\n" + pattern + "\n" + indicator;
+        var msg = ex.message + ":\n" + patternSource + "\n" + indicator;
         throw new Error(msg);
     }
 }

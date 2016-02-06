@@ -39,9 +39,9 @@ import * as PEG from 'pegjs';
  *          pattern. Each element holds the name of its corresponding capture, or '?'
  *          if the corresponding capture is anonymous (i.e. '*' or '…').
  */
-export default function parsePatternSource(pattern: string) {
+export default function parsePatternSource(patternSource: string) {
     try {
-        let ast = parser.parse(pattern);
+        let ast = parser.parse(patternSource);
         return ast;
     }
     catch (ex) {
@@ -49,7 +49,7 @@ export default function parsePatternSource(pattern: string) {
         let endCol = ex.location.end.column;
         if (endCol <= startCol) endCol = startCol + 1;
         let indicator = Array(startCol).join(' ') + Array(endCol - startCol + 1).join('^');
-        let msg = `${ex.message}:\n${pattern}\n${indicator}`;
+        let msg = `${ex.message}:\n${patternSource}\n${indicator}`;
         throw new Error(msg);
     }
 }
