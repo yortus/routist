@@ -128,9 +128,7 @@ function test(routeTable) {
     // reduce each signature's rule walk down to a simple handler function.
     var noMore = function (rq) { return null; };
     var routes = normalizedPatterns.reduce(function (map, npat) {
-        var reverseRuleWalk = ruleWalkForPattern.get(npat).slice().reverse();
-        map.set(npat, new route_1.default(ruleWalkForPattern.get(npat)));
-        return map;
+        return map.set(npat, new route_1.default(ruleWalkForPattern.get(npat)));
     }, new Map());
     return routes;
 }

@@ -18,7 +18,6 @@ var Router = (function () {
             var address = typeof request === 'string' ? request : request.address;
             var bestMatchingPattern = getBestMatchingPattern(address);
             var route = routes.get(bestMatchingPattern);
-            debugger;
             var response = route.execute(request);
             return response;
         };

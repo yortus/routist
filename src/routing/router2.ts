@@ -149,9 +149,7 @@ export default function test(routeTable: {[patternSource: string]: Function}): M
     // reduce each signature's rule walk down to a simple handler function.
     const noMore = (rq: Request) => <Response> null;
     let routes = normalizedPatterns.reduce((map, npat) => {
-        let reverseRuleWalk = ruleWalkForPattern.get(npat).slice().reverse();
-        map.set(npat, new Route(ruleWalkForPattern.get(npat)));
-        return map;
+        return map.set(npat, new Route(ruleWalkForPattern.get(npat)));
     }, new Map<Pattern, Route>());
 
     return routes;

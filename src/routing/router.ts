@@ -37,7 +37,6 @@ export default class Router {
             let address = typeof request === 'string' ? request : request.address;
             let bestMatchingPattern = getBestMatchingPattern(address);
             let route = routes.get(bestMatchingPattern);
-debugger;
             let response = route.execute(request);
             return response;
         };
