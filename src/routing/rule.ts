@@ -1,7 +1,6 @@
 'use strict';
 import * as assert from 'assert';
 import {getFunctionParameterNames} from '../util';
-import makeMatchFunction from '../patterns/make-match-function'; // TODO: review if needed here?
 import parsePatternSource from '../patterns/parse-pattern-source'; // TODO: review if needed here?
 import Pattern from '../patterns/pattern';
 import Request from '../request';
@@ -116,7 +115,7 @@ function makeExecuteFunction(pattern: Pattern, handler: Function, paramNames: st
     // TODO: get capture names and match function... review these lines...
     // TODO: integrate back into pattern class?
     let patternSource = pattern.toString();
-    let captureNames = parsePatternSource(patternSource).captureNames.filter(n => n !== '?');
+    let captureNames = parsePatternSource(patternSource).captures.filter(n => n !== '?');
     let match = pattern.match;
 
     // Assert the mutual validity of `pattern` and `paramNames`. This allows the body of

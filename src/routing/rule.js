@@ -54,7 +54,7 @@ function makeExecuteFunction(pattern, handler, paramNames) {
     // TODO: get capture names and match function... review these lines...
     // TODO: integrate back into pattern class?
     var patternSource = pattern.toString();
-    var captureNames = parse_pattern_source_1.default(patternSource).captureNames.filter(function (n) { return n !== '?'; });
+    var captureNames = parse_pattern_source_1.default(patternSource).captures.filter(function (n) { return n !== '?'; });
     var match = pattern.match;
     // Assert the mutual validity of `pattern` and `paramNames`. This allows the body of
     // the 'execute' function to be simpler, as it can safely forego some extra checks.

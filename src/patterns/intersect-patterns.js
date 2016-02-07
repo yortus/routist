@@ -1,17 +1,15 @@
 'use strict';
 var pattern_1 = require('./pattern');
-// TODO: review jsdocs after pattern overhaul
-// TODO: document: return value is guaranteed to be normalized
 /**
- * Generates a pattern that matches all the addresses that are matched by *both*
+ * Returns a pattern that matches all the addresses that are matched by *both* input
  * patterns `a` and `b`. Returns the empty pattern '∅' if `a` and `b` are disjoint.
  * Throws an error if the intersection cannot be expressed as a single pattern.
- * Note that patterns are case-sensitive.
- * @param {Pattern|string} a - a pattern. It may be provided either as a Pattern
- *        instance, or as a pattern string.
- * @param {Pattern|string} b - a pattern. It may be provided either as a Pattern
- *        instance, or as a pattern string.
- * @returns {Pattern} - the pattern that matches all addresses matched by both `a` and `b`.
+ * The resulting pattern is guaranteed to be normalized.
+ * NB: patterns are case-sensitive.
+ * @param {Pattern} a - a pattern instance. May or may not be normalized.
+ * @param {Pattern} b - a pattern instance. May or may not be normalized.
+ * @returns {Pattern} - a normalized pattern representing the set of addresses S,
+ *        such that R ∈ S iff R ∈ `a` and R ∈ `b`.
  */
 function intersectPatterns(a, b) {
     var allIntersections = getAllIntersections(a.normalized.toString(), b.normalized.toString());
@@ -30,6 +28,10 @@ exports.default = intersectPatterns;
  * all characters from both patterns are present and in order in the result.
  * All the patterns computed in this way represent valid intersections of A
  * and B, however some may be duplicates or subsets of others.
+ * @param {string} a - source string of a normalized pattern.
+ * @param {string} b - source string of a normalized pattern.
+ * @returns {string[]} - list of normalized patterns that represent valid
+ *        intersections of `a` and `b`. Some may be superfluous.
  */
 function getAllIntersections(a, b) {
     // An empty pattern intersects only with another empty pattern or a single wildcard.
@@ -77,25 +79,27 @@ function getAllPatternSplits(pattern) {
     return result;
 }
 /**
- * Returns a subset of the given list of patterns, such that no pattern in the
- * resulting list is a (proper or improper) subset of any other pattern in the list.
+ * Returns an array containing a subset of the elements in `patterns`, such that no pattern in
+ * the returned array is a (proper or improper) subset of any other pattern in the returned array.
  */
 function getDistinctPatterns(patterns) {
-    // Set up a parallel array to flag which patterns are distinct. Start by assuming they all are.
-    var isDistinct = patterns.map(function (u) { return true; });
-    // Compare all patterns pairwise, discarding those that are (proper or improper) subsets of another.
+    // Set up a parallel array to flag which patterns are duplicates.
+    // Start by assuming none are.
+    var isDuplicate = patterns.map(function (u) { return false; });
+    // Compare all patterns pairwise, marking as duplicates all those
+    // patterns that are (proper or improper) subsets of another pattern.
     for (var i = 0; i < patterns.length; ++i) {
-        if (!isDistinct[i])
+        if (isDuplicate[i])
             continue;
         var subsetRecogniser = makeSubsetRecogniser(patterns[i]);
         for (var j = 0; j < patterns.length; ++j) {
-            if (i === j || !isDistinct[j])
+            if (i === j || isDuplicate[j])
                 continue;
-            isDistinct[j] = !subsetRecogniser.test(patterns[j]);
+            isDuplicate[j] = subsetRecogniser.test(patterns[j]);
         }
     }
-    // Return only the distinct patterns from the original list.
-    return patterns.filter(function (_, i) { return isDistinct[i]; });
+    // Return only the non-duplicate patterns from the original list.
+    return patterns.filter(function (_, i) { return !isDuplicate[i]; });
 }
 /**
  * Returns a regular expression that matches all pattern strings

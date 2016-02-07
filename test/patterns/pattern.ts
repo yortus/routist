@@ -88,7 +88,7 @@ describe('Constructing a Pattern instance', () => {
             try {
                 let pattern = new Pattern(patternSource);
                 actualSignature = pattern.normalized.toString(); // TODO: review this line
-                actualCaptureNames = parsePatternSource(patternSource).captureNames.filter(n => n !== '?'); // TODO: test parsePatternSource separately?
+                actualCaptureNames = parsePatternSource(patternSource).captures.filter(n => n !== '?'); // TODO: test parsePatternSource separately?
             }
             catch (ex) { }
             expect(actualSignature).equals(expectedSignature);
@@ -147,7 +147,7 @@ describe('Matching a pattern against an address', () => {
             expect(actualCaptures).to.deep.equal(expectedCaptures);
             if (!isMatch) return;
             let expectedCaptureNames = Object.keys(expectedCaptures);
-            let actualCaptureNames = parsePatternSource(patternSource).captureNames.filter(n => n !== '?'); // TODO: test parsePatternSource separately?
+            let actualCaptureNames = parsePatternSource(patternSource).captures.filter(n => n !== '?'); // TODO: test parsePatternSource separately?
             expect(actualCaptureNames).to.include.members(expectedCaptureNames);
             expect(expectedCaptureNames).to.include.members(actualCaptureNames);
         });

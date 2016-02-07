@@ -77,7 +77,7 @@ describe('Constructing a Pattern instance', function () {
             try {
                 var pattern = new pattern_1.default(patternSource);
                 actualSignature = pattern.normalized.toString(); // TODO: review this line
-                actualCaptureNames = parse_pattern_source_1.default(patternSource).captureNames.filter(function (n) { return n !== '?'; }); // TODO: test parsePatternSource separately?
+                actualCaptureNames = parse_pattern_source_1.default(patternSource).captures.filter(function (n) { return n !== '?'; }); // TODO: test parsePatternSource separately?
             }
             catch (ex) { }
             chai_1.expect(actualSignature).equals(expectedSignature);
@@ -133,7 +133,7 @@ describe('Matching a pattern against an address', function () {
             if (!isMatch)
                 return;
             var expectedCaptureNames = Object.keys(expectedCaptures);
-            var actualCaptureNames = parse_pattern_source_1.default(patternSource).captureNames.filter(function (n) { return n !== '?'; }); // TODO: test parsePatternSource separately?
+            var actualCaptureNames = parse_pattern_source_1.default(patternSource).captures.filter(function (n) { return n !== '?'; }); // TODO: test parsePatternSource separately?
             chai_1.expect(actualCaptureNames).to.include.members(expectedCaptureNames);
             chai_1.expect(expectedCaptureNames).to.include.members(actualCaptureNames);
         });
