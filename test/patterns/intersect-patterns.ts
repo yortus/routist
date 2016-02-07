@@ -4,7 +4,7 @@ import intersectPatterns from '../../src/patterns/intersect-patterns';
 import Pattern from '../../src/patterns/pattern';
 
 
-describe('Intersecting two pattern strings', () => {
+describe('Intersecting two patterns', () => {
 
     let tests = [
         '… ∩ ∅ = ∅',

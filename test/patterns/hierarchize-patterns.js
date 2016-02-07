@@ -3,100 +3,148 @@ var chai_1 = require('chai');
 var hierarchize_patterns_1 = require('../../src/patterns/hierarchize-patterns');
 var pattern_1 = require('../../src/patterns/pattern');
 describe('Hierarchizing a set of patterns', function () {
-    var patternSources = [
-        'a*',
-        '*m*',
-        '*z',
-        '**',
-        '/bar',
-        '/*',
-        '/foo',
-        '/foo/*.html',
-        '/…o…o….html',
-        '/**o**o**',
-        '/bar',
-        'a*',
-        '/a/*',
-        '/*/b',
-        '/*z/b',
-    ];
-    var expected = {
-        "…": {
-            "a*": {
-                "a*m*": {
-                    "a*m*z": {}
-                },
-                "a*z": {
-                    "a*m*z": {}
+    var tests = [
+        {
+            // ======================================== 1. ========================================
+            name: 'simple tree',
+            patterns: [
+                '/**',
+                '/foo/*',
+                '/bar/*',
+                '/foo/bar'
+            ],
+            hierarchy: {
+                "…": {
+                    "/…": {
+                        "/foo/*": {
+                            "/foo/bar": {}
+                        },
+                        "/bar/*": {}
+                    }
                 }
-            },
-            "*m*": {
-                "a*m*": {
-                    "a*m*z": {}
-                },
-                "*m*z": {
-                    "a*m*z": {}
+            }
+        },
+        {
+            // ======================================== 2. ========================================
+            name: 'impossible intersections',
+            patterns: [
+                '**',
+                'a*',
+                '*a',
+            ],
+            hierarchy: 'ERROR: Intersection of *a and a* cannot be expressed as a single pattern...'
+        },
+        {
+            // ======================================== 3. ========================================
+            name: 'complex DAG',
+            patterns: [
+                'a*',
+                '*m*',
+                '*z',
+                '**',
+                '/bar',
+                '/*',
+                '/foo',
+                '/foo/*.html',
+                '/…o…o….html',
+                '/**o**o**',
+                '/bar',
+                'a*',
+                '/a/*',
+                '/*/b',
+                '/*z/b',
+            ],
+            hierarchy: {
+                "…": {
+                    "a*": {
+                        "a*m*": {
+                            "a*m*z": {}
+                        },
+                        "a*z": {
+                            "a*m*z": {}
+                        }
+                    },
+                    "*m*": {
+                        "a*m*": {
+                            "a*m*z": {}
+                        },
+                        "*m*z": {
+                            "a*m*z": {}
+                        }
+                    },
+                    "*z": {
+                        "a*z": {
+                            "a*m*z": {}
+                        },
+                        "*m*z": {
+                            "a*m*z": {}
+                        }
+                    },
+                    "/*": {
+                        "/bar": {},
+                        "/*o*o*": {
+                            "/foo": {},
+                            "/*o*o*.html": {}
+                        }
+                    },
+                    "/…o…o…": {
+                        "/*o*o*": {
+                            "/foo": {},
+                            "/*o*o*.html": {}
+                        },
+                        "/…o…o….html": {
+                            "/*o*o*.html": {},
+                            "/foo/*.html": {},
+                            "/a/*o*o*.html": {}
+                        },
+                        "/a/*o*o*": {
+                            "/a/*o*o*.html": {}
+                        },
+                        "/*o*o*/b": {
+                            "/*o*o*z/b": {}
+                        }
+                    },
+                    "/a/*": {
+                        "/a/*o*o*": {
+                            "/a/*o*o*.html": {}
+                        },
+                        "/a/b": {}
+                    },
+                    "/*/b": {
+                        "/*o*o*/b": {
+                            "/*o*o*z/b": {}
+                        },
+                        "/a/b": {},
+                        "/*z/b": {
+                            "/*o*o*z/b": {}
+                        }
+                    },
+                    "/*z/b": {
+                        "/*o*o*z/b": {}
+                    }
                 }
-            },
-            "*z": {
-                "a*z": {
-                    "a*m*z": {}
-                },
-                "*m*z": {
-                    "a*m*z": {}
-                }
-            },
-            "/*": {
-                "/bar": {},
-                "/*o*o*": {
-                    "/foo": {},
-                    "/*o*o*.html": {}
-                }
-            },
-            "/…o…o…": {
-                "/*o*o*": {
-                    "/foo": {},
-                    "/*o*o*.html": {}
-                },
-                "/…o…o….html": {
-                    "/*o*o*.html": {},
-                    "/foo/*.html": {},
-                    "/a/*o*o*.html": {}
-                },
-                "/a/*o*o*": {
-                    "/a/*o*o*.html": {}
-                },
-                "/*o*o*/b": {
-                    "/*o*o*z/b": {}
-                }
-            },
-            "/a/*": {
-                "/a/*o*o*": {
-                    "/a/*o*o*.html": {}
-                },
-                "/a/b": {}
-            },
-            "/*/b": {
-                "/*o*o*/b": {
-                    "/*o*o*z/b": {}
-                },
-                "/a/b": {},
-                "/*z/b": {
-                    "/*o*o*z/b": {}
-                }
-            },
-            "/*z/b": {
-                "/*o*o*z/b": {}
             }
         }
-    };
-    it('works', function () {
-        var patterns = patternSources.map(function (ps) { return new pattern_1.default(ps); });
-        var actual = mapToObj(hierarchize_patterns_1.default(patterns)); // TODO: review this line...
-        chai_1.expect(actual).deep.equal(expected);
+    ];
+    tests.forEach(function (test) {
+        it(test.name, function () {
+            var patterns = test.patterns.map(function (ps) { return new pattern_1.default(ps); });
+            var expected = test.hierarchy;
+            var actual;
+            try {
+                actual = mapToObj(hierarchize_patterns_1.default(patterns));
+            }
+            catch (ex) {
+                actual = 'ERROR: ' + ex.message;
+                if (typeof expected === 'string' && expected.slice(-3) === '...') {
+                    actual = actual.slice(0, expected.length - 3) + '...';
+                }
+            }
+            chai_1.expect(actual).deep.equal(expected);
+        });
     });
 });
-// TODO: doc...
+/** Helper function that converts a Graph<Pattern> to a simple nested object with pattern sources for keys */
 function mapToObj(map) {
     var patterns = Array.from(map.keys());
     return patterns.reduce(function (obj, pat) { return (obj[pat.source] = mapToObj(map.get(pat)), obj); }, {});

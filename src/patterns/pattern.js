@@ -4,7 +4,9 @@ var parse_pattern_source_1 = require('./parse-pattern-source');
 /**
  * Holds a singleton instance for every normalized pattern that has been instantiated.
  * Subsequent instantiations of the same normalized pattern return the same singleton
- * instance from this map.
+ * instance from this map. NB: This is declared before the Pattern class to ensure it
+ * is has been initialized before the the static property initializers for UNIVERSAL
+ * and EMPTY are called.
  */
 var normalizedPatternCache = new Map();
 /**

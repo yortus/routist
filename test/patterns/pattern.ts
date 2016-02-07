@@ -1,39 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import makeMatchFunction from '../../src/patterns/make-match-function';
-import parsePatternSource from '../../src/patterns/parse-pattern-source';
 import Pattern from '../../src/patterns/pattern';
-
-
-// TODO: temp... move this out...
-describe('Singleton patterns', () => {
-    it('works', () => {
-        let p1 = new Pattern('/*/bar/{...baz}');
-        let p2 = new Pattern('/{n}/bar/**');
-        let p3 = new Pattern('/*/bar/…');
-        let p4 = new Pattern('/*/bAr/…');
-        let p5 = new Pattern('/*/bar/…');
-        expect(p1).not.equals(p2);
-        expect(p2).not.equals(p3);
-        expect(p3).not.equals(p4);
-        expect(p4).not.equals(p5);
-        expect(p3).equals(p5); // both same normal pattern
-
-        expect(p1.normalized).equals(p2.normalized);
-        expect(p2.normalized).equals(p3.normalized);
-        expect(p3.normalized).not.equals(p4.normalized);
-        expect(p4.normalized).not.equals(p5.normalized);
-        expect(p3.normalized).equals(p5.normalized); // both same normal pattern
-
-        expect(p1).not.equals(p1.normalized);
-        expect(p2).not.equals(p2.normalized);
-        expect(p3).equals(p3.normalized);
-        expect(p4).equals(p4.normalized);
-        expect(p5).equals(p5.normalized);
-    });
-});
-
-
 
 
 describe('Constructing a Pattern instance', () => {
@@ -87,8 +54,8 @@ describe('Constructing a Pattern instance', () => {
             let actualCaptureNames = [];
             try {
                 let pattern = new Pattern(patternSource);
-                actualSignature = pattern.normalized.toString(); // TODO: review this line
-                actualCaptureNames = parsePatternSource(patternSource).captures.filter(n => n !== '?'); // TODO: test parsePatternSource separately?
+                actualSignature = pattern.normalized.toString();
+                actualCaptureNames = pattern.captureNames;
             }
             catch (ex) { }
             expect(actualSignature).equals(expectedSignature);
@@ -98,58 +65,25 @@ describe('Constructing a Pattern instance', () => {
 });
 
 
-describe('Matching a pattern against an address', () => {
-
-    let tests = [
-        '* MATCHES abc',
-        '* DOES NOT MATCH abc/def',
-        '… MATCHES abc',
-        '… MATCHES abc/def',
-        '{Name} MATCHES abc WITH { Name: "abc" }',
-        '{name} DOES NOT MATCH abc/def',
-        '{...path} MATCHES abc/def WITH { path: "abc/def" }',
-        'aaa MATCHES aaa',
-        'aa DOES NOT MATCH aaa',
-        '…bbb MATCHES bbb',
-        '**bbb MATCHES aaa/bbb',
-        '…bbb DOES NOT MATCH bbbabb',
-        '{x}/y MATCHES x/y WITH {x: "x"}',
-        '{X}/Y MATCHES X/Y WITH {X: "X"}',
-        '/foo/* DOES NOT MATCH /foo',
-        '/foo/* MATCHES /foo/bar',
-        '/** MATCHES /foo/bar',
-        '/{a} MATCHES / WITH {a:""}',
-        '/a/{b} MATCHES /a/ WITH {b:""}',
-        '/{...a}/ MATCHES // WITH {a:""}',
-        '/{...path} MATCHES /foo/bar WITH { path: "foo/bar" }',
-        '*ab* MATCHES aaabbb',
-        '*aaa* MATCHES aaabbb',
-        '*aaa* MATCHES aaaaaa',
-        '*bbb* MATCHES aaabbb',
-        '*ab* DOES NOT MATCH AABB',
-        '*AB* DOES NOT MATCH aabb',
-        '*bbb* DOES NOT MATCH bb/baaabb',
-        '/{lhs}/bbb/{...rhs} MATCHES /aaa/bbb/ccc/ddd WITH {lhs: "aaa", rhs: "ccc/ddd"}',
-        '{lhs}/bbb/{...rhs} DOES NOT MATCH /aaa/bbb/ccc/ddd',
-        '/f*o/bar/{baz}z/{...rest}.html MATCHES /foo/bar/baz/some/more/stuff.html WITH { baz: "ba", rest: "some/more/stuff" }'
+describe('Comparing patterns with their normalized forms', () => {
+    let patterns = [
+        '/*/bar/{...baz}',
+        '/*/bar/…',
+        '/{n}/bar/**',
+        '/{__}/bar/{...baz}'
     ];
 
-    tests.forEach(test => {
-        it(test, () => {
-            let isMatch = test.indexOf(' MATCHES ') !== -1;
-            let split = isMatch ? ' MATCHES ' : ' DOES NOT MATCH ';
-            let patternSource = test.split(split)[0];
-            let rhs = test.split(split)[1];
-            let address = rhs.split(' WITH ')[0];
-            let expectedCaptures = isMatch ? eval(`(${rhs.split(' WITH ')[1]})`) || {} : null;
-            let pattern = new Pattern(patternSource);
-            let actualCaptures = pattern.match(address); // TODO: test makeMatchFunction separately?
-            expect(actualCaptures).to.deep.equal(expectedCaptures);
-            if (!isMatch) return;
-            let expectedCaptureNames = Object.keys(expectedCaptures);
-            let actualCaptureNames = parsePatternSource(patternSource).captures.filter(n => n !== '?'); // TODO: test parsePatternSource separately?
-            expect(actualCaptureNames).to.include.members(expectedCaptureNames);
-            expect(expectedCaptureNames).to.include.members(actualCaptureNames);
+    patterns.forEach(a1 => {
+        let p1 = new Pattern(a1);
+        it(`'${a1}' vs normalised`, () => {
+            expect(a1 === p1.normalized.toString()).equals(p1 === p1.normalized);
+        });
+
+        patterns.forEach(a2 => {
+            let p2 = new Pattern(a2);
+            it(`'${a1}' vs '${a2}'`, () => {
+                expect(p1.normalized).equals(p2.normalized);
+            });
         });
     });
 });
