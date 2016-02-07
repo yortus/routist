@@ -37,6 +37,7 @@ describe('Constructing a Router instance', () => {
 
         'api/** #a': () => `fallback`,
         'api/** #b': () => `fallback`, // TODO: temp testing, remove this...
+        'api/f*o': () => null,
         'api/foo': () => 'FOO',
         'api/bar': () => null,
     };

@@ -22,11 +22,18 @@ function makeDecisionTree(patternHierarchy) {
     function getBodyLines(thisPattern, childPatterns) {
         var childLines = Array.from(childPatterns.keys()).map(function (npat, i) {
             var id = getIdForPattern(npat);
-            return [
-                ((i > 0 ? 'else ' : '') + "if (" + id + ".match(address)) {")
-            ].concat(getBodyLines(npat, childPatterns.get(npat)).map(function (line) { return '    ' + line; }), [
-                "}"
-            ]);
+            if (childPatterns.get(npat).size > 0) {
+                return [
+                    ((i > 0 ? 'else ' : '') + "if (" + id + ".match(address)) {")
+                ].concat(getBodyLines(npat, childPatterns.get(npat)).map(function (line) { return '    ' + line; }), [
+                    "}"
+                ]);
+            }
+            else {
+                return [
+                    ((i > 0 ? 'else ' : '') + "if (" + id + ".match(address)) return " + id + ";")
+                ];
+            }
         });
         var lastLine = (childLines.length > 0 ? 'else ' : '') + "return " + getIdForPattern(thisPattern) + ";";
         return (_a = []).concat.apply(_a, childLines.concat([lastLine]));

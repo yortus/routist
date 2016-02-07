@@ -44,11 +44,18 @@ export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): 
     function getBodyLines(thisPattern: Pattern, childPatterns: Hierarchy<Pattern>): string[] {
         let childLines = Array.from(childPatterns.keys()).map((npat, i) => {
             let id = getIdForPattern(npat);
-            return [
-                `${i > 0 ? 'else ' : ''}if (${id}.match(address)) {`,
-                ...getBodyLines(npat, childPatterns.get(npat)).map(line => '    ' + line),
-                `}`
-            ];
+            if (childPatterns.get(npat).size > 0) {
+                return [
+                    `${i > 0 ? 'else ' : ''}if (${id}.match(address)) {`,
+                    ...getBodyLines(npat, childPatterns.get(npat)).map(line => '    ' + line),
+                    `}`
+                ];
+            }
+            else {
+                return [
+                    `${i > 0 ? 'else ' : ''}if (${id}.match(address)) return ${id};`
+                ];
+            }
         });
         let lastLine = `${childLines.length > 0 ? 'else ' : ''}return ${getIdForPattern(thisPattern)};`;
         return [].concat(...childLines, lastLine);

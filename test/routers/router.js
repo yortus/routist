@@ -22,6 +22,7 @@ describe('Constructing a Router instance', function () {
         'c/d': function () { return null; },
         'api/** #a': function () { return "fallback"; },
         'api/** #b': function () { return "fallback"; },
+        'api/f*o': function () { return null; },
         'api/foo': function () { return 'FOO'; },
         'api/bar': function () { return null; },
     };
