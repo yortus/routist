@@ -19,23 +19,20 @@ function makeDecisionTree(patternHierarchy) {
         return lines;
     }
     // TODO: doc...
-    function getBodyLines(thisPattern, childPatterns) {
+    function getBodyLines(thisPattern, childPatterns, nestDepth) {
+        var indent = ' '.repeat(nestDepth * 4);
         var childLines = Array.from(childPatterns.keys()).map(function (npat, i) {
+            var childNode = childPatterns.get(npat);
             var id = getIdForPattern(npat);
-            if (childPatterns.get(npat).size > 0) {
-                return [
-                    ((i > 0 ? 'else ' : '') + "if (" + id + ".match(address)) {")
-                ].concat(getBodyLines(npat, childPatterns.get(npat)).map(function (line) { return '    ' + line; }), [
-                    "}"
-                ]);
+            var ifCondition = (i > 0 ? 'else ' : '') + "if (" + id + ".match(address))";
+            if (childNode.size === 0) {
+                return [("" + indent + ifCondition + " return " + id + ";")];
             }
             else {
-                return [
-                    ((i > 0 ? 'else ' : '') + "if (" + id + ".match(address)) return " + id + ";")
-                ];
+                return [("" + indent + ifCondition + " {")].concat(getBodyLines(npat, childNode, nestDepth + 1), [(indent + "}")]);
             }
         });
-        var lastLine = (childLines.length > 0 ? 'else ' : '') + "return " + getIdForPattern(thisPattern) + ";";
+        var lastLine = "" + indent + (childLines.length > 0 ? 'else ' : '') + "return " + getIdForPattern(thisPattern) + ";";
         return (_a = []).concat.apply(_a, childLines.concat([lastLine]));
         var _a;
     }
@@ -43,9 +40,11 @@ function makeDecisionTree(patternHierarchy) {
     var lines = getPrologLines(patternHierarchy.get(pattern_1.default.UNIVERSAL)).concat([
         '',
         'return function getBestMatchingPattern(address) {'
-    ], getBodyLines(pattern_1.default.UNIVERSAL, patternHierarchy.get(pattern_1.default.UNIVERSAL)).map(function (line) { return '    ' + line; }), [
+    ], getBodyLines(pattern_1.default.UNIVERSAL, patternHierarchy.get(pattern_1.default.UNIVERSAL), 1), [
         '};'
     ]);
+    console.log(lines);
+    debugger;
     // TODO: temp testing... capture unmangled Pattern id... remove/fix this!!!
     var fn = (function (Pattern) {
         var fn = eval("(() => {\n" + lines.join('\n') + "\n})")();

@@ -41,23 +41,20 @@ export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): 
 
 
     // TODO: doc...
-    function getBodyLines(thisPattern: Pattern, childPatterns: Hierarchy<Pattern>): string[] {
+    function getBodyLines(thisPattern: Pattern, childPatterns: Hierarchy<Pattern>, nestDepth: number): string[] {
+        let indent = ' '.repeat(nestDepth * 4);
         let childLines = Array.from(childPatterns.keys()).map((npat, i) => {
+            let childNode = childPatterns.get(npat);
             let id = getIdForPattern(npat);
-            if (childPatterns.get(npat).size > 0) {
-                return [
-                    `${i > 0 ? 'else ' : ''}if (${id}.match(address)) {`,
-                    ...getBodyLines(npat, childPatterns.get(npat)).map(line => '    ' + line),
-                    `}`
-                ];
+            let ifCondition = `${i > 0 ? 'else ' : ''}if (${id}.match(address))`;
+            if (childNode.size === 0) {
+                return [`${indent}${ifCondition} return ${id};`];
             }
             else {
-                return [
-                    `${i > 0 ? 'else ' : ''}if (${id}.match(address)) return ${id};`
-                ];
+                return [`${indent}${ifCondition} {`, ...getBodyLines(npat, childNode, nestDepth + 1), `${indent}}`];
             }
         });
-        let lastLine = `${childLines.length > 0 ? 'else ' : ''}return ${getIdForPattern(thisPattern)};`;
+        let lastLine = `${indent}${childLines.length > 0 ? 'else ' : ''}return ${getIdForPattern(thisPattern)};`;
         return [].concat(...childLines, lastLine);
     }
 
@@ -66,9 +63,11 @@ export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): 
         ...getPrologLines(patternHierarchy.get(Pattern.UNIVERSAL)),
         '',
         'return function getBestMatchingPattern(address) {',
-        ...getBodyLines(Pattern.UNIVERSAL, patternHierarchy.get(Pattern.UNIVERSAL)).map(line => '    ' + line),
+        ...getBodyLines(Pattern.UNIVERSAL, patternHierarchy.get(Pattern.UNIVERSAL), 1),
         '};'
     ];
+console.log(lines);
+debugger;
 
     // TODO: temp testing... capture unmangled Pattern id... remove/fix this!!!
     let fn = (function(Pattern) {
