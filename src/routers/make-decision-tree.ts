@@ -8,7 +8,7 @@ import Pattern from '../patterns/pattern';
 
 
 // TODO: ...
-type GetBestMatchingPattern = (address: string) => Pattern;
+export type GetBestMatchingPattern = (address: string) => Pattern;
 
 
 
@@ -25,14 +25,10 @@ export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): 
         let indent = ' '.repeat(nestDepth * 4);
         let childLines = Array.from(childPatterns.keys()).map((npat, i) => {
             let childNode = childPatterns.get(npat);
+            let isLeaf = childNode.size === 0;
             let id = getIdForPattern(npat);
             let result = `${indent}${i > 0 ? 'else ' : ''}if (${id}.match(address)) `;
-            if (childNode.size === 0) {
-                result += `return ${id};\n`;
-            }
-            else {
-                result += `{\n${getBody(npat, childNode, nestDepth + 1)}${indent}}\n`;
-            }
+            result += isLeaf ? `return ${id};\n` : `{\n${getBody(npat, childNode, nestDepth + 1)}${indent}}\n`;
             return result;
         });
         let lastLine = `${indent}${childLines.length > 0 ? 'else ' : ''}return ${getIdForPattern(thisPattern)};\n`;

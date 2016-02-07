@@ -10,14 +10,10 @@ function makeDecisionTree(patternHierarchy) {
         var indent = ' '.repeat(nestDepth * 4);
         var childLines = Array.from(childPatterns.keys()).map(function (npat, i) {
             var childNode = childPatterns.get(npat);
+            var isLeaf = childNode.size === 0;
             var id = getIdForPattern(npat);
             var result = "" + indent + (i > 0 ? 'else ' : '') + "if (" + id + ".match(address)) ";
-            if (childNode.size === 0) {
-                result += "return " + id + ";\n";
-            }
-            else {
-                result += "{\n" + getBody(npat, childNode, nestDepth + 1) + indent + "}\n";
-            }
+            result += isLeaf ? "return " + id + ";\n" : "{\n" + getBody(npat, childNode, nestDepth + 1) + indent + "}\n";
             return result;
         });
         var lastLine = "" + indent + (childLines.length > 0 ? 'else ' : '') + "return " + getIdForPattern(thisPattern) + ";\n";
