@@ -8,6 +8,9 @@ function makeMatchFunction(patternAST) {
     var simplifiedPatternSignature = patternAST.signature.replace(/[^*…]+/g, 'A');
     var literalPart = patternAST.signature.replace(/[*…]/g, '');
     var captureName0 = patternAST.captureNames[0];
+    // TODO: explain... so match() doesn't unnecessarily alloc new objs
+    var SUCCESSFUL_MATCH_WITH_NO_CAPTURES = {};
+    Object.freeze(SUCCESSFUL_MATCH_WITH_NO_CAPTURES);
     // Construct the match function, using optimizations where possible.
     // Pattern matching may be done frequently, possibly on a critical path.
     // For simpler patterns, we can avoid the overhead of using a regex.
@@ -19,11 +22,7 @@ function makeMatchFunction(patternAST) {
     var matchFunction;
     switch (simplifiedPatternSignature) {
         case 'A':
-            matchFunction = function (address) {
-                //TODO: always return singleton {}, not new {}
-                var ret = address === patternSource ? {} : null;
-                return ret;
-            };
+            matchFunction = function (address) { return address === patternSource ? SUCCESSFUL_MATCH_WITH_NO_CAPTURES : null; };
             break;
         case '*':
         case '…':
@@ -31,7 +30,7 @@ function makeMatchFunction(patternAST) {
                 if (simplifiedPatternSignature === '*' && address.indexOf('/') !== -1)
                     return null;
                 if (captureName0 === '?')
-                    return {};
+                    return SUCCESSFUL_MATCH_WITH_NO_CAPTURES;
                 return (_a = {}, _a[captureName0] = address, _a);
                 var _a;
             };
@@ -46,7 +45,7 @@ function makeMatchFunction(patternAST) {
                 if (simplifiedPatternSignature === 'A*' && captureValue.indexOf('/') !== -1)
                     return null;
                 if (captureName0 === '?')
-                    return {};
+                    return SUCCESSFUL_MATCH_WITH_NO_CAPTURES;
                 return (_a = {}, _a[captureName0] = captureValue, _a);
                 var _a;
             };
@@ -61,7 +60,7 @@ function makeMatchFunction(patternAST) {
                 if (simplifiedPatternSignature === '*A' && captureValue.indexOf('/') !== -1)
                     return null;
                 if (captureName0 === '?')
-                    return {};
+                    return SUCCESSFUL_MATCH_WITH_NO_CAPTURES;
                 return (_a = {}, _a[captureName0] = captureValue, _a);
                 var _a;
             };
