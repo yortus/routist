@@ -1,19 +1,20 @@
 'use strict';
-// TODO: review docs... Doesn't work with objs anymore, only maps, actually only Hierarchy<T>
-/**
- * Returns all the keys in `obj` and all it's sub-objects, recursively. Duplicates are removed.
- * For example, if `obj` is { a: { a1: {}, a2: {}, b: 0 }, b: {}, c: { c1: [] }}, the result
- * is ['a', 'a1', 'a2', 'b', 'c', 'c1'].
- */
-function getAllGraphNodes(map) {
-    var keys = getKeysDeepWithDuplicates(map);
-    var map2 = keys.reduce(function (map2, key) { return map2.set(key, true); }, new Map());
-    return Array.from(map2.keys());
+/** Returns all the nodes that comprise the given graph. */
+function getAllGraphNodes(graph) {
+    var allNodes = new Set();
+    collectAllGraphNodes(graph, allNodes);
+    return Array.from(allNodes.values());
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = getAllGraphNodes;
-// TODO: doc...
-function getKeysDeepWithDuplicates(map) {
-    return Array.from(map.keys()).reduce(function (allKeys, key) { return allKeys.concat(key, getKeysDeepWithDuplicates(map.get(key))); }, []);
+/** Helper function that recurses over the graph without revisiting already-visited nodes. */
+function collectAllGraphNodes(node, allNodes) {
+    // Get all as-yet-unvisited child nodes of the given node.
+    var childNodes = Array.from(node.keys()).filter(function (childNode) { return !allNodes.has(childNode); });
+    // Visit each child recursively, adding all unvisited nodes to allNodes.
+    childNodes.forEach(function (childNode) {
+        allNodes.add(childNode);
+        collectAllGraphNodes(node.get(childNode), allNodes);
+    });
 }
 //# sourceMappingURL=get-all-graph-nodes.js.map

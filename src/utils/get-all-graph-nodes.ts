@@ -1,27 +1,30 @@
 'use strict';
 import Graph from './graph';
-// TODO: review docs... Doesn't work with objs anymore, only maps, actually only Hierarchy<T>
 
 
 
 
 
-/**
- * Returns all the keys in `obj` and all it's sub-objects, recursively. Duplicates are removed.
- * For example, if `obj` is { a: { a1: {}, a2: {}, b: 0 }, b: {}, c: { c1: [] }}, the result
- * is ['a', 'a1', 'a2', 'b', 'c', 'c1'].
- */
-export default function getAllGraphNodes<T>(map: Graph<T>): T[] {
-    let keys = getKeysDeepWithDuplicates(map);
-    let map2 = keys.reduce((map2, key) => map2.set(key, true), new Map<T, any>());
-    return Array.from(map2.keys());
+/** Returns all the nodes that comprise the given graph. */
+export default function getAllGraphNodes<T>(graph: Graph<T>): T[] {
+    let allNodes = new Set<T>();
+    collectAllGraphNodes(graph, allNodes);
+    return Array.from(allNodes.values());
 }
 
 
 
 
 
-// TODO: doc...
-function getKeysDeepWithDuplicates<T>(map: Graph<T>): T[] {
-    return Array.from(map.keys()).reduce((allKeys, key) => allKeys.concat(key, getKeysDeepWithDuplicates(map.get(key))), []);
+/** Helper function that recurses over the graph without revisiting already-visited nodes. */
+function collectAllGraphNodes<T>(node: Graph<T>, allNodes: Set<T>) {
+
+    // Get all as-yet-unvisited child nodes of the given node.
+    let childNodes = Array.from(node.keys()).filter(childNode => !allNodes.has(childNode));
+
+    // Visit each child recursively, adding all unvisited nodes to allNodes.
+    childNodes.forEach(childNode => {
+        allNodes.add(childNode);
+        collectAllGraphNodes(node.get(childNode), allNodes);
+    });
 }
