@@ -1,7 +1,6 @@
 'use strict';
 import getKeysDeep from '../utils/get-keys-deep';
 import Hierarchy from '../utils/hierarchy';
-import makeMatchFunction from '../patterns/make-match-function';
 import Pattern from '../patterns/pattern';
 
 
@@ -20,25 +19,6 @@ export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): 
 
     // TODO: ...
     let normalizedPatterns = getKeysDeep(patternHierarchy);
-
-    // TODO: ...
-    type QuickMatch = (address: string) => boolean;
-    let patternMatchers = normalizedPatterns.reduce((map, npat) => {
-        let match = npat.match;
-        map.set(npat, (address: string) => match(address) !== null);
-        return map;
-    }, new Map<Pattern, QuickMatch>());
-
-
-    // TODO: ...
-    function getProlog(patternHierarchy: Hierarchy<Pattern>): string {
-        let lines = normalizedPatterns.map((npat, i) => {
-            let id = getIdForPattern(npat);
-            return `let ${id} = normalizedPatterns[${i}];\n`
-        });
-        return lines.join('');
-    }
-
 
     // TODO: doc...
     function getBody(thisPattern: Pattern, childPatterns: Hierarchy<Pattern>, nestDepth: number): string {
@@ -61,7 +41,7 @@ export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): 
 
     // TODO: doc...
     let lines = [
-        getProlog(patternHierarchy.get(Pattern.UNIVERSAL)),
+        ...normalizedPatterns.map((npat, i) => `let ${getIdForPattern(npat)} = normalizedPatterns[${i}];\n`),
         '',
         'return function getBestMatchingPattern(address) {',
         getBody(Pattern.UNIVERSAL, patternHierarchy.get(Pattern.UNIVERSAL), 1),

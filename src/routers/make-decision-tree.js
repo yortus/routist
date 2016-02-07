@@ -5,19 +5,6 @@ var pattern_1 = require('../patterns/pattern');
 function makeDecisionTree(patternHierarchy) {
     // TODO: ...
     var normalizedPatterns = get_keys_deep_1.default(patternHierarchy);
-    var patternMatchers = normalizedPatterns.reduce(function (map, npat) {
-        var match = npat.match;
-        map.set(npat, function (address) { return match(address) !== null; });
-        return map;
-    }, new Map());
-    // TODO: ...
-    function getProlog(patternHierarchy) {
-        var lines = normalizedPatterns.map(function (npat, i) {
-            var id = getIdForPattern(npat);
-            return "let " + id + " = normalizedPatterns[" + i + "];\n";
-        });
-        return lines.join('');
-    }
     // TODO: doc...
     function getBody(thisPattern, childPatterns, nestDepth) {
         var indent = ' '.repeat(nestDepth * 4);
@@ -37,13 +24,12 @@ function makeDecisionTree(patternHierarchy) {
         return childLines.join('') + lastLine;
     }
     // TODO: doc...
-    var lines = [
-        getProlog(patternHierarchy.get(pattern_1.default.UNIVERSAL)),
+    var lines = normalizedPatterns.map(function (npat, i) { return ("let " + getIdForPattern(npat) + " = normalizedPatterns[" + i + "];\n"); }).concat([
         '',
         'return function getBestMatchingPattern(address) {',
         getBody(pattern_1.default.UNIVERSAL, patternHierarchy.get(pattern_1.default.UNIVERSAL), 1),
         '};'
-    ];
+    ]);
     //console.log(lines);
     // debugger;
     // TODO: temp testing... capture unmangled Pattern id... remove/fix this!!!
