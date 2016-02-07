@@ -3,6 +3,7 @@ var assert = require('assert');
 var util_1 = require('../util');
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
 var pattern_1 = require('../patterns/pattern');
+var route_1 = require('./route');
 var rule_1 = require('./rule');
 var walk_pattern_hierarchy_1 = require('./walk-pattern-hierarchy');
 // TODO: ...
@@ -126,12 +127,12 @@ function test(routeTable) {
     //console.log(ruleWalkForPattern);
     // reduce each signature's rule walk down to a simple handler function.
     var noMore = function (rq) { return null; };
-    var finalHandlers = normalizedPatterns.reduce(function (map, npat) {
+    var routes = normalizedPatterns.reduce(function (map, npat) {
         var reverseRuleWalk = ruleWalkForPattern.get(npat).slice().reverse();
-        map.set(npat, reverseRuleWalk.reduce(function (ds, rule) { return function (request) { return rule.execute(request, ds); }; }, noMore));
+        map.set(npat, new route_1.default(ruleWalkForPattern.get(npat)));
         return map;
     }, new Map());
-    return finalHandlers;
+    return routes;
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = test;

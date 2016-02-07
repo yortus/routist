@@ -5,6 +5,7 @@ import hierarchizePatterns from '../patterns/hierarchize-patterns';
 import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
+import Route from './route';
 import Rule from './rule';
 import walkPatternHierarchy from './walk-pattern-hierarchy';
 
@@ -12,16 +13,8 @@ import walkPatternHierarchy from './walk-pattern-hierarchy';
 
 
 
-// TODO: remove this? rename to finalExecutors? all internal anyway...
-// TODO: fix terminology: 'handler' is taken...
-type FinalHandlers = Map<Pattern, (rq: Request) => Response>;
-
-
-
-
-
 // TODO: ...
-export default function test(routeTable: {[patternSource: string]: Function}): FinalHandlers {
+export default function test(routeTable: {[patternSource: string]: Function}): Map<Pattern, Route> {
 
     // TODO: ...
     let rules = Object.keys(routeTable).map(ps => new Rule(new Pattern(ps), routeTable[ps]));
@@ -155,11 +148,11 @@ export default function test(routeTable: {[patternSource: string]: Function}): F
 
     // reduce each signature's rule walk down to a simple handler function.
     const noMore = (rq: Request) => <Response> null;
-    let finalHandlers = normalizedPatterns.reduce((map, npat) => {
+    let routes = normalizedPatterns.reduce((map, npat) => {
         let reverseRuleWalk = ruleWalkForPattern.get(npat).slice().reverse();
-        map.set(npat, reverseRuleWalk.reduce((ds, rule) => request => rule.execute(request, ds), noMore));
+        map.set(npat, new Route(ruleWalkForPattern.get(npat)));
         return map;
-    }, new Map<Pattern, (rq: Request) => Response>());
+    }, new Map<Pattern, Route>());
 
-    return finalHandlers;
+    return routes;
 }

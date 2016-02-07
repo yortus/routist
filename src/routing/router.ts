@@ -27,15 +27,18 @@ export default class Router {
 
     // TODO: doc...
     add(routeTable: {[pattern: string]: Function}) {
+
         let patternHierarchy = hierarchizePatterns(Object.keys(routeTable).map(src => new Pattern(src)));
-        let finalHandlers = test(routeTable); // TODO: fix terminology: 'handler' is taken...
-        let makeDecision = makeDecisionTree(patternHierarchy);
+        let getBestMatchingPattern = makeDecisionTree(patternHierarchy);
+
+        let routes = test(routeTable); // TODO: fix terminology: 'handler' is taken...
 
         this.dispatch = (request: Request) => {
             let address = typeof request === 'string' ? request : request.address;
-            let bestPattern = makeDecision(address);
-            let handler = finalHandlers.get(bestPattern);
-            let response = handler(request);
+            let bestMatchingPattern = getBestMatchingPattern(address);
+            let route = routes.get(bestMatchingPattern);
+debugger;
+            let response = route.execute(request);
             return response;
         };
     }

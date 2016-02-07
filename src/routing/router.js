@@ -12,13 +12,14 @@ var Router = (function () {
     // TODO: doc...
     Router.prototype.add = function (routeTable) {
         var patternHierarchy = hierarchize_patterns_1.default(Object.keys(routeTable).map(function (src) { return new pattern_1.default(src); }));
-        var finalHandlers = router2_1.default(routeTable); // TODO: fix terminology: 'handler' is taken...
-        var makeDecision = make_decision_tree_1.default(patternHierarchy);
+        var getBestMatchingPattern = make_decision_tree_1.default(patternHierarchy);
+        var routes = router2_1.default(routeTable); // TODO: fix terminology: 'handler' is taken...
         this.dispatch = function (request) {
             var address = typeof request === 'string' ? request : request.address;
-            var bestPattern = makeDecision(address);
-            var handler = finalHandlers.get(bestPattern);
-            var response = handler(request);
+            var bestMatchingPattern = getBestMatchingPattern(address);
+            var route = routes.get(bestMatchingPattern);
+            debugger;
+            var response = route.execute(request);
             return response;
         };
     };
