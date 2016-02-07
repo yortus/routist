@@ -31,49 +31,52 @@ export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): 
 
 
     // TODO: ...
-    function getPrologLines(patternHierarchy: Hierarchy<Pattern>): string[] {
+    function getProlog(patternHierarchy: Hierarchy<Pattern>): string {
         let lines = normalizedPatterns.map((npat, i) => {
             let id = getIdForPattern(npat);
-            return `let ${id} = normalizedPatterns[${i}];`
+            return `let ${id} = normalizedPatterns[${i}];\n`
         });
-        return lines;
+        return lines.join('');
     }
 
 
     // TODO: doc...
-    function getBodyLines(thisPattern: Pattern, childPatterns: Hierarchy<Pattern>, nestDepth: number): string[] {
+    function getBody(thisPattern: Pattern, childPatterns: Hierarchy<Pattern>, nestDepth: number): string {
         let indent = ' '.repeat(nestDepth * 4);
         let childLines = Array.from(childPatterns.keys()).map((npat, i) => {
             let childNode = childPatterns.get(npat);
             let id = getIdForPattern(npat);
-            let ifCondition = `${i > 0 ? 'else ' : ''}if (${id}.match(address))`;
+            let result = `${indent}${i > 0 ? 'else ' : ''}if (${id}.match(address)) `;
             if (childNode.size === 0) {
-                return [`${indent}${ifCondition} return ${id};`];
+                result += `return ${id};\n`;
             }
             else {
-                return [`${indent}${ifCondition} {`, ...getBodyLines(npat, childNode, nestDepth + 1), `${indent}}`];
+                result += `{\n${getBody(npat, childNode, nestDepth + 1)}${indent}}\n`;
             }
+            return result;
         });
-        let lastLine = `${indent}${childLines.length > 0 ? 'else ' : ''}return ${getIdForPattern(thisPattern)};`;
-        return [].concat(...childLines, lastLine);
+        let lastLine = `${indent}${childLines.length > 0 ? 'else ' : ''}return ${getIdForPattern(thisPattern)};\n`;
+        return childLines.join('') + lastLine;
     }
 
     // TODO: doc...
     let lines = [
-        ...getPrologLines(patternHierarchy.get(Pattern.UNIVERSAL)),
+        getProlog(patternHierarchy.get(Pattern.UNIVERSAL)),
         '',
         'return function getBestMatchingPattern(address) {',
-        ...getBodyLines(Pattern.UNIVERSAL, patternHierarchy.get(Pattern.UNIVERSAL), 1),
+        getBody(Pattern.UNIVERSAL, patternHierarchy.get(Pattern.UNIVERSAL), 1),
         '};'
     ];
-console.log(lines);
-debugger;
+//console.log(lines);
+// debugger;
 
     // TODO: temp testing... capture unmangled Pattern id... remove/fix this!!!
     let fn = (function(Pattern) {
         let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();
         return fn;
     })(Pattern);
+//console.log(fn.toString());
+//debugger;
     return fn;
 }
 
