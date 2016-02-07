@@ -1,4 +1,5 @@
 'use strict';
+var make_match_function_1 = require('./make-match-function');
 var parse_pattern_source_1 = require('./parse-pattern-source');
 // TODO: review jsdocs after pattern overhaul
 // TODO: ...
@@ -24,10 +25,9 @@ var Pattern = (function () {
                 return instance;
             normalizedPatternCache.set(source, this);
         }
-        // // TODO: ...
-        // this.signature = patternAST.signature;
         // TODO: ...
         this.normalized = new Pattern(patternAST.signature);
+        this.match = make_match_function_1.default(patternAST);
     }
     /** Returns the source string with which this instance was constructed. */
     Pattern.prototype.toString = function () { return this.source; };

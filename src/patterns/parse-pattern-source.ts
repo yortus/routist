@@ -8,7 +8,11 @@ import * as PEG from 'pegjs';
 
 
 /** Holds the information associated with a successfully parsed pattern source string. */
-interface PatternAST {
+export interface PatternAST {
+
+
+    // TODO: doc... ref back to original source (makeMatchFunction uses this)
+    source: string;
 
 
     /**
@@ -89,9 +93,9 @@ parser = PEG.buildParser(`
         {
             var signature = elems.map(elem => elem[0]).join('');
             var captureNames = elems.map(elem => elem[1]).filter(name => !!name);
-            return { signature, captureNames };
+            return { source: text(), signature, captureNames };
         }
-    /   "∅"   { return { signature: "∅", captureNames: [] }; }
+    /   "∅"   { return { source: text(), signature: "∅", captureNames: [] }; }
 
     Element
     =   Globstar

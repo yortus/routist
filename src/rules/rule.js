@@ -1,7 +1,6 @@
 'use strict';
 var assert = require('assert');
 var get_function_parameter_names_1 = require('../utils/get-function-parameter-names');
-var make_match_function_1 = require('../patterns/make-match-function'); // TODO: review if needed here?
 var parse_pattern_source_1 = require('../patterns/parse-pattern-source'); // TODO: review if needed here?
 var pattern_1 = require('../patterns/pattern');
 // TODO: review jsdocs after pattern overhaul
@@ -56,7 +55,7 @@ function makeExecuteFunction(pattern, handler, paramNames) {
     // TODO: integrate back into pattern class?
     var patternSource = pattern.toString();
     var captureNames = parse_pattern_source_1.default(patternSource).captureNames.filter(function (n) { return n !== '?'; });
-    var match = make_match_function_1.default(pattern);
+    var match = pattern.match;
     // Assert the mutual validity of `pattern` and `paramNames`. This allows the body of
     // the 'execute' function to be simpler, as it can safely forego some extra checks.
     validateNames(pattern, captureNames, paramNames);

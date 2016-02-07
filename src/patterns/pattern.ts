@@ -1,5 +1,5 @@
 'use strict';
-import makeMatchFunction from './make-match-function';
+import makeMatchFunction, {MatchFunction} from './make-match-function';
 import parsePatternSource from './parse-pattern-source';
 // TODO: review jsdocs after pattern overhaul
 
@@ -38,23 +38,18 @@ export default class Pattern {
             normalizedPatternCache.set(source, this);
         }
 
-        // // TODO: ...
-        // this.signature = patternAST.signature;
-
         // TODO: ...
         this.normalized = new Pattern(patternAST.signature);
+        this.match = makeMatchFunction(patternAST);
     }
-
-
-    // /**
-    //  * The signature of this pattern. Two patterns that match the same set of
-    //  * addresses are guaranteed to have the same signature.
-    //  */
-    // signature: string;
 
 
     // TODO: doc...
     normalized: Pattern;
+
+
+    // TODO: doc...
+    match: MatchFunction;
 
 
     /** Returns the source string with which this instance was constructed. */

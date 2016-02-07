@@ -1,13 +1,12 @@
 'use strict';
 var get_keys_deep_1 = require('../utils/get-keys-deep');
-var make_match_function_1 = require('../patterns/make-match-function');
 var pattern_1 = require('../patterns/pattern');
 // TODO: ...
 function makeDecisionTree(patternHierarchy) {
     // TODO: ...
     var normalizedPatterns = get_keys_deep_1.default(patternHierarchy);
     var patternMatchers = normalizedPatterns.reduce(function (map, npat) {
-        var match = make_match_function_1.default(npat);
+        var match = npat.match;
         map.set(npat, function (address) { return match(address) !== null; });
         return map;
     }, new Map());

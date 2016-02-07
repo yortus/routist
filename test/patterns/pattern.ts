@@ -143,7 +143,7 @@ describe('Matching a pattern against an address', () => {
             let address = rhs.split(' WITH ')[0];
             let expectedCaptures = isMatch ? eval(`(${rhs.split(' WITH ')[1]})`) || {} : null;
             let pattern = new Pattern(patternSource);
-            let actualCaptures = makeMatchFunction(pattern)(address); // TODO: test makeMatchFunction separately?
+            let actualCaptures = pattern.match(address); // TODO: test makeMatchFunction separately?
             expect(actualCaptures).to.deep.equal(expectedCaptures);
             if (!isMatch) return;
             let expectedCaptureNames = Object.keys(expectedCaptures);

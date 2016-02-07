@@ -1,6 +1,5 @@
 'use strict';
-import parsePatternSource from './parse-pattern-source';
-import Pattern from './pattern';
+import parsePatternSource, {PatternAST} from './parse-pattern-source';
 // TODO: review jsdocs after pattern overhaul
 
 
@@ -25,12 +24,11 @@ export interface MatchFunction {
 // TODO: revise jsdoc...
 // TODO: add separate tests for this?
 /** Internal function used to create the Pattern#match method. */
-export default function makeMatchFunction(pattern: Pattern) {
+export default function makeMatchFunction(patternAST: PatternAST) {
 
     // Gather information about the pattern to be matched.
-    let patternSource = pattern.toString();
-    let patternAST = parsePatternSource(patternSource); // TODO: Pattern ctor already called this! just pass in AST props directly?
-    let patternSignature = patternAST.signature.replace(/[^*…]+/g, 'A');
+    let patternSource = patternAST.source;
+    let simplifiedPatternSignature = patternAST.signature.replace(/[^*…]+/g, 'A');
     let literalPart = patternAST.signature.replace(/[*…]/g, '');
     let captureName0 = patternAST.captureNames[0];
 
@@ -43,15 +41,19 @@ export default function makeMatchFunction(pattern: Pattern) {
     // commented out with no change in runtime behaviour. The additional
     // cases are strictly optimizations.
     let matchFunction: MatchFunction;
-    switch (patternSignature) {
+    switch (simplifiedPatternSignature) {
         case 'A':
-            matchFunction = (address: string) => address === patternSource ? {} : null;
+            matchFunction = (address: string) => {
+                //TODO: always return singleton {}, not new {}
+                let ret = address === patternSource ? <any>{} : null;
+                return ret;
+            };
             break;
 
         case '*':
         case '…':
             matchFunction = (address: string) => {
-                if (patternSignature === '*' && address.indexOf('/') !== -1) return null;
+                if (simplifiedPatternSignature === '*' && address.indexOf('/') !== -1) return null;
                 if (captureName0 === '?') return {};
                 return {[captureName0]: address};
             }
@@ -63,7 +65,7 @@ export default function makeMatchFunction(pattern: Pattern) {
                 let i = address.indexOf(literalPart);
                 if (i !== 0) return null;
                 let captureValue = address.slice(literalPart.length);
-                if (patternSignature === 'A*' && captureValue.indexOf('/') !== -1) return null;
+                if (simplifiedPatternSignature === 'A*' && captureValue.indexOf('/') !== -1) return null;
                 if (captureName0 === '?') return {};
                 return {[captureName0]: captureValue};
             };
@@ -75,7 +77,7 @@ export default function makeMatchFunction(pattern: Pattern) {
                 let i = address.lastIndexOf(literalPart);
                 if (i === -1 || i !== address.length - literalPart.length) return null;
                 let captureValue = address.slice(0, -literalPart.length);
-                if (patternSignature === '*A' && captureValue.indexOf('/') !== -1) return null;
+                if (simplifiedPatternSignature === '*A' && captureValue.indexOf('/') !== -1) return null;
                 if (captureName0 === '?') return {};
                 return {[captureName0]: captureValue};
             };

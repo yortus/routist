@@ -117,7 +117,7 @@ function makeExecuteFunction(pattern: Pattern, handler: Function, paramNames: st
     // TODO: integrate back into pattern class?
     let patternSource = pattern.toString();
     let captureNames = parsePatternSource(patternSource).captureNames.filter(n => n !== '?');
-    let match = makeMatchFunction(pattern);
+    let match = pattern.match;
 
     // Assert the mutual validity of `pattern` and `paramNames`. This allows the body of
     // the 'execute' function to be simpler, as it can safely forego some extra checks.

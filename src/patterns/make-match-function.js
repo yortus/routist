@@ -1,13 +1,11 @@
 'use strict';
-var parse_pattern_source_1 = require('./parse-pattern-source');
 // TODO: revise jsdoc...
 // TODO: add separate tests for this?
 /** Internal function used to create the Pattern#match method. */
-function makeMatchFunction(pattern) {
+function makeMatchFunction(patternAST) {
     // Gather information about the pattern to be matched.
-    var patternSource = pattern.toString();
-    var patternAST = parse_pattern_source_1.default(patternSource); // TODO: Pattern ctor already called this! just pass in AST props directly?
-    var patternSignature = patternAST.signature.replace(/[^*…]+/g, 'A');
+    var patternSource = patternAST.source;
+    var simplifiedPatternSignature = patternAST.signature.replace(/[^*…]+/g, 'A');
     var literalPart = patternAST.signature.replace(/[*…]/g, '');
     var captureName0 = patternAST.captureNames[0];
     // Construct the match function, using optimizations where possible.
@@ -19,14 +17,18 @@ function makeMatchFunction(pattern) {
     // commented out with no change in runtime behaviour. The additional
     // cases are strictly optimizations.
     var matchFunction;
-    switch (patternSignature) {
+    switch (simplifiedPatternSignature) {
         case 'A':
-            matchFunction = function (address) { return address === patternSource ? {} : null; };
+            matchFunction = function (address) {
+                //TODO: always return singleton {}, not new {}
+                var ret = address === patternSource ? {} : null;
+                return ret;
+            };
             break;
         case '*':
         case '…':
             matchFunction = function (address) {
-                if (patternSignature === '*' && address.indexOf('/') !== -1)
+                if (simplifiedPatternSignature === '*' && address.indexOf('/') !== -1)
                     return null;
                 if (captureName0 === '?')
                     return {};
@@ -41,7 +43,7 @@ function makeMatchFunction(pattern) {
                 if (i !== 0)
                     return null;
                 var captureValue = address.slice(literalPart.length);
-                if (patternSignature === 'A*' && captureValue.indexOf('/') !== -1)
+                if (simplifiedPatternSignature === 'A*' && captureValue.indexOf('/') !== -1)
                     return null;
                 if (captureName0 === '?')
                     return {};
@@ -56,7 +58,7 @@ function makeMatchFunction(pattern) {
                 if (i === -1 || i !== address.length - literalPart.length)
                     return null;
                 var captureValue = address.slice(0, -literalPart.length);
-                if (patternSignature === '*A' && captureValue.indexOf('/') !== -1)
+                if (simplifiedPatternSignature === '*A' && captureValue.indexOf('/') !== -1)
                     return null;
                 if (captureName0 === '?')
                     return {};

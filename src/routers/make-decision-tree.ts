@@ -24,7 +24,7 @@ export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): 
     // TODO: ...
     type QuickMatch = (address: string) => boolean;
     let patternMatchers = normalizedPatterns.reduce((map, npat) => {
-        let match = makeMatchFunction(npat);
+        let match = npat.match;
         map.set(npat, (address: string) => match(address) !== null);
         return map;
     }, new Map<Pattern, QuickMatch>());
