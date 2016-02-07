@@ -32,28 +32,25 @@ export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): 
 
     // TODO: ...
     function getPrologLines(patternHierarchy: Hierarchy<Pattern>): string[] {
-        let lines = Array.from(patternHierarchy.keys()).map(npat => {
-            let id = getIdForPattern(npat, '__', '__');
-            return [
-                `let ${id} = patternMatchers.get(new Pattern('${npat}'));`, // TODO: temp testing... DON'T construct new Pattern inst here!
-                ...getPrologLines(patternHierarchy.get(npat))
-            ];
+        let lines = normalizedPatterns.map((npat, i) => {
+            let id = getIdForPattern(npat);
+            return `let ${id} = normalizedPatterns[${i}];`
         });
-        return dedupe([].concat(...lines));
+        return lines;
     }
 
 
     // TODO: doc...
     function getBodyLines(thisPattern: Pattern, childPatterns: Hierarchy<Pattern>): string[] {
         let childLines = Array.from(childPatterns.keys()).map((npat, i) => {
-            let id = getIdForPattern(npat, '__', '__');
+            let id = getIdForPattern(npat);
             return [
-                `${i > 0 ? 'else ' : ''}if (${id}(address)) {`,
+                `${i > 0 ? 'else ' : ''}if (${id}.match(address)) {`,
                 ...getBodyLines(npat, childPatterns.get(npat)).map(line => '    ' + line),
                 `}`
             ];
         });
-        let lastLine = `${childLines.length > 0 ? 'else ' : ''}return new Pattern('${thisPattern}');`; // TODO: temp testing... DON'T construct new Pattern inst here!
+        let lastLine = `${childLines.length > 0 ? 'else ' : ''}return ${getIdForPattern(thisPattern)};`;
         return [].concat(...childLines, lastLine);
     }
 
@@ -76,8 +73,8 @@ export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): 
 
 
 // TODO: ...
-function getIdForPattern(pattern: Pattern, prefix?: string, suffix?: string) {
-    return (prefix || '') + pattern.toString()
+function getIdForPattern(pattern: Pattern) {
+    return '__' + pattern.toString()
         .split('')
         .map(c => {
             if (/[a-zA-Z0-9_]/.test(c)) return c;
@@ -89,12 +86,5 @@ function getIdForPattern(pattern: Pattern, prefix?: string, suffix?: string) {
             if (c === '*') return 'ᕽ'; // (U+157D)
             throw new Error(`Unrecognized character '${c}' in pattern '${pattern}'`);
         })
-        .join('') + (suffix || '');
-}
-
-
-// TODO: this is a util. Generalize to any element type. Use it also in/with getKeysDeep
-function dedupe(strs: string[]): string[] {
-    let map = strs.reduce((map, str) => (map[str] = true, map), {});
-    return Object.keys(map);
+        .join('') + '__';
 }

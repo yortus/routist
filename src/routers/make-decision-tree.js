@@ -12,26 +12,23 @@ function makeDecisionTree(patternHierarchy) {
     }, new Map());
     // TODO: ...
     function getPrologLines(patternHierarchy) {
-        var lines = Array.from(patternHierarchy.keys()).map(function (npat) {
-            var id = getIdForPattern(npat, '__', '__');
-            return [
-                ("let " + id + " = patternMatchers.get(new Pattern('" + npat + "'));")
-            ].concat(getPrologLines(patternHierarchy.get(npat)));
+        var lines = normalizedPatterns.map(function (npat, i) {
+            var id = getIdForPattern(npat);
+            return "let " + id + " = normalizedPatterns[" + i + "];";
         });
-        return dedupe((_a = []).concat.apply(_a, lines));
-        var _a;
+        return lines;
     }
     // TODO: doc...
     function getBodyLines(thisPattern, childPatterns) {
         var childLines = Array.from(childPatterns.keys()).map(function (npat, i) {
-            var id = getIdForPattern(npat, '__', '__');
+            var id = getIdForPattern(npat);
             return [
-                ((i > 0 ? 'else ' : '') + "if (" + id + "(address)) {")
+                ((i > 0 ? 'else ' : '') + "if (" + id + ".match(address)) {")
             ].concat(getBodyLines(npat, childPatterns.get(npat)).map(function (line) { return '    ' + line; }), [
                 "}"
             ]);
         });
-        var lastLine = (childLines.length > 0 ? 'else ' : '') + "return new Pattern('" + thisPattern + "');"; // TODO: temp testing... DON'T construct new Pattern inst here!
+        var lastLine = (childLines.length > 0 ? 'else ' : '') + "return " + getIdForPattern(thisPattern) + ";";
         return (_a = []).concat.apply(_a, childLines.concat([lastLine]));
         var _a;
     }
@@ -52,8 +49,8 @@ function makeDecisionTree(patternHierarchy) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = makeDecisionTree;
 // TODO: ...
-function getIdForPattern(pattern, prefix, suffix) {
-    return (prefix || '') + pattern.toString()
+function getIdForPattern(pattern) {
+    return '__' + pattern.toString()
         .split('')
         .map(function (c) {
         if (/[a-zA-Z0-9_]/.test(c))
@@ -72,11 +69,6 @@ function getIdForPattern(pattern, prefix, suffix) {
             return 'ᕽ'; // (U+157D)
         throw new Error("Unrecognized character '" + c + "' in pattern '" + pattern + "'");
     })
-        .join('') + (suffix || '');
-}
-// TODO: this is a util. Generalize to any element type. Use it also in/with getKeysDeep
-function dedupe(strs) {
-    var map = strs.reduce(function (map, str) { return (map[str] = true, map); }, {});
-    return Object.keys(map);
+        .join('') + '__';
 }
 //# sourceMappingURL=make-decision-tree.js.map
