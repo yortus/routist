@@ -7,14 +7,7 @@ import Pattern from '../patterns/pattern';
 
 
 // TODO: ...
-export type GetBestMatchingPattern = (address: string) => Pattern;
-
-
-
-
-
-// TODO: ...
-export default function makeDecisionTree(patternHierarchy: Graph<Pattern>): GetBestMatchingPattern {
+export default function makeDispatchFunction(patternHierarchy: Graph<Pattern>): (address: string) => Pattern {
 
     // TODO: ...
     let normalizedPatterns = getAllGraphNodes(patternHierarchy);

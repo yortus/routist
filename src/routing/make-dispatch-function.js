@@ -2,7 +2,7 @@
 var util_1 = require('../util');
 var pattern_1 = require('../patterns/pattern');
 // TODO: ...
-function makeDecisionTree(patternHierarchy) {
+function makeDispatchFunction(patternHierarchy) {
     // TODO: ...
     var normalizedPatterns = util_1.getAllGraphNodes(patternHierarchy);
     // TODO: doc...
@@ -38,7 +38,7 @@ function makeDecisionTree(patternHierarchy) {
     return fn;
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = makeDecisionTree;
+exports.default = makeDispatchFunction;
 // TODO: ...
 function getIdForPattern(pattern) {
     return '__' + pattern.toString()
@@ -62,4 +62,4 @@ function getIdForPattern(pattern) {
     })
         .join('') + '__';
 }
-//# sourceMappingURL=make-decision-tree.js.map
+//# sourceMappingURL=make-dispatch-function.js.map

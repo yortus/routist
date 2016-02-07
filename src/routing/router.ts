@@ -10,7 +10,7 @@ import Response from '../response';
 
 // temp testing...
 import test from './router2';
-import makeDecisionTree from './make-decision-tree';
+import makeDispatchFunction from './make-dispatch-function';
 
 
 
@@ -29,14 +29,14 @@ export default class Router {
     add(routeTable: {[pattern: string]: Function}) {
 
         let patternHierarchy = hierarchizePatterns(Object.keys(routeTable).map(src => new Pattern(src)));
-        let getBestMatchingPattern = makeDecisionTree(patternHierarchy);
+        let dispatch = makeDispatchFunction(patternHierarchy);
 
         let routes = test(routeTable); // TODO: fix terminology: 'handler' is taken...
 
         this.dispatch = (request: Request) => {
             let address = typeof request === 'string' ? request : request.address;
-            let bestMatchingPattern = getBestMatchingPattern(address);
-            let route = routes.get(bestMatchingPattern);
+            let pattern = dispatch(address);
+            let route = routes.get(pattern);
             let response = route.execute(request);
             return response;
         };

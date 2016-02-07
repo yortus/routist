@@ -7,7 +7,7 @@ import Router from '../../src/routing/router';
 import test from '../../src/routing/router2';
 import Pattern from '../../src/patterns/pattern';
 import hierarchizePatterns from '../../src/patterns/hierarchize-patterns';
-import makeDecisionTree from '../../src/routing/make-decision-tree';
+import makeDispatchFunction from '../../src/routing/make-dispatch-function';
 
 
 // TODO: More coverage:
