@@ -21,18 +21,18 @@ export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): 
     let normalizedPatterns = getKeysDeep(patternHierarchy);
 
     // TODO: doc...
-    function getBody(thisPattern: Pattern, childPatterns: Hierarchy<Pattern>, nestDepth: number): string {
+    function getBody(specializations: Hierarchy<Pattern>, fallback: Pattern, nestDepth: number): string {
         let indent = ' '.repeat(nestDepth * 4);
-        let childLines = Array.from(childPatterns.keys()).map((npat, i) => {
-            let childNode = childPatterns.get(npat);
-            let isLeaf = childNode.size === 0;
-            let id = getIdForPattern(npat);
-            let result = `${indent}${i > 0 ? 'else ' : ''}if (${id}.match(address)) `;
-            result += isLeaf ? `return ${id};\n` : `{\n${getBody(npat, childNode, nestDepth + 1)}${indent}}\n`;
-            return result;
+        let firstLines = Array.from(specializations.keys()).map((spec, i) => {
+            let nextLevel = specializations.get(spec);
+            let isLeaf = nextLevel.size === 0;
+            let id = getIdForPattern(spec);
+            let condition = `${indent}${i > 0 ? 'else ' : ''}if (${id}.match(address)) `;
+            let consequent = isLeaf ? `return ${id};\n` : `{\n${getBody(nextLevel, spec, nestDepth + 1)}${indent}}\n`;
+            return condition + consequent;
         });
-        let lastLine = `${indent}${childLines.length > 0 ? 'else ' : ''}return ${getIdForPattern(thisPattern)};\n`;
-        return childLines.join('') + lastLine;
+        let lastLine = `${indent}return ${getIdForPattern(fallback)};\n`;
+        return firstLines.join('') + lastLine;
     }
 
     // TODO: doc...
@@ -40,7 +40,7 @@ export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): 
         ...normalizedPatterns.map((npat, i) => `let ${getIdForPattern(npat)} = normalizedPatterns[${i}];\n`),
         '',
         'return function getBestMatchingPattern(address) {',
-        getBody(Pattern.UNIVERSAL, patternHierarchy.get(Pattern.UNIVERSAL), 1),
+        getBody(patternHierarchy.get(Pattern.UNIVERSAL), Pattern.UNIVERSAL, 1),
         '};'
     ];
 //console.log(lines);

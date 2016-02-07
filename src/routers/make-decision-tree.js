@@ -6,24 +6,24 @@ function makeDecisionTree(patternHierarchy) {
     // TODO: ...
     var normalizedPatterns = get_keys_deep_1.default(patternHierarchy);
     // TODO: doc...
-    function getBody(thisPattern, childPatterns, nestDepth) {
+    function getBody(specializations, fallback, nestDepth) {
         var indent = ' '.repeat(nestDepth * 4);
-        var childLines = Array.from(childPatterns.keys()).map(function (npat, i) {
-            var childNode = childPatterns.get(npat);
-            var isLeaf = childNode.size === 0;
-            var id = getIdForPattern(npat);
-            var result = "" + indent + (i > 0 ? 'else ' : '') + "if (" + id + ".match(address)) ";
-            result += isLeaf ? "return " + id + ";\n" : "{\n" + getBody(npat, childNode, nestDepth + 1) + indent + "}\n";
-            return result;
+        var firstLines = Array.from(specializations.keys()).map(function (spec, i) {
+            var nextLevel = specializations.get(spec);
+            var isLeaf = nextLevel.size === 0;
+            var id = getIdForPattern(spec);
+            var condition = "" + indent + (i > 0 ? 'else ' : '') + "if (" + id + ".match(address)) ";
+            var consequent = isLeaf ? "return " + id + ";\n" : "{\n" + getBody(nextLevel, spec, nestDepth + 1) + indent + "}\n";
+            return condition + consequent;
         });
-        var lastLine = "" + indent + (childLines.length > 0 ? 'else ' : '') + "return " + getIdForPattern(thisPattern) + ";\n";
-        return childLines.join('') + lastLine;
+        var lastLine = indent + "return " + getIdForPattern(fallback) + ";\n";
+        return firstLines.join('') + lastLine;
     }
     // TODO: doc...
     var lines = normalizedPatterns.map(function (npat, i) { return ("let " + getIdForPattern(npat) + " = normalizedPatterns[" + i + "];\n"); }).concat([
         '',
         'return function getBestMatchingPattern(address) {',
-        getBody(pattern_1.default.UNIVERSAL, patternHierarchy.get(pattern_1.default.UNIVERSAL), 1),
+        getBody(patternHierarchy.get(pattern_1.default.UNIVERSAL), pattern_1.default.UNIVERSAL, 1),
         '};'
     ]);
     //console.log(lines);
