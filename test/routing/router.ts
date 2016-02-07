@@ -1,13 +1,13 @@
 'use strict';
 import {expect} from 'chai';
-import Router from '../../src/routers/router';
+import Router from '../../src/routing/router';
 
 
 // TODO: temp testing...
-import test from '../../src/routers/router2';
+import test from '../../src/routing/router2';
 import Pattern from '../../src/patterns/pattern';
 import hierarchizePatterns from '../../src/patterns/hierarchize-patterns';
-import makeDecisionTree from '../../src/routers/make-decision-tree';
+import makeDecisionTree from '../../src/routing/make-decision-tree';
 
 
 // TODO: More coverage:

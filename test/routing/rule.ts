@@ -1,7 +1,7 @@
 'use strict';
 import {expect} from 'chai';
 import Pattern from '../../src/patterns/pattern';
-import Rule from '../../src/rules/rule';
+import Rule from '../../src/routing/rule';
 
 
 describe('Constructing a Rule instance', () => {

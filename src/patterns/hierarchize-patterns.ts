@@ -1,5 +1,5 @@
 'use strict';
-import Graph from '../utils/graph';
+import {Graph} from '../util';
 import intersectPatterns from './intersect-patterns';
 import Pattern from './pattern';
 

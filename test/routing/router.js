@@ -1,6 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
-var router_1 = require('../../src/routers/router');
+var router_1 = require('../../src/routing/router');
 // TODO: More coverage:
 // - multiple non-decorator handlers for same pattern
 // - multiple decorator handlers for same pattern

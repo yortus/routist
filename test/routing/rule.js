@@ -1,7 +1,7 @@
 'use strict';
 var chai_1 = require('chai');
 var pattern_1 = require('../../src/patterns/pattern');
-var rule_1 = require('../../src/rules/rule');
+var rule_1 = require('../../src/routing/rule');
 describe('Constructing a Rule instance', function () {
     var tests = [
         {

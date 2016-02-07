@@ -1,11 +1,11 @@
 'use strict';
 import * as assert from 'assert';
-import getAllGraphNodes from '../utils/get-all-graph-nodes';
+import {getAllGraphNodes} from '../util';
 import hierarchizePatterns from '../patterns/hierarchize-patterns';
 import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
-import Rule from '../rules/rule';
+import Rule from './rule';
 import walkPatternHierarchy from './walk-pattern-hierarchy';
 
 

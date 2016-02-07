@@ -1,6 +1,5 @@
 'use strict';
-import getAllGraphNodes from '../utils/get-all-graph-nodes';
-import Graph from '../utils/graph';
+import {Graph, getAllGraphNodes} from '../util';
 import Pattern from '../patterns/pattern';
 
 

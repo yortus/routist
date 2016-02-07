@@ -1,10 +1,10 @@
 'use strict';
-var get_all_graph_nodes_1 = require('../utils/get-all-graph-nodes');
+var util_1 = require('../util');
 var pattern_1 = require('../patterns/pattern');
 // TODO: ...
 function makeDecisionTree(patternHierarchy) {
     // TODO: ...
-    var normalizedPatterns = get_all_graph_nodes_1.default(patternHierarchy);
+    var normalizedPatterns = util_1.getAllGraphNodes(patternHierarchy);
     // TODO: doc...
     function getBody(specializations, fallback, nestDepth) {
         var indent = ' '.repeat(nestDepth * 4);

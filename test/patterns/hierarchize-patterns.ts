@@ -1,7 +1,7 @@
 'use strict';
 import {expect} from 'chai';
 import hierarchizePatterns from '../../src/patterns/hierarchize-patterns';
-import Graph from '../../src/utils/graph';
+import {Graph} from '../../src/util';
 import Pattern from '../../src/patterns/pattern';
 
 
