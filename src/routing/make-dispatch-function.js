@@ -2,9 +2,11 @@
 var util_1 = require('../util');
 var pattern_1 = require('../patterns/pattern');
 // TODO: ...
+// TODO: add param targets: Map<Pattern, T> and change return type to (address: string) => T
+// TODO: construct patternHierarchy from targets? ie don't need it as parameter, can calc it
 function makeDispatchFunction(patternHierarchy) {
     // TODO: ...
-    var normalizedPatterns = util_1.getAllGraphNodes(patternHierarchy);
+    var patterns = util_1.getAllGraphNodes(patternHierarchy);
     // TODO: doc...
     function getBody(specializations, fallback, nestDepth) {
         var indent = ' '.repeat(nestDepth * 4);
@@ -20,9 +22,9 @@ function makeDispatchFunction(patternHierarchy) {
         return firstLines.join('') + lastLine;
     }
     // TODO: doc...
-    var lines = normalizedPatterns.map(function (npat, i) { return ("let " + getIdForPattern(npat) + " = normalizedPatterns[" + i + "];\n"); }).concat([
+    var lines = patterns.map(function (pat, i) { return ("let " + getIdForPattern(pat) + " = patterns[" + i + "];\n"); }).concat([
         '',
-        'return function getBestMatchingPattern(address) {',
+        'return function dispatch(address) {',
         getBody(patternHierarchy.get(pattern_1.default.UNIVERSAL), pattern_1.default.UNIVERSAL, 1),
         '};'
     ]);

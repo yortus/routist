@@ -7,10 +7,12 @@ import Pattern from '../patterns/pattern';
 
 
 // TODO: ...
+// TODO: add param targets: Map<Pattern, T> and change return type to (address: string) => T
+// TODO: construct patternHierarchy from targets? ie don't need it as parameter, can calc it
 export default function makeDispatchFunction(patternHierarchy: Graph<Pattern>): (address: string) => Pattern {
 
     // TODO: ...
-    let normalizedPatterns = getAllGraphNodes(patternHierarchy);
+    let patterns = getAllGraphNodes(patternHierarchy);
 
     // TODO: doc...
     function getBody(specializations: Graph<Pattern>, fallback: Pattern, nestDepth: number): string {
@@ -29,9 +31,9 @@ export default function makeDispatchFunction(patternHierarchy: Graph<Pattern>): 
 
     // TODO: doc...
     let lines = [
-        ...normalizedPatterns.map((npat, i) => `let ${getIdForPattern(npat)} = normalizedPatterns[${i}];\n`),
+        ...patterns.map((pat, i) => `let ${getIdForPattern(pat)} = patterns[${i}];\n`),
         '',
-        'return function getBestMatchingPattern(address) {',
+        'return function dispatch(address) {',
         getBody(patternHierarchy.get(Pattern.UNIVERSAL), Pattern.UNIVERSAL, 1),
         '};'
     ];
