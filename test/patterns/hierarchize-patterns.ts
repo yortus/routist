@@ -1,7 +1,7 @@
 'use strict';
 import {expect} from 'chai';
 import hierarchizePatterns from '../../src/patterns/hierarchize-patterns';
-import Hierarchy from '../../src/utils/hierarchy';
+import Graph from '../../src/utils/graph';
 import Pattern from '../../src/patterns/pattern';
 
 
@@ -105,7 +105,7 @@ describe('Hierarchizing a set of patterns', () => {
 
 
 // TODO: doc...
-function mapToObj(map: Hierarchy<any>) {
+function mapToObj(map: Graph<any>) {
     let patterns = Array.from(map.keys());
     return patterns.reduce((obj, pat) => (obj[pat.source] = mapToObj(map.get(pat)), obj), {});
 }

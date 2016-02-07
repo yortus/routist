@@ -1,6 +1,6 @@
 'use strict';
-import getKeysDeep from '../utils/get-keys-deep';
-import Hierarchy from '../utils/hierarchy';
+import getAllGraphNodes from '../utils/get-all-graph-nodes';
+import Graph from '../utils/graph';
 import Pattern from '../patterns/pattern';
 
 
@@ -15,13 +15,13 @@ export type GetBestMatchingPattern = (address: string) => Pattern;
 
 
 // TODO: ...
-export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): GetBestMatchingPattern {
+export default function makeDecisionTree(patternHierarchy: Graph<Pattern>): GetBestMatchingPattern {
 
     // TODO: ...
-    let normalizedPatterns = getKeysDeep(patternHierarchy);
+    let normalizedPatterns = getAllGraphNodes(patternHierarchy);
 
     // TODO: doc...
-    function getBody(specializations: Hierarchy<Pattern>, fallback: Pattern, nestDepth: number): string {
+    function getBody(specializations: Graph<Pattern>, fallback: Pattern, nestDepth: number): string {
         let indent = ' '.repeat(nestDepth * 4);
         let firstLines = Array.from(specializations.keys()).map((spec, i) => {
             let nextLevel = specializations.get(spec);

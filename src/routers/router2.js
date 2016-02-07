@@ -1,6 +1,6 @@
 'use strict';
 var assert = require('assert');
-var get_keys_deep_1 = require('../utils/get-keys-deep');
+var get_all_graph_nodes_1 = require('../utils/get-all-graph-nodes');
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
 var pattern_1 = require('../patterns/pattern');
 var rule_1 = require('../rules/rule');
@@ -15,7 +15,7 @@ function test(routeTable) {
     rules.push(_404);
     // TODO: get pattern hierarchy...
     var patternHierarchy = hierarchize_patterns_1.default(rules.map(function (rule) { return rule.pattern; })); // TODO: review this line...
-    var normalizedPatterns = get_keys_deep_1.default(patternHierarchy);
+    var normalizedPatterns = get_all_graph_nodes_1.default(patternHierarchy);
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
     var rulesForPattern = normalizedPatterns.reduce(function (map, npat) {

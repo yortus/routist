@@ -1,7 +1,7 @@
 'use strict';
 import * as assert from 'assert';
-import getKeysDeep from '../utils/get-keys-deep';
-import hierarchizePatterns, {PatternHierarchy} from '../patterns/hierarchize-patterns';
+import getAllGraphNodes from '../utils/get-all-graph-nodes';
+import hierarchizePatterns from '../patterns/hierarchize-patterns';
 import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
@@ -33,7 +33,7 @@ export default function test(routeTable: {[patternSource: string]: Function}): F
 
     // TODO: get pattern hierarchy...
     let patternHierarchy = hierarchizePatterns(rules.map(rule => rule.pattern)); // TODO: review this line...
-    let normalizedPatterns = getKeysDeep(patternHierarchy);
+    let normalizedPatterns = getAllGraphNodes(patternHierarchy);
 
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
