@@ -4,6 +4,7 @@ import Hierarchy from '../utils/hierarchy';
 import intersectPatterns from './intersect-patterns';
 import Pattern from './pattern';
 // TODO: review jsdocs after pattern overhaul
+// TODO: document: all patterns in return value map are guaranteed to be normalized
 
 
 

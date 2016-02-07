@@ -75,7 +75,7 @@ describe('Intersecting two pattern strings', function () {
             var actual, expected = rhs;
             try {
                 actual = 'ERROR';
-                actual = intersect_patterns_1.default(new pattern_1.default(lhsA), new pattern_1.default(lhsB)).source;
+                actual = intersect_patterns_1.default(new pattern_1.default(lhsA), new pattern_1.default(lhsB)).toString();
             }
             catch (ex) { }
             chai_1.expect(actual).equals(expected);

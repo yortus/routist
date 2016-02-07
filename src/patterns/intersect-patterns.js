@@ -14,7 +14,7 @@ var pattern_1 = require('./pattern');
  * @returns {Pattern} - the pattern that matches all addresses matched by both `a` and `b`.
  */
 function intersectPatterns(a, b) {
-    var allIntersections = getAllIntersections(a.normalized.source, b.normalized.source);
+    var allIntersections = getAllIntersections(a.normalized.toString(), b.normalized.toString());
     var distinctIntersections = getDistinctPatterns(allIntersections);
     if (distinctIntersections.length === 0)
         return pattern_1.default.EMPTY;

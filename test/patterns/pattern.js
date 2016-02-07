@@ -77,7 +77,7 @@ describe('Constructing a Pattern instance', function () {
             var actualCaptureNames = [];
             try {
                 var pattern = new pattern_1.default(patternSource);
-                actualSignature = pattern.normalized.source; // TODO: review this line
+                actualSignature = pattern.normalized.toString(); // TODO: review this line
                 actualCaptureNames = parse_pattern_source_1.default(patternSource).captureNames.filter(function (n) { return n !== '?'; }); // TODO: test parsePatternSource separately?
             }
             catch (ex) { }
@@ -129,7 +129,7 @@ describe('Matching a pattern against an address', function () {
             var address = rhs.split(' WITH ')[0];
             var expectedCaptures = isMatch ? eval("(" + rhs.split(' WITH ')[1] + ")") || {} : null;
             var pattern = new pattern_1.default(patternSource);
-            var actualCaptures = make_match_function_1.default(patternSource)(address); // TODO: test makeMatchFunction separately?
+            var actualCaptures = make_match_function_1.default(pattern)(address); // TODO: test makeMatchFunction separately?
             chai_1.expect(actualCaptures).to.deep.equal(expectedCaptures);
             if (!isMatch)
                 return;

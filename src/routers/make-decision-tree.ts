@@ -9,34 +9,34 @@ import Pattern from '../patterns/pattern';
 
 
 // TODO: ...
-type GetBestMatchingPatternSignature = (address: string) => string;
+type GetBestMatchingPattern = (address: string) => Pattern;
 
 
 
 
 
 // TODO: ...
-export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): GetBestMatchingPatternSignature {
+export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): GetBestMatchingPattern {
 
     // TODO: ...
-    let patterns = getKeysDeep(patternHierarchy);
+    let normalizedPatterns = getKeysDeep(patternHierarchy);
 
     // TODO: ...
     type QuickMatch = (address: string) => boolean;
-    let patternMatchers = patterns.reduce((map, pat) => {
-        let match = makeMatchFunction(pat.normalized.source);
-        map[pat.source] = (address: string) => match(address) !== null;
+    let patternMatchers = normalizedPatterns.reduce((map, npat) => {
+        let match = makeMatchFunction(npat);
+        map.set(npat, (address: string) => match(address) !== null);
         return map;
-    }, <{[pattern: string]: QuickMatch}>{});
+    }, new Map<Pattern, QuickMatch>());
 
 
     // TODO: ...
-    function getPrologLines(patterns: Hierarchy<Pattern>): string[] {
-        let lines = Array.from(patterns.keys()).map(pat => {
-            let id = getIdForPatternSignature(pat.normalized.source, '__', '__');
+    function getPrologLines(patternHierarchy: Hierarchy<Pattern>): string[] {
+        let lines = Array.from(patternHierarchy.keys()).map(npat => {
+            let id = getIdForPattern(npat, '__', '__');
             return [
-                `let ${id} = patternMatchers['${pat}'];`,
-                ...getPrologLines(patterns.get(pat))
+                `let ${id} = patternMatchers.get(new Pattern('${npat}'));`, // TODO: temp testing... DON'T construct new Pattern inst here!
+                ...getPrologLines(patternHierarchy.get(npat))
             ];
         });
         return dedupe([].concat(...lines));
@@ -45,34 +45,39 @@ export default function makeDecisionTree(patternHierarchy: Hierarchy<Pattern>): 
 
     // TODO: doc...
     function getBodyLines(thisPattern: Pattern, childPatterns: Hierarchy<Pattern>): string[] {
-        let childLines = Array.from(childPatterns.keys()).map((pat, i) => {
-            let id = getIdForPatternSignature(pat.normalized.source, '__', '__');
+        let childLines = Array.from(childPatterns.keys()).map((npat, i) => {
+            let id = getIdForPattern(npat, '__', '__');
             return [
                 `${i > 0 ? 'else ' : ''}if (${id}(address)) {`,
-                ...getBodyLines(pat, childPatterns.get(pat)).map(line => '    ' + line),
+                ...getBodyLines(npat, childPatterns.get(npat)).map(line => '    ' + line),
                 `}`
             ];
         });
-        let lastLine = `${childLines.length > 0 ? 'else ' : ''}return '${thisPattern}';`;
+        let lastLine = `${childLines.length > 0 ? 'else ' : ''}return new Pattern('${thisPattern}');`; // TODO: temp testing... DON'T construct new Pattern inst here!
         return [].concat(...childLines, lastLine);
     }
 
-
+    // TODO: doc...
     let lines = [
         ...getPrologLines(patternHierarchy.get(Pattern.UNIVERSAL)),
         '',
-        'return function getBestMatchingPatternSignature(address) {',
+        'return function getBestMatchingPattern(address) {',
         ...getBodyLines(Pattern.UNIVERSAL, patternHierarchy.get(Pattern.UNIVERSAL)).map(line => '    ' + line),
         '};'
     ];
-    let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();
+
+    // TODO: temp testing... capture unmangled Pattern id... remove/fix this!!!
+    let fn = (function(Pattern) {
+        let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();
+        return fn;
+    })(Pattern);
     return fn;
 }
 
 
 // TODO: ...
-function getIdForPatternSignature(signature: string, prefix?: string, suffix?: string) {
-    return (prefix || '') + signature
+function getIdForPattern(pattern: Pattern, prefix?: string, suffix?: string) {
+    return (prefix || '') + pattern.toString()
         .split('')
         .map(c => {
             if (/[a-zA-Z0-9_]/.test(c)) return c;
@@ -82,13 +87,13 @@ function getIdForPatternSignature(signature: string, prefix?: string, suffix?: s
             if (c === ' ') return 'ㆍ'; // (U+318D)
             if (c === '…') return '﹍'; // (U+FE4D)
             if (c === '*') return 'ᕽ'; // (U+157D)
-            throw new Error(`Unrecognized character '${c}' in pattern signature '${signature}'`);
+            throw new Error(`Unrecognized character '${c}' in pattern '${pattern}'`);
         })
         .join('') + (suffix || '');
 }
 
 
-// TODO: this is a util. Use it also in/with getKeysDeep
+// TODO: this is a util. Generalize to any element type. Use it also in/with getKeysDeep
 function dedupe(strs: string[]): string[] {
     let map = strs.reduce((map, str) => (map[str] = true, map), {});
     return Object.keys(map);

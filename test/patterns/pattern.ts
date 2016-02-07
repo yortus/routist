@@ -87,7 +87,7 @@ describe('Constructing a Pattern instance', () => {
             let actualCaptureNames = [];
             try {
                 let pattern = new Pattern(patternSource);
-                actualSignature = pattern.normalized.source; // TODO: review this line
+                actualSignature = pattern.normalized.toString(); // TODO: review this line
                 actualCaptureNames = parsePatternSource(patternSource).captureNames.filter(n => n !== '?'); // TODO: test parsePatternSource separately?
             }
             catch (ex) { }
@@ -143,7 +143,7 @@ describe('Matching a pattern against an address', () => {
             let address = rhs.split(' WITH ')[0];
             let expectedCaptures = isMatch ? eval(`(${rhs.split(' WITH ')[1]})`) || {} : null;
             let pattern = new Pattern(patternSource);
-            let actualCaptures = makeMatchFunction(patternSource)(address); // TODO: test makeMatchFunction separately?
+            let actualCaptures = makeMatchFunction(pattern)(address); // TODO: test makeMatchFunction separately?
             expect(actualCaptures).to.deep.equal(expectedCaptures);
             if (!isMatch) return;
             let expectedCaptureNames = Object.keys(expectedCaptures);

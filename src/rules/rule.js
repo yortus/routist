@@ -34,10 +34,10 @@ var Rule = (function () {
         // TODO: temp testing... extract rule's 'priority' from comment in pattern...
         // NB: default is 0.
         // NB: error handling??? throw error if not numeric?
-        this.comment = pattern.source.split('#')[1] || '';
+        this.comment = pattern.toString().split('#')[1] || '';
     }
     /** Returns a textual representation of this Rule instance. */
-    Rule.prototype.toString = function () { return "'" + this.pattern.source + "': " + this.handler; };
+    Rule.prototype.toString = function () { return "'" + this.pattern + "': " + this.handler; };
     return Rule;
 }());
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -53,8 +53,10 @@ var builtinNames = ['$req', '$next'];
 /** Internal function used to create the Rule#execute method. */
 function makeExecuteFunction(pattern, handler, paramNames) {
     // TODO: get capture names and match function... review these lines...
-    var captureNames = parse_pattern_source_1.default(pattern.source).captureNames.filter(function (n) { return n !== '?'; });
-    var match = make_match_function_1.default(pattern.source);
+    // TODO: integrate back into pattern class?
+    var patternSource = pattern.toString();
+    var captureNames = parse_pattern_source_1.default(patternSource).captureNames.filter(function (n) { return n !== '?'; });
+    var match = make_match_function_1.default(pattern);
     // Assert the mutual validity of `pattern` and `paramNames`. This allows the body of
     // the 'execute' function to be simpler, as it can safely forego some extra checks.
     validateNames(pattern, captureNames, paramNames);

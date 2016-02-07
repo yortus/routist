@@ -16,8 +16,8 @@ var Router = (function () {
         var makeDecision = make_decision_tree_1.default(patternHierarchy);
         this.dispatch = function (request) {
             var address = typeof request === 'string' ? request : request.address;
-            var signature = makeDecision(address);
-            var handler = finalHandlers[signature];
+            var bestPattern = makeDecision(address);
+            var handler = finalHandlers.get(bestPattern);
             var response = handler(request);
             return response;
         };

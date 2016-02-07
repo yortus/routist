@@ -2,6 +2,7 @@
 var intersect_patterns_1 = require('./intersect-patterns');
 var pattern_1 = require('./pattern');
 // TODO: review jsdocs after pattern overhaul
+// TODO: document: all patterns in return value map are guaranteed to be normalized
 /**
  * Arranges the given list of patterns into a hierarchy according to their set
  * relationships (recall that each pattern represents a set of addresses). The

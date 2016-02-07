@@ -19,7 +19,7 @@ import Pattern from './pattern';
  * @returns {Pattern} - the pattern that matches all addresses matched by both `a` and `b`.
  */
 export default function intersectPatterns(a: Pattern, b: Pattern): Pattern {
-    let allIntersections = getAllIntersections(a.normalized.source, b.normalized.source);
+    let allIntersections = getAllIntersections(a.normalized.toString(), b.normalized.toString());
     let distinctIntersections = getDistinctPatterns(allIntersections);
     if (distinctIntersections.length === 0) return Pattern.EMPTY;
     if (distinctIntersections.length === 1) return new Pattern(distinctIntersections[0]);

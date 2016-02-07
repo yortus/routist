@@ -25,7 +25,7 @@ export default class Pattern {
      * Constructs a Pattern instance.
      * @param {string} source - the pattern specified as a pattern DSL string.
      */
-    constructor(public source: string) {
+    constructor(private source: string) {
 
         // TODO: ...
         let patternAST = parsePatternSource(source);

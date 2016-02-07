@@ -1,5 +1,6 @@
 'use strict';
 import parsePatternSource from './parse-pattern-source';
+import Pattern from './pattern';
 // TODO: review jsdocs after pattern overhaul
 
 
@@ -24,9 +25,10 @@ export interface MatchFunction {
 // TODO: revise jsdoc...
 // TODO: add separate tests for this?
 /** Internal function used to create the Pattern#match method. */
-export default function makeMatchFunction(patternSource: string) {
+export default function makeMatchFunction(pattern: Pattern) {
 
     // Gather information about the pattern to be matched.
+    let patternSource = pattern.toString();
     let patternAST = parsePatternSource(patternSource); // TODO: Pattern ctor already called this! just pass in AST props directly?
     let patternSignature = patternAST.signature.replace(/[^*…]+/g, 'A');
     let literalPart = patternAST.signature.replace(/[*…]/g, '');

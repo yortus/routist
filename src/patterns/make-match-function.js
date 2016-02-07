@@ -3,8 +3,9 @@ var parse_pattern_source_1 = require('./parse-pattern-source');
 // TODO: revise jsdoc...
 // TODO: add separate tests for this?
 /** Internal function used to create the Pattern#match method. */
-function makeMatchFunction(patternSource) {
+function makeMatchFunction(pattern) {
     // Gather information about the pattern to be matched.
+    var patternSource = pattern.toString();
     var patternAST = parse_pattern_source_1.default(patternSource); // TODO: Pattern ctor already called this! just pass in AST props directly?
     var patternSignature = patternAST.signature.replace(/[^*…]+/g, 'A');
     var literalPart = patternAST.signature.replace(/[*…]/g, '');

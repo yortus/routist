@@ -5,51 +5,56 @@ var pattern_1 = require('../patterns/pattern');
 // TODO: ...
 function makeDecisionTree(patternHierarchy) {
     // TODO: ...
-    var patterns = get_keys_deep_1.default(patternHierarchy);
-    var patternMatchers = patterns.reduce(function (map, pat) {
-        var match = make_match_function_1.default(pat.normalized.source);
-        map[pat.source] = function (address) { return match(address) !== null; };
+    var normalizedPatterns = get_keys_deep_1.default(patternHierarchy);
+    var patternMatchers = normalizedPatterns.reduce(function (map, npat) {
+        var match = make_match_function_1.default(npat);
+        map.set(npat, function (address) { return match(address) !== null; });
         return map;
-    }, {});
+    }, new Map());
     // TODO: ...
-    function getPrologLines(patterns) {
-        var lines = Array.from(patterns.keys()).map(function (pat) {
-            var id = getIdForPatternSignature(pat.normalized.source, '__', '__');
+    function getPrologLines(patternHierarchy) {
+        var lines = Array.from(patternHierarchy.keys()).map(function (npat) {
+            var id = getIdForPattern(npat, '__', '__');
             return [
-                ("let " + id + " = patternMatchers['" + pat + "'];")
-            ].concat(getPrologLines(patterns.get(pat)));
+                ("let " + id + " = patternMatchers.get(new Pattern('" + npat + "'));")
+            ].concat(getPrologLines(patternHierarchy.get(npat)));
         });
         return dedupe((_a = []).concat.apply(_a, lines));
         var _a;
     }
     // TODO: doc...
     function getBodyLines(thisPattern, childPatterns) {
-        var childLines = Array.from(childPatterns.keys()).map(function (pat, i) {
-            var id = getIdForPatternSignature(pat.normalized.source, '__', '__');
+        var childLines = Array.from(childPatterns.keys()).map(function (npat, i) {
+            var id = getIdForPattern(npat, '__', '__');
             return [
                 ((i > 0 ? 'else ' : '') + "if (" + id + "(address)) {")
-            ].concat(getBodyLines(pat, childPatterns.get(pat)).map(function (line) { return '    ' + line; }), [
+            ].concat(getBodyLines(npat, childPatterns.get(npat)).map(function (line) { return '    ' + line; }), [
                 "}"
             ]);
         });
-        var lastLine = (childLines.length > 0 ? 'else ' : '') + "return '" + thisPattern + "';";
+        var lastLine = (childLines.length > 0 ? 'else ' : '') + "return new Pattern('" + thisPattern + "');"; // TODO: temp testing... DON'T construct new Pattern inst here!
         return (_a = []).concat.apply(_a, childLines.concat([lastLine]));
         var _a;
     }
+    // TODO: doc...
     var lines = getPrologLines(patternHierarchy.get(pattern_1.default.UNIVERSAL)).concat([
         '',
-        'return function getBestMatchingPatternSignature(address) {'
+        'return function getBestMatchingPattern(address) {'
     ], getBodyLines(pattern_1.default.UNIVERSAL, patternHierarchy.get(pattern_1.default.UNIVERSAL)).map(function (line) { return '    ' + line; }), [
         '};'
     ]);
-    var fn = eval("(() => {\n" + lines.join('\n') + "\n})")();
+    // TODO: temp testing... capture unmangled Pattern id... remove/fix this!!!
+    var fn = (function (Pattern) {
+        var fn = eval("(() => {\n" + lines.join('\n') + "\n})")();
+        return fn;
+    })(pattern_1.default);
     return fn;
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = makeDecisionTree;
 // TODO: ...
-function getIdForPatternSignature(signature, prefix, suffix) {
-    return (prefix || '') + signature
+function getIdForPattern(pattern, prefix, suffix) {
+    return (prefix || '') + pattern.toString()
         .split('')
         .map(function (c) {
         if (/[a-zA-Z0-9_]/.test(c))
@@ -66,11 +71,11 @@ function getIdForPatternSignature(signature, prefix, suffix) {
             return '﹍'; // (U+FE4D)
         if (c === '*')
             return 'ᕽ'; // (U+157D)
-        throw new Error("Unrecognized character '" + c + "' in pattern signature '" + signature + "'");
+        throw new Error("Unrecognized character '" + c + "' in pattern '" + pattern + "'");
     })
         .join('') + (suffix || '');
 }
-// TODO: this is a util. Use it also in/with getKeysDeep
+// TODO: this is a util. Generalize to any element type. Use it also in/with getKeysDeep
 function dedupe(strs) {
     var map = strs.reduce(function (map, str) { return (map[str] = true, map); }, {});
     return Object.keys(map);

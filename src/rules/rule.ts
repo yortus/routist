@@ -47,7 +47,7 @@ export default class Rule {
         // TODO: temp testing... extract rule's 'priority' from comment in pattern...
         // NB: default is 0.
         // NB: error handling??? throw error if not numeric?
-        this.comment = pattern.source.split('#')[1] || '';
+        this.comment = pattern.toString().split('#')[1] || '';
     }
 
 
@@ -90,7 +90,7 @@ export default class Rule {
 
 
     /** Returns a textual representation of this Rule instance. */
-    toString() { return `'${this.pattern.source}': ${this.handler}`; }
+    toString() { return `'${this.pattern}': ${this.handler}`; }
 }
 
 
@@ -114,8 +114,10 @@ var builtinNames = ['$req', '$next'];
 function makeExecuteFunction(pattern: Pattern, handler: Function, paramNames: string[]) {
 
     // TODO: get capture names and match function... review these lines...
-    let captureNames = parsePatternSource(pattern.source).captureNames.filter(n => n !== '?');
-    let match = makeMatchFunction(pattern.source);
+    // TODO: integrate back into pattern class?
+    let patternSource = pattern.toString();
+    let captureNames = parsePatternSource(patternSource).captureNames.filter(n => n !== '?');
+    let match = makeMatchFunction(pattern);
 
     // Assert the mutual validity of `pattern` and `paramNames`. This allows the body of
     // the 'execute' function to be simpler, as it can safely forego some extra checks.

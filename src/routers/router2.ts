@@ -12,14 +12,9 @@ import walkPatternHierarchy from './walk-pattern-hierarchy';
 
 
 
-
-
-
-
-
 // TODO: remove this? rename to finalExecutors? all internal anyway...
 // TODO: fix terminology: 'handler' is taken...
-type FinalHandlers = {[pattern: string]: (rq: Request) => Response};
+type FinalHandlers = Map<Pattern, (rq: Request) => Response>;
 
 
 
@@ -38,29 +33,29 @@ export default function test(routeTable: {[patternSource: string]: Function}): F
 
     // TODO: get pattern hierarchy...
     let patternHierarchy = hierarchizePatterns(rules.map(rule => rule.pattern)); // TODO: review this line...
-    let patterns = getKeysDeep(patternHierarchy);
+    let normalizedPatterns = getKeysDeep(patternHierarchy);
 
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
-    let rulesForPattern = patterns.reduce((map, pat) => {
-        map[pat.source] = rules.filter(r => r.pattern.normalized === pat); // TODO: inefficient! review this...
+    let rulesForPattern = normalizedPatterns.reduce((map, npat) => {
+        map.set(npat, rules.filter(r => r.pattern.normalized === npat));
         return map;
-    }, <{[pattern: string]: Rule[]}>{}); // TODO: use Map not obj here...
+    }, new Map<Pattern, Rule[]>());
 
     // TODO: add no-op rules so that for each signature there are 1..M rules
     // TODO: review this... always correct to use no-op function in these cases? Even for ROOT?
-    patterns.forEach(pat => {
-        let rules = rulesForPattern[pat.source];
+    normalizedPatterns.forEach(npat => {
+        let rules = rulesForPattern.get(npat);
         if (rules.length === 0) {
-            rules.push(new Rule(pat, noop));
+            rules.push(new Rule(npat, noop));
         }
     });
     function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
 
     // Order equal-best rules using tie-break rules. Fail if any ambiguities remain.
     // TODO: improve error message/handling in here...
-    patterns.forEach(pattern => {
-        let rules = rulesForPattern[pattern.source];
+    normalizedPatterns.forEach(npat => {
+        let rules = rulesForPattern.get(npat);
         rules.sort((a, b) => {
            let moreSpecific = tieBreakFn(a, b);
            assert(moreSpecific === a || moreSpecific === b, `ambiguous rules - which is more specific? A: ${a}, B: ${b}`);
@@ -90,8 +85,7 @@ export default function test(routeTable: {[patternSource: string]: Function}): F
     let ruleWalks = patternWalks.map(path => {
         let rulePath: Rule[] = [];
         for (let i = 0; i < path.length; ++i) {
-            let signature = path[i].source;
-            let rules = rulesForPattern[signature];
+            let rules = rulesForPattern.get(path[i]);
             rulePath = rulePath.concat(rules);
         }
         return rulePath;
@@ -102,18 +96,14 @@ export default function test(routeTable: {[patternSource: string]: Function}): F
 
 
     // TODO: for each pattern signature, get the ONE path or fail trying
-    let ruleWalkForPattern = patterns.reduce((map, pat) => {
-        let candidates = ruleWalks.filter(walk => walk[walk.length - 1].pattern.normalized === pat.normalized); // TODO: inefficient! review this...
+    let ruleWalkForPattern = normalizedPatterns.reduce((map, npat) => {
+        let candidates = ruleWalks.filter(walk => walk[walk.length - 1].pattern.normalized === npat.normalized); // TODO: inefficient! review this...
 
         if (candidates.length === 1) {
-            map[pat.source] = candidates[0];
+            map.set(npat, candidates[0]);
             return map;
         }
 
-
-
-
-        
         // find the longest common prefix of all the candidates.
         let prefixLength = 0;
         while (true) {
@@ -139,22 +129,22 @@ export default function test(routeTable: {[patternSource: string]: Function}): F
             let choppedRules = cand.slice(prefixLength, -suffixLength);
             if (choppedRules.every(rule => !rule.isDecorator)) return;
             // TODO: improve error message/handling
-            throw new Error(`Multiple routes to '${pat}' with different decorators`);
+            throw new Error(`Multiple routes to '${npat}' with different decorators`);
         });
 
         // synthesize a 'crasher' rule that throws an 'ambiguous' error.
         let fallbacks = candidates.map(cand => cand[cand.length - suffixLength - 1]);
-        let crasher = new Rule(pat, function crasher() {
+        let crasher = new Rule(npat, function crasher() {
             // TODO: improve error message/handling
-            throw new Error(`Multiple possible fallbacks from '${pat}: ${fallbacks.map(r => r.toString())}`);
+            throw new Error(`Multiple possible fallbacks from '${npat}: ${fallbacks.map(r => r.toString())}`);
         });
 
         // final composite rule: splice of common prefix + crasher + common suffix
         let commonPrefix = candidates[0].slice(0, prefixLength);
         let commonSuffix = candidates[0].slice(-suffixLength);
-        map[pat.source] = [].concat(commonPrefix, crasher, commonSuffix);
+        map.set(npat, [].concat(commonPrefix, crasher, commonSuffix));
         return map;
-    }, <{[pattern: string]: Rule[]}>{});
+    }, new Map<Pattern, Rule[]>());
 
 
 //console.log(ruleWalkForPattern);
@@ -164,14 +154,12 @@ export default function test(routeTable: {[patternSource: string]: Function}): F
 
 
     // reduce each signature's rule walk down to a simple handler function.
-    const noMore = (rq: Request) => <Response>null;
-    let finalHandlers = patterns.reduce((map, pat) => {
-        let reverseRuleWalk = ruleWalkForPattern[pat.source].slice().reverse();
-        map[pat.source] = reverseRuleWalk.reduce((ds, rule) => request => rule.execute(request, ds), noMore);
+    const noMore = (rq: Request) => <Response> null;
+    let finalHandlers = normalizedPatterns.reduce((map, npat) => {
+        let reverseRuleWalk = ruleWalkForPattern.get(npat).slice().reverse();
+        map.set(npat, reverseRuleWalk.reduce((ds, rule) => request => rule.execute(request, ds), noMore));
         return map;
-    }, <{[pattern: string]: (rq: Request) => Response}>{}); // TODO: use Map not obj here...
+    }, new Map<Pattern, (rq: Request) => Response>());
 
     return finalHandlers;
-
-
 }

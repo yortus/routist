@@ -33,8 +33,8 @@ export default class Router {
 
         this.dispatch = (request: Request) => {
             let address = typeof request === 'string' ? request : request.address;
-            let signature = makeDecision(address);
-            let handler = finalHandlers[signature];
+            let bestPattern = makeDecision(address);
+            let handler = finalHandlers.get(bestPattern);
             let response = handler(request);
             return response;
         };
