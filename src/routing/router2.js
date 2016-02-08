@@ -64,50 +64,31 @@ function test(routeTable) {
     // TODO: for each pattern signature, get the ONE path or fail trying
     var ruleWalkForPattern = normalizedPatterns.reduce(function (map, npat) {
         var candidates = ruleWalks.filter(function (walk) { return walk[walk.length - 1].pattern.normalized === npat.normalized; }); // TODO: inefficient! review this...
+        // TODO: ... simple case...
         if (candidates.length === 1) {
             map.set(npat, candidates[0]);
             return map;
         }
-        // find the longest common prefix of all the candidates.
-        var prefixLength = 0;
-        var el;
-        while (true) {
-            if (candidates.some(function (cand) { return cand.length <= prefixLength; }))
-                break;
-            el = candidates[0][prefixLength];
-            if (!candidates.every(function (cand) { return cand[prefixLength] === el; }))
-                break;
-            ++prefixLength;
-        }
-        // find the longest common suffix of all the candidates.
-        var suffixLength = 0;
-        while (true) {
-            if (candidates.some(function (cand) { return cand.length <= suffixLength; }))
-                break;
-            el = candidates[0][candidates[0].length - 1 - suffixLength];
-            if (!candidates.every(function (cand) { return cand[cand.length - 1 - suffixLength] === el; }))
-                break;
-            ++suffixLength;
-        }
-        // TODO: possible for prefix and suffix to overlap?
+        // find the longest common prefix and suffix of all the candidates.
+        var prefix = util_1.getLongestCommonPrefix(candidates);
+        var suffix = util_1.getLongestCommonPrefix(candidates.map(function (cand) { return cand.slice().reverse(); })).reverse(); // TODO: revise... inefficient copies...
+        // TODO: possible for prefix and suffix to overlap? What to do?
         // ensure the non-common parts contain NO decorator rules.
         candidates.forEach(function (cand) {
-            var choppedRules = cand.slice(prefixLength, -suffixLength);
+            var choppedRules = cand.slice(prefix.length, -suffix.length);
             if (choppedRules.every(function (rule) { return !rule.isDecorator; }))
                 return;
             // TODO: improve error message/handling
             throw new Error("Multiple routes to '" + npat + "' with different decorators");
         });
         // synthesize a 'crasher' rule that throws an 'ambiguous' error.
-        var fallbacks = candidates.map(function (cand) { return cand[cand.length - suffixLength - 1]; });
+        var fallbacks = candidates.map(function (cand) { return cand[cand.length - suffix.length - 1]; });
         var crasher = new rule_1.default(npat, function crasher() {
             // TODO: improve error message/handling
             throw new Error("Multiple possible fallbacks from '" + npat + ": " + fallbacks.map(function (r) { return r.toString(); }));
         });
         // final composite rule: splice of common prefix + crasher + common suffix
-        var commonPrefix = candidates[0].slice(0, prefixLength);
-        var commonSuffix = candidates[0].slice(-suffixLength);
-        map.set(npat, [].concat(commonPrefix, crasher, commonSuffix));
+        map.set(npat, [].concat(prefix, crasher, suffix));
         return map;
     }, new Map());
     //console.log(ruleWalkForPattern);

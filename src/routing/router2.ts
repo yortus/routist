@@ -1,6 +1,6 @@
 'use strict';
 import * as assert from 'assert';
-import {getAllGraphNodes} from '../util';
+import {getAllGraphNodes, getLongestCommonPrefix} from '../util';
 import hierarchizePatterns from '../patterns/hierarchize-patterns';
 import Pattern from '../patterns/pattern';
 import Request from '../request';
@@ -83,51 +83,35 @@ export default function test(routeTable: {[patternSource: string]: Function}): M
     let ruleWalkForPattern = normalizedPatterns.reduce((map, npat) => {
         let candidates = ruleWalks.filter(walk => walk[walk.length - 1].pattern.normalized === npat.normalized); // TODO: inefficient! review this...
 
+        // TODO: ... simple case...
         if (candidates.length === 1) {
             map.set(npat, candidates[0]);
             return map;
         }
 
-        // find the longest common prefix of all the candidates.
-        let prefixLength = 0;
-        let el: Rule;
-        while (true) {
-            if (candidates.some(cand => cand.length <= prefixLength)) break;
-            el = candidates[0][prefixLength];
-            if (!candidates.every(cand => cand[prefixLength] === el)) break;
-            ++prefixLength;
-        }
+        // find the longest common prefix and suffix of all the candidates.
+        let prefix = getLongestCommonPrefix(candidates);
+        let suffix = getLongestCommonPrefix(candidates.map(cand => cand.slice().reverse())).reverse(); // TODO: revise... inefficient copies...
 
-        // find the longest common suffix of all the candidates.
-        let suffixLength = 0;
-        while (true) {
-            if (candidates.some(cand => cand.length <= suffixLength)) break;
-            el = candidates[0][candidates[0].length - 1 - suffixLength];
-            if (!candidates.every(cand => cand[cand.length - 1 - suffixLength] === el)) break;
-            ++suffixLength;
-        }
-
-        // TODO: possible for prefix and suffix to overlap?
+        // TODO: possible for prefix and suffix to overlap? What to do?
 
         // ensure the non-common parts contain NO decorator rules.
         candidates.forEach(cand => {
-            let choppedRules = cand.slice(prefixLength, -suffixLength);
+            let choppedRules = cand.slice(prefix.length, -suffix.length);
             if (choppedRules.every(rule => !rule.isDecorator)) return;
             // TODO: improve error message/handling
             throw new Error(`Multiple routes to '${npat}' with different decorators`);
         });
 
         // synthesize a 'crasher' rule that throws an 'ambiguous' error.
-        let fallbacks = candidates.map(cand => cand[cand.length - suffixLength - 1]);
+        let fallbacks = candidates.map(cand => cand[cand.length - suffix.length - 1]);
         let crasher = new Rule(npat, function crasher() {
             // TODO: improve error message/handling
             throw new Error(`Multiple possible fallbacks from '${npat}: ${fallbacks.map(r => r.toString())}`);
         });
 
         // final composite rule: splice of common prefix + crasher + common suffix
-        let commonPrefix = candidates[0].slice(0, prefixLength);
-        let commonSuffix = candidates[0].slice(-suffixLength);
-        map.set(npat, [].concat(commonPrefix, crasher, commonSuffix));
+        map.set(npat, [].concat(prefix, crasher, suffix));
         return map;
     }, new Map<Pattern, Rule[]>());
 
