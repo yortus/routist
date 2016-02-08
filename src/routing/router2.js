@@ -2,6 +2,7 @@
 var assert = require('assert');
 var util_1 = require('../util');
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
+var is_decorator_1 = require('./is-decorator');
 var pattern_1 = require('../patterns/pattern');
 var route_1 = require('./route');
 var rule_1 = require('./rule');
@@ -77,7 +78,7 @@ function test(routeTable) {
         // ensure the non-common parts contain NO decorator rules.
         candidates.forEach(function (cand) {
             var choppedRules = cand.slice(prefix.length, -suffix.length);
-            if (choppedRules.every(function (rule) { return !rule.isDecorator; }))
+            if (choppedRules.every(function (rule) { return !is_decorator_1.default(rule.execute); }))
                 return;
             // TODO: improve error message/handling
             throw new Error("Multiple routes to '" + npat + "' with different decorators");

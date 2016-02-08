@@ -1,5 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
+var is_decorator_1 = require('../../src/routing/is-decorator'); // TODO: test sepatately...
 var pattern_1 = require('../../src/patterns/pattern');
 var rule_1 = require('../../src/routing/rule');
 describe('Constructing a Rule instance', function () {
@@ -115,7 +116,7 @@ describe('Constructing a Rule instance', function () {
             var actualError = '';
             try {
                 var rule = new rule_1.default(new pattern_1.default(test.pattern), test.handler);
-                actualIsDecorator = rule.isDecorator;
+                actualIsDecorator = is_decorator_1.default(rule.execute);
             }
             catch (ex) {
                 actualError = ex.message;
@@ -131,38 +132,32 @@ describe('Constructing a Rule instance', function () {
 describe('Executing a rule against an address', function () {
     var tests = [
         {
+            // TODO: doc... `downstream` is only called for decorator rules...
             pattern: '/api/{...rest}',
             handler: function (rest) { return ("" + rest); },
             request: '/api/foo/bar/baz.html',
-            downstream: function (rq) { return null; },
+            downstream: undefined,
             response: 'foo/bar/baz.html'
-        },
-        {
-            pattern: '/api/{...rest}',
-            handler: function (rest) { return ("" + rest); },
-            request: '/api/foo/bar/baz.html',
-            downstream: function (rq) { return 'other'; },
-            response: 'other'
         },
         {
             pattern: '/api/{...rest}',
             handler: function ($req, rest) { return ($req + ", " + rest); },
             request: '/api/foo/bar/baz.html',
-            downstream: function (rq) { return null; },
+            downstream: undefined,
             response: '/api/foo/bar/baz.html, foo/bar/baz.html'
         },
         {
             pattern: '/api/…',
             handler: function () { return ''; },
             request: '/api/foo/bar/baz.html',
-            downstream: function (rq) { return null; },
+            downstream: undefined,
             response: ''
         },
         {
             pattern: '/api/…',
             handler: function () { return ''; },
             request: '/foo/bar/baz.html',
-            downstream: function (rq) { return 'other'; },
+            downstream: undefined,
             response: null
         },
         {
@@ -176,7 +171,7 @@ describe('Executing a rule against an address', function () {
             pattern: '/foo/{...path}/{name}.{ext}',
             handler: function (path, ext, $req, name) { return (path + ", " + ext + ", " + $req + ", " + name); },
             request: { address: '/foo/bar/baz.html' },
-            downstream: function (rq) { return null; },
+            downstream: undefined,
             response: 'bar, html, [object Object], baz'
         },
         {
@@ -211,22 +206,15 @@ describe('Executing a rule against an address', function () {
             pattern: '/api/{...rest}',
             handler: function (rest) { throw new Error('fail!'); },
             request: { address: '/api/foo' },
-            downstream: function (rq) { return ("" + rq.address); },
-            response: '/api/foo'
-        },
-        {
-            pattern: '/api/{...rest}',
-            handler: function (rest) { throw new Error('fail!'); },
-            request: '/api/foo',
-            downstream: function (rq) { return null; },
+            downstream: undefined,
             response: 'ERROR: fail!'
         },
         {
             pattern: '/api/{...rest}',
             handler: function (rest) { throw new Error('fail!'); },
             request: '/api/foo',
-            downstream: function (rq) { throw new Error('downfail!'); },
-            response: 'ERROR: downfail!'
+            downstream: undefined,
+            response: 'ERROR: fail!'
         },
         {
             pattern: '/api/{...rest}',
@@ -250,7 +238,7 @@ describe('Executing a rule against an address', function () {
             var actualResponse;
             try {
                 var downstream = test.downstream;
-                actualResponse = rule.execute(test.request, downstream);
+                actualResponse = is_decorator_1.default(rule.execute) ? rule.execute(test.request, downstream) : rule.execute(test.request);
             }
             catch (ex) {
                 actualResponse = "ERROR: " + ex.message;

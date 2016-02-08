@@ -25,10 +25,7 @@ var Rule = (function () {
         this.pattern = pattern;
         this.handler = handler;
         this.execute = make_normalized_handler_function_1.default(pattern, handler);
-        this.isDecorator = this.execute.length === 2;
     }
-    /** Returns a textual representation of this Rule instance. */
-    Rule.prototype.toString = function () { return "'" + this.pattern + "': " + this.handler; };
     return Rule;
 }());
 Object.defineProperty(exports, "__esModule", { value: true });

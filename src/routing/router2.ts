@@ -2,6 +2,7 @@
 import * as assert from 'assert';
 import {getAllGraphNodes, getLongestCommonPrefix} from '../util';
 import hierarchizePatterns from '../patterns/hierarchize-patterns';
+import isDecorator from './is-decorator';
 import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
@@ -99,7 +100,7 @@ export default function test(routeTable: {[patternSource: string]: Function}): M
         // ensure the non-common parts contain NO decorator rules.
         candidates.forEach(cand => {
             let choppedRules = cand.slice(prefix.length, -suffix.length);
-            if (choppedRules.every(rule => !rule.isDecorator)) return;
+            if (choppedRules.every(rule => !isDecorator(rule.execute))) return;
             // TODO: improve error message/handling
             throw new Error(`Multiple routes to '${npat}' with different decorators`);
         });

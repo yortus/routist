@@ -1,5 +1,6 @@
 'use strict';
 import {expect} from 'chai';
+import isDecorator from '../../src/routing/is-decorator'; // TODO: test sepatately...
 import Pattern from '../../src/patterns/pattern';
 import Rule from '../../src/routing/rule';
 
@@ -119,7 +120,7 @@ describe('Constructing a Rule instance', () => {
             let actualError = '';
             try {
                 let rule = new Rule(new Pattern(test.pattern), test.handler);
-                actualIsDecorator = rule.isDecorator;
+                actualIsDecorator = isDecorator(rule.execute);
             }
             catch (ex) {
                 actualError = ex.message;
@@ -137,38 +138,32 @@ describe('Constructing a Rule instance', () => {
 describe('Executing a rule against an address', () => {
     let tests = [
         {
+            // TODO: doc... `downstream` is only called for decorator rules...
             pattern: '/api/{...rest}',
             handler: (rest) => `${rest}`,
             request: '/api/foo/bar/baz.html',
-            downstream: rq => null,
+            downstream: undefined,
             response: 'foo/bar/baz.html'
-        },
-        {
-            pattern: '/api/{...rest}',
-            handler: (rest) => `${rest}`,
-            request: '/api/foo/bar/baz.html',
-            downstream: rq => 'other',
-            response: 'other'
         },
         {
             pattern: '/api/{...rest}',
             handler: ($req, rest) => `${$req}, ${rest}`,
             request: '/api/foo/bar/baz.html',
-            downstream: rq => null,
+            downstream: undefined,
             response: '/api/foo/bar/baz.html, foo/bar/baz.html'
         },
         {
             pattern: '/api/…',
             handler: () => '',
             request: '/api/foo/bar/baz.html',
-            downstream: rq => null,
+            downstream: undefined,
             response: ''
         },
         {
             pattern: '/api/…',
             handler: () => '',
             request: '/foo/bar/baz.html',
-            downstream: rq => 'other',
+            downstream: undefined,
             response: null
         },
         {
@@ -182,7 +177,7 @@ describe('Executing a rule against an address', () => {
             pattern: '/foo/{...path}/{name}.{ext}',
             handler: (path, ext, $req, name) => `${path}, ${ext}, ${$req}, ${name}`,
             request: { address: '/foo/bar/baz.html' },
-            downstream: rq => null,
+            downstream: undefined,
             response: 'bar, html, [object Object], baz'
         },
         {
@@ -217,22 +212,15 @@ describe('Executing a rule against an address', () => {
             pattern: '/api/{...rest}',
             handler: (rest) => { throw new Error('fail!'); },
             request: { address: '/api/foo' },
-            downstream: rq => `${rq.address}`,
-            response: '/api/foo'
-        },
-        {
-            pattern: '/api/{...rest}',
-            handler: (rest) => { throw new Error('fail!'); },
-            request: '/api/foo',
-            downstream: rq => null,
+            downstream: undefined,
             response: 'ERROR: fail!'
         },
         {
             pattern: '/api/{...rest}',
             handler: (rest) => { throw new Error('fail!'); },
             request: '/api/foo',
-            downstream: rq => { throw new Error('downfail!'); },
-            response: 'ERROR: downfail!'
+            downstream: undefined,
+            response: 'ERROR: fail!'
         },
         {
             pattern: '/api/{...rest}',
@@ -257,7 +245,7 @@ describe('Executing a rule against an address', () => {
             let actualResponse;
             try {
                 let downstream = test.downstream;
-                actualResponse = rule.execute(test.request, downstream);
+                actualResponse = isDecorator(rule.execute) ? rule.execute(test.request, downstream) : rule.execute(test.request);
             }
             catch (ex) {
                 actualResponse = `ERROR: ${ex.message}`;
