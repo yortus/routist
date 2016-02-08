@@ -12,7 +12,7 @@
 //         '/api/foo** ==> /api/foo… WITH []',
 //         '/api/foo/** ==> /api/foo/… WITH []',
 //         '/api/foo/{...rest} ==> /api/foo/… WITH ["rest"]',
-//         '/API/f* ==> /API/f* WITH []',
+//         '/API/f*## ==> /API/f* WITH []',
 //         '/api/{foO}O ==> /api/*O WITH ["foO"]',
 //         '/…/{name}.{ext} ==> /…/*.* WITH ["name", "ext"]',
 //         '/**/{name}.{ext} ==> /…/*.* WITH ["name", "ext"]',
@@ -50,16 +50,20 @@
 //             let rhs = test.split(' ==> ')[1];
 //             let expectedSignature = rhs.split(' WITH ')[0];
 //             let expectedCaptureNames = eval(rhs.split(' WITH ')[1] || '[]');
+//             let expectedComment = patternSource.split('#')[1] || '';
 //             let actualSignature = 'ERROR';
 //             let actualCaptureNames = [];
+//             let actualComment = '';
 //             try {
 //                 let pattern = new Pattern(patternSource);
 //                 actualSignature = pattern.normalized.toString();
 //                 actualCaptureNames = pattern.captureNames;
+//                 actualComment = pattern.comment;
 //             }
 //             catch (ex) { }
 //             expect(actualSignature).equals(expectedSignature);
 //             expect(actualCaptureNames).to.deep.equal(expectedCaptureNames);
+//             expect(actualComment).equals(expectedComment);
 //         });
 //     });
 // });

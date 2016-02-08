@@ -7,116 +7,95 @@ describe('Constructing a Rule instance', function () {
         {
             pattern: '/api/{...rest}',
             handler: function (rest) { },
-            comment: '',
             error: null
         },
         {
             pattern: '/api/{...rest}',
             handler: function ($req, rest) { },
-            comment: '',
             error: null
         },
         {
             pattern: '/api/…',
             handler: function () { },
-            comment: '',
             error: null
         },
         {
             pattern: '/api/{...rest}',
             handler: function () { },
-            comment: '',
             error: "Capture name(s) 'rest' unused by handler..."
         },
         {
             pattern: '/api/…',
             handler: function (rest) { },
-            comment: '',
             error: "Handler parameter(s) 'rest' not captured by pattern..."
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
             handler: function (path, ext, $req, name) { },
-            comment: '',
             error: null
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
             handler: function (path, ext, req, name) { },
-            comment: '',
             error: "Handler parameter(s) 'req' not captured by pattern..."
         },
         {
             pattern: '/api/{...$req}',
             handler: function ($req) { },
-            comment: '',
             error: "Use of reserved name(s) '$req' as capture(s) in pattern..."
         },
         {
             pattern: '/api/{...req}',
             handler: function ($req) { },
-            comment: '',
             error: "Capture name(s) 'req' unused by handler..."
         },
         {
             pattern: '/api/{...rest}',
             handler: function (rest, $req, $next) { },
-            comment: '',
             error: null
         },
         {
             pattern: '/api/{...rest}',
             handler: function (rest, $next) { },
-            comment: '',
             error: null
         },
         {
             pattern: '/api/{...rest} #2',
             handler: function (rest, $next) { },
-            comment: '2',
             error: null
         },
         {
             pattern: '/api/{...rest} #1000',
             handler: function (rest, $next) { },
-            comment: '1000',
             error: null
         },
         {
             pattern: '/api/{...rest} #comment',
             handler: function (rest, $next) { },
-            comment: 'comment',
             error: null
         },
         {
             pattern: '#/api/{...rest}',
             handler: function (rest, $next) { },
-            comment: '',
             error: "Handler parameter(s) 'rest' not captured by pattern..."
         },
         {
             pattern: '/api/{...rest} # 2 0 abc   ',
             handler: function (rest, $next) { },
-            comment: ' 2 0 abc   ',
             error: null
         },
         {
             pattern: '/api/x # was... /{...rest}',
             handler: function () { },
-            comment: ' was... /{...rest}',
             error: null
         },
     ];
     tests.forEach(function (test) {
         it(test.pattern + " WITH " + test.handler, function () {
-            var expectedComment = test.comment;
             var expectedError = test.error || '';
-            var actualComment = '';
             var actualError = '';
             try {
-                var pattern = new pattern_1.default(test.pattern);
-                var rule = new rule_1.default(pattern, test.handler);
-                actualComment = pattern.comment;
+                var rule = new rule_1.default(new pattern_1.default(test.pattern), test.handler);
             }
             catch (ex) {
                 actualError = ex.message;
@@ -124,7 +103,6 @@ describe('Constructing a Rule instance', function () {
                     actualError = actualError.slice(0, expectedError.length - 3) + '...';
                 }
             }
-            chai_1.expect(actualComment).equals(expectedComment);
             chai_1.expect(actualError).equals(expectedError);
         });
     });

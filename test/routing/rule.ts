@@ -10,117 +10,96 @@ describe('Constructing a Rule instance', () => {
         {
             pattern: '/api/{...rest}',
             handler: (rest) => {},
-            comment: '',
             error: null
         },
         {
             pattern: '/api/{...rest}',
             handler: ($req, rest) => {},
-            comment: '',
             error: null
         },
         {
             pattern: '/api/…',
             handler: () => {},
-            comment: '',
             error: null
         },
         {
             pattern: '/api/{...rest}',
             handler: () => {},
-            comment: '',
             error: `Capture name(s) 'rest' unused by handler...`
         },
         {
             pattern: '/api/…',
             handler: (rest) => {},
-            comment: '',
             error: `Handler parameter(s) 'rest' not captured by pattern...`
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
             handler: (path, ext, $req, name) => {},
-            comment: '',
             error: null
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
             handler: (path, ext, req, name) => {},
-            comment: '',
             error: `Handler parameter(s) 'req' not captured by pattern...`
         },
         {
             pattern: '/api/{...$req}',
             handler: ($req) => {},
-            comment: '',
             error: `Use of reserved name(s) '$req' as capture(s) in pattern...`
         },
         {
             pattern: '/api/{...req}',
             handler: ($req) => {},
-            comment: '',
             error: `Capture name(s) 'req' unused by handler...`
         },
         {
             pattern: '/api/{...rest}',
             handler: (rest, $req, $next) => {},
-            comment: '',
             error: null
         },
         {
             pattern: '/api/{...rest}',
             handler: (rest, $next) => {},
-            comment: '',
             error: null
         },
         {
             pattern: '/api/{...rest} #2',
             handler: (rest, $next) => {},
-            comment: '2',
             error: null
         },
         {
             pattern: '/api/{...rest} #1000',
             handler: (rest, $next) => {},
-            comment: '1000',
             error: null
         },
         {
             pattern: '/api/{...rest} #comment',
             handler: (rest, $next) => {},
-            comment: 'comment',
             error: null
         },
         {
             pattern: '#/api/{...rest}',
             handler: (rest, $next) => {},
-            comment: '',
             error: `Handler parameter(s) 'rest' not captured by pattern...`
         },
         {
             pattern: '/api/{...rest} # 2 0 abc   ',
             handler: (rest, $next) => {},
-            comment: ' 2 0 abc   ',
             error: null
         },
         {
             pattern: '/api/x # was... /{...rest}',
             handler: () => {},
-            comment: ' was... /{...rest}',
             error: null
         },
     ];
 
     tests.forEach(test => {
         it(`${test.pattern} WITH ${test.handler}`, () => {
-            let expectedComment = test.comment;
             let expectedError = test.error || '';
-            let actualComment= '';
             let actualError = '';
             try {
-                let pattern = new Pattern(test.pattern);
-                let rule = new Rule(pattern, test.handler);
-                actualComment = pattern.comment;
+                let rule = new Rule(new Pattern(test.pattern), test.handler);
             }
             catch (ex) {
                 actualError = ex.message;
@@ -128,7 +107,6 @@ describe('Constructing a Rule instance', () => {
                     actualError = actualError.slice(0, expectedError.length - 3) + '...';
                 }
             }
-            expect(actualComment).equals(expectedComment);
             expect(actualError).equals(expectedError);
         });
     });
