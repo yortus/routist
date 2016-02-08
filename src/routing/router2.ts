@@ -75,16 +75,7 @@ export default function test(routeTable: {[patternSource: string]: Function}): M
 //console.log(patternWalks);
 
     // TODO: map from walks-of-patterns to walks-of-rules
-    let ruleWalks = patternWalks.map(path => {
-        let rulePath: Rule[] = [];
-        for (let i = 0; i < path.length; ++i) {
-            let rules = rulesForPattern.get(path[i]);
-            rulePath = rulePath.concat(rules);
-        }
-        return rulePath;
-    });
-
-
+    let ruleWalks = patternWalks.map(pats => pats.reduce((rules, pat) => rules.concat(rulesForPattern.get(pat)), <Rule[]>[])); // TODO: shorten to <120
 //console.log(ruleWalks);
 
 
@@ -99,9 +90,10 @@ export default function test(routeTable: {[patternSource: string]: Function}): M
 
         // find the longest common prefix of all the candidates.
         let prefixLength = 0;
+        let el: Rule;
         while (true) {
             if (candidates.some(cand => cand.length <= prefixLength)) break;
-            let el = candidates[0][prefixLength];
+            el = candidates[0][prefixLength];
             if (!candidates.every(cand => cand[prefixLength] === el)) break;
             ++prefixLength;
         }
@@ -110,7 +102,7 @@ export default function test(routeTable: {[patternSource: string]: Function}): M
         let suffixLength = 0;
         while (true) {
             if (candidates.some(cand => cand.length <= suffixLength)) break;
-            let el = candidates[0][candidates[0].length - 1 - suffixLength];
+            el = candidates[0][candidates[0].length - 1 - suffixLength];
             if (!candidates.every(cand => cand[cand.length - 1 - suffixLength] === el)) break;
             ++suffixLength;
         }

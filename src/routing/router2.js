@@ -59,14 +59,7 @@ function test(routeTable) {
     var patternWalks = walk_pattern_hierarchy_1.default(patternHierarchy, function (path) { return path; });
     //console.log(patternWalks);
     // TODO: map from walks-of-patterns to walks-of-rules
-    var ruleWalks = patternWalks.map(function (path) {
-        var rulePath = [];
-        for (var i = 0; i < path.length; ++i) {
-            var rules_1 = rulesForPattern.get(path[i]);
-            rulePath = rulePath.concat(rules_1);
-        }
-        return rulePath;
-    });
+    var ruleWalks = patternWalks.map(function (pats) { return pats.reduce(function (rules, pat) { return rules.concat(rulesForPattern.get(pat)); }, []); }); // TODO: shorten to <120
     //console.log(ruleWalks);
     // TODO: for each pattern signature, get the ONE path or fail trying
     var ruleWalkForPattern = normalizedPatterns.reduce(function (map, npat) {
@@ -77,31 +70,24 @@ function test(routeTable) {
         }
         // find the longest common prefix of all the candidates.
         var prefixLength = 0;
-        var _loop_1 = function() {
-            if (candidates.some(function (cand) { return cand.length <= prefixLength; }))
-                return "break";
-            var el = candidates[0][prefixLength];
-            if (!candidates.every(function (cand) { return cand[prefixLength] === el; }))
-                return "break";
-            ++prefixLength;
-        };
+        var el;
         while (true) {
-            var state_1 = _loop_1();
-            if (state_1 === "break") break;
+            if (candidates.some(function (cand) { return cand.length <= prefixLength; }))
+                break;
+            el = candidates[0][prefixLength];
+            if (!candidates.every(function (cand) { return cand[prefixLength] === el; }))
+                break;
+            ++prefixLength;
         }
         // find the longest common suffix of all the candidates.
         var suffixLength = 0;
-        var _loop_2 = function() {
-            if (candidates.some(function (cand) { return cand.length <= suffixLength; }))
-                return "break";
-            var el = candidates[0][candidates[0].length - 1 - suffixLength];
-            if (!candidates.every(function (cand) { return cand[cand.length - 1 - suffixLength] === el; }))
-                return "break";
-            ++suffixLength;
-        };
         while (true) {
-            var state_2 = _loop_2();
-            if (state_2 === "break") break;
+            if (candidates.some(function (cand) { return cand.length <= suffixLength; }))
+                break;
+            el = candidates[0][candidates[0].length - 1 - suffixLength];
+            if (!candidates.every(function (cand) { return cand[cand.length - 1 - suffixLength] === el; }))
+                break;
+            ++suffixLength;
         }
         // TODO: possible for prefix and suffix to overlap?
         // ensure the non-common parts contain NO decorator rules.
