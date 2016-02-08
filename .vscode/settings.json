@@ -2,6 +2,7 @@
 {
 	// Configure glob patterns for excluding files and folders.
 	"files.exclude": {
+        "node_modules": true,
 		"**/.git": true,
 		"**/.DS_Store": true,
         "**/*.njsproj": true,
