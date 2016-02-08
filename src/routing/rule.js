@@ -1,5 +1,4 @@
 'use strict';
-var util_1 = require('../util');
 var make_normalized_handler_function_1 = require('./make-normalized-handler-function');
 // TODO: review jsdocs after pattern overhaul
 // TODO: make async...
@@ -25,9 +24,8 @@ var Rule = (function () {
     function Rule(pattern, handler) {
         this.pattern = pattern;
         this.handler = handler;
-        var paramNames = util_1.getFunctionParameterNames(handler);
-        this.isDecorator = paramNames.indexOf('$next') !== -1;
         this.execute = make_normalized_handler_function_1.default(pattern, handler);
+        this.isDecorator = this.execute.length === 2;
     }
     /** Returns a textual representation of this Rule instance. */
     Rule.prototype.toString = function () { return "'" + this.pattern + "': " + this.handler; };

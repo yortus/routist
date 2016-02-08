@@ -7,95 +7,115 @@ describe('Constructing a Rule instance', function () {
         {
             pattern: '/api/{...rest}',
             handler: function (rest) { },
+            isDecorator: false,
             error: null
         },
         {
             pattern: '/api/{...rest}',
             handler: function ($req, rest) { },
+            isDecorator: false,
             error: null
         },
         {
             pattern: '/api/…',
             handler: function () { },
+            isDecorator: false,
             error: null
         },
         {
             pattern: '/api/{...rest}',
             handler: function () { },
+            isDecorator: undefined,
             error: "Capture name(s) 'rest' unused by handler..."
         },
         {
             pattern: '/api/…',
             handler: function (rest) { },
+            isDecorator: undefined,
             error: "Handler parameter(s) 'rest' not captured by pattern..."
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
             handler: function (path, ext, $req, name) { },
+            isDecorator: false,
             error: null
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
             handler: function (path, ext, req, name) { },
+            isDecorator: undefined,
             error: "Handler parameter(s) 'req' not captured by pattern..."
         },
         {
             pattern: '/api/{...$req}',
             handler: function ($req) { },
+            isDecorator: undefined,
             error: "Use of reserved name(s) '$req' as capture(s) in pattern..."
         },
         {
             pattern: '/api/{...req}',
             handler: function ($req) { },
+            isDecorator: undefined,
             error: "Capture name(s) 'req' unused by handler..."
         },
         {
             pattern: '/api/{...rest}',
             handler: function (rest, $req, $next) { },
+            isDecorator: true,
             error: null
         },
         {
             pattern: '/api/{...rest}',
             handler: function (rest, $next) { },
+            isDecorator: true,
             error: null
         },
         {
             pattern: '/api/{...rest} #2',
             handler: function (rest, $next) { },
+            isDecorator: true,
             error: null
         },
         {
             pattern: '/api/{...rest} #1000',
             handler: function (rest, $next) { },
+            isDecorator: true,
             error: null
         },
         {
             pattern: '/api/{...rest} #comment',
             handler: function (rest, $next) { },
+            isDecorator: true,
             error: null
         },
         {
             pattern: '#/api/{...rest}',
             handler: function (rest, $next) { },
+            isDecorator: undefined,
             error: "Handler parameter(s) 'rest' not captured by pattern..."
         },
         {
             pattern: '/api/{...rest} # 2 0 abc   ',
             handler: function (rest, $next) { },
+            isDecorator: true,
             error: null
         },
         {
             pattern: '/api/x # was... /{...rest}',
             handler: function () { },
+            isDecorator: false,
             error: null
         },
     ];
     tests.forEach(function (test) {
         it(test.pattern + " WITH " + test.handler, function () {
+            var expectedIsDecorator = test.isDecorator;
             var expectedError = test.error || '';
+            var actualIsDecorator;
             var actualError = '';
             try {
                 var rule = new rule_1.default(new pattern_1.default(test.pattern), test.handler);
+                actualIsDecorator = rule.isDecorator;
             }
             catch (ex) {
                 actualError = ex.message;
@@ -103,6 +123,7 @@ describe('Constructing a Rule instance', function () {
                     actualError = actualError.slice(0, expectedError.length - 3) + '...';
                 }
             }
+            chai_1.expect(actualIsDecorator).equals(expectedIsDecorator);
             chai_1.expect(actualError).equals(expectedError);
         });
     });

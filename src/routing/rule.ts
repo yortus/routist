@@ -1,8 +1,5 @@
 'use strict';
-import * as assert from 'assert';
-import {getFunctionParameterNames} from '../util';
 import makeNormalizedHandlerFunction from './make-normalized-handler-function';
-import parsePatternSource from '../patterns/parse-pattern-source'; // TODO: review if needed here?
 import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
@@ -35,9 +32,8 @@ export default class Rule {
      *        the given request, even if the pattern matched the request's address.
      */
     constructor(public pattern: Pattern, private handler: Function) {
-        let paramNames = getFunctionParameterNames(handler);
-        this.isDecorator = paramNames.indexOf('$next') !== -1;
         this.execute = <any> makeNormalizedHandlerFunction(pattern, handler);
+        this.isDecorator = this.execute.length === 2;
     }
 
 

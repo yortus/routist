@@ -72,15 +72,32 @@ export default function makeNormalizedHandlerFunction(pattern: Pattern, rawHandl
     //   `executeDownstreamHandlers` callback.
     // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
     //   Otherwise, execute the handler function and return its response.
-    let source = `(function execute(request, downstream) {
-        var paramBindings = match(typeof request === 'string' ? request : request.address);
-        if (!paramBindings) return null; // pattern didn't match address
-        ${!isDecorator ? `
-        var response = downstream(request);
-        if (response !== null) return response;
-        ` : ''}
-        return rawHandler(${paramNames.map(name => paramMappings[name])});
-    })`;
+    let source: string;
+    if (isDecorator) {
+        source = `(function decorate(request, downstream) {
+            var paramBindings = match(typeof request === 'string' ? request : request.address);
+            if (!paramBindings) return null; // pattern didn't match address
+
+            return rawHandler(${paramNames.map(name => paramMappings[name])});
+        })`;
+    }
+    else {
+        source = `(function handle(request) {
+            var paramBindings = match(typeof request === 'string' ? request : request.address);
+            if (!paramBindings) return null; // pattern didn't match address
+
+            // TODO: temp hack until next comment is addressed...
+            var downstream = arguments[1];
+
+            // TODO: implement this logic elsewhere in a combined handler...
+            var response = downstream(request);
+            if (response !== null) return response;
+
+            return rawHandler(${paramNames.map(name => paramMappings[name])});
+        })`;
+    }
+
+
 
     // Evaluate the source code into a function, and return it. This use of eval here is safe. In particular, the
     // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised

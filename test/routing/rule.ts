@@ -10,96 +10,116 @@ describe('Constructing a Rule instance', () => {
         {
             pattern: '/api/{...rest}',
             handler: (rest) => {},
+            isDecorator: false,
             error: null
         },
         {
             pattern: '/api/{...rest}',
             handler: ($req, rest) => {},
+            isDecorator: false,
             error: null
         },
         {
             pattern: '/api/…',
             handler: () => {},
+            isDecorator: false,
             error: null
         },
         {
             pattern: '/api/{...rest}',
             handler: () => {},
+            isDecorator: undefined,
             error: `Capture name(s) 'rest' unused by handler...`
         },
         {
             pattern: '/api/…',
             handler: (rest) => {},
+            isDecorator: undefined,
             error: `Handler parameter(s) 'rest' not captured by pattern...`
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
             handler: (path, ext, $req, name) => {},
+            isDecorator: false,
             error: null
         },
         {
             pattern: '/foo/{...path}/{name}.{ext}',
             handler: (path, ext, req, name) => {},
+            isDecorator: undefined,
             error: `Handler parameter(s) 'req' not captured by pattern...`
         },
         {
             pattern: '/api/{...$req}',
             handler: ($req) => {},
+            isDecorator: undefined,
             error: `Use of reserved name(s) '$req' as capture(s) in pattern...`
         },
         {
             pattern: '/api/{...req}',
             handler: ($req) => {},
+            isDecorator: undefined,
             error: `Capture name(s) 'req' unused by handler...`
         },
         {
             pattern: '/api/{...rest}',
             handler: (rest, $req, $next) => {},
+            isDecorator: true,
             error: null
         },
         {
             pattern: '/api/{...rest}',
             handler: (rest, $next) => {},
+            isDecorator: true,
             error: null
         },
         {
             pattern: '/api/{...rest} #2',
             handler: (rest, $next) => {},
+            isDecorator: true,
             error: null
         },
         {
             pattern: '/api/{...rest} #1000',
             handler: (rest, $next) => {},
+            isDecorator: true,
             error: null
         },
         {
             pattern: '/api/{...rest} #comment',
             handler: (rest, $next) => {},
+            isDecorator: true,
             error: null
         },
         {
             pattern: '#/api/{...rest}',
             handler: (rest, $next) => {},
+            isDecorator: undefined,
             error: `Handler parameter(s) 'rest' not captured by pattern...`
         },
         {
             pattern: '/api/{...rest} # 2 0 abc   ',
             handler: (rest, $next) => {},
+            isDecorator: true,
             error: null
         },
         {
             pattern: '/api/x # was... /{...rest}',
             handler: () => {},
+            isDecorator: false,
             error: null
         },
     ];
 
     tests.forEach(test => {
         it(`${test.pattern} WITH ${test.handler}`, () => {
+            let expectedIsDecorator = test.isDecorator;
             let expectedError = test.error || '';
+            let actualIsDecorator: boolean;
             let actualError = '';
             try {
                 let rule = new Rule(new Pattern(test.pattern), test.handler);
+                actualIsDecorator = rule.isDecorator;
             }
             catch (ex) {
                 actualError = ex.message;
@@ -107,6 +127,7 @@ describe('Constructing a Rule instance', () => {
                     actualError = actualError.slice(0, expectedError.length - 3) + '...';
                 }
             }
+            expect(actualIsDecorator).equals(expectedIsDecorator);
             expect(actualError).equals(expectedError);
         });
     });

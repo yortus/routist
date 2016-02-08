@@ -27,7 +27,13 @@ function makeNormalizedHandlerFunction(pattern, rawHandler) {
     //   `executeDownstreamHandlers` callback.
     // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
     //   Otherwise, execute the handler function and return its response.
-    var source = "(function execute(request, downstream) {\n        var paramBindings = match(typeof request === 'string' ? request : request.address);\n        if (!paramBindings) return null; // pattern didn't match address\n        " + (!isDecorator ? "\n        var response = downstream(request);\n        if (response !== null) return response;\n        " : '') + "\n        return rawHandler(" + paramNames.map(function (name) { return paramMappings[name]; }) + ");\n    })";
+    var source;
+    if (isDecorator) {
+        source = "(function decorate(request, downstream) {\n            var paramBindings = match(typeof request === 'string' ? request : request.address);\n            if (!paramBindings) return null; // pattern didn't match address\n\n            return rawHandler(" + paramNames.map(function (name) { return paramMappings[name]; }) + ");\n        })";
+    }
+    else {
+        source = "(function handle(request) {\n            var paramBindings = match(typeof request === 'string' ? request : request.address);\n            if (!paramBindings) return null; // pattern didn't match address\n\n            // TODO: temp hack until next comment is addressed...\n            var downstream = arguments[1];\n\n            // TODO: implement this logic elsewhere in a combined handler...\n            var response = downstream(request);\n            if (response !== null) return response;\n\n            return rawHandler(" + paramNames.map(function (name) { return paramMappings[name]; }) + ");\n        })";
+    }
     // Evaluate the source code into a function, and return it. This use of eval here is safe. In particular, the
     // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
     // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
