@@ -7,12 +7,13 @@ import Pattern from '../patterns/pattern';
 
 
 // TODO: ...
-// TODO: add param targets: Map<Pattern, T> and change return type to (address: string) => T
 // TODO: construct patternHierarchy from targets? ie don't need it as parameter, can calc it
-export default function makeDispatchFunction(patternHierarchy: Graph<Pattern>): (address: string) => Pattern {
+// TODO: shorten sig to < 120chars
+export default function makeDispatchFunction<T>(patternHierarchy: Graph<Pattern>, targetMap: Map<Pattern, T>): (address: string) => T {
 
     // TODO: ...
     let patterns = getAllGraphNodes(patternHierarchy);
+    let targets = patterns.map(pat => targetMap.get(pat));
 
     // TODO: doc...
     function getBody(specializations: Graph<Pattern>, fallback: Pattern, nestDepth: number): string {
@@ -21,23 +22,24 @@ export default function makeDispatchFunction(patternHierarchy: Graph<Pattern>): 
             let nextLevel = specializations.get(spec);
             let isLeaf = nextLevel.size === 0;
             let id = getIdForPattern(spec);
-            let condition = `${indent}${i > 0 ? 'else ' : ''}if (${id}.match(address)) `;
-            let consequent = isLeaf ? `return ${id};\n` : `{\n${getBody(nextLevel, spec, nestDepth + 1)}${indent}}\n`;
+            let condition = `${indent}${i > 0 ? 'else ' : ''}if (${id}matches(address)) `;
+            let consequent = isLeaf ? `return ${id}target;\n` : `{\n${getBody(nextLevel, spec, nestDepth + 1)}${indent}}\n`; // TODO: shorten to <120
             return condition + consequent;
         });
-        let lastLine = `${indent}return ${getIdForPattern(fallback)};\n`;
+        let lastLine = `${indent}return ${getIdForPattern(fallback)}target;\n`;
         return firstLines.join('') + lastLine;
     }
 
     // TODO: doc...
     let lines = [
-        ...patterns.map((pat, i) => `let ${getIdForPattern(pat)} = patterns[${i}];\n`),
+        ...patterns.map((pat, i) => `let ${getIdForPattern(pat)}matches = patterns[${i}].match;\n`),
+        ...patterns.map((pat, i) => `let ${getIdForPattern(pat)}target = targets[${i}];\n`),
         '',
         'return function dispatch(address) {',
         getBody(patternHierarchy.get(Pattern.UNIVERSAL), Pattern.UNIVERSAL, 1),
         '};'
     ];
-//console.log(lines);
+// console.log(lines);
 // debugger;
 
     // TODO: temp testing... capture unmangled Pattern id... remove/fix this!!!
@@ -45,8 +47,8 @@ export default function makeDispatchFunction(patternHierarchy: Graph<Pattern>): 
         let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();
         return fn;
     })(Pattern);
-//console.log(fn.toString());
-//debugger;
+// console.log(fn.toString());
+// debugger;
     return fn;
 }
 

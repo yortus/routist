@@ -11,13 +11,12 @@ var Router = (function () {
     }
     // TODO: doc...
     Router.prototype.add = function (routeTable) {
-        var patternHierarchy = hierarchize_patterns_1.default(Object.keys(routeTable).map(function (src) { return new pattern_1.default(src); }));
-        var dispatch = make_dispatch_function_1.default(patternHierarchy);
         var routes = router2_1.default(routeTable); // TODO: fix terminology: 'handler' is taken...
+        var patternHierarchy = hierarchize_patterns_1.default(Object.keys(routeTable).map(function (src) { return new pattern_1.default(src); }));
+        var selectRoute = make_dispatch_function_1.default(patternHierarchy, routes);
         this.dispatch = function (request) {
             var address = typeof request === 'string' ? request : request.address;
-            var pattern = dispatch(address);
-            var route = routes.get(pattern);
+            var route = selectRoute(address);
             var response = route.execute(request);
             return response;
         };
