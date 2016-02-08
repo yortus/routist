@@ -38,6 +38,7 @@ var Pattern = (function () {
         this.normalized = new Pattern(ast.signature); // NB: recursive.
         this.captureNames = ast.captures.filter(function (capture) { return capture !== '?'; });
         this.match = make_match_function_1.default(source, ast);
+        this.comment = source.split('#')[1] || '';
     }
     /** Returns the source string with which this instance was constructed. */
     Pattern.prototype.toString = function () { return this.source; };

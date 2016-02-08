@@ -52,6 +52,7 @@ export default class Pattern {
         this.normalized = new Pattern(ast.signature); // NB: recursive.
         this.captureNames = ast.captures.filter(capture => capture !== '?');
         this.match = makeMatchFunction(source, ast);
+        this.comment = source.split('#')[1] || '';
     }
 
 
@@ -79,6 +80,10 @@ export default class Pattern {
      * @returns {Object} null if the match failed, otherwise a hash of captured name/value pairs.
      */
     match: (address: string) => {[captureName: string]: string};
+
+
+    /** The text of the comment portion of the pattern source, or '' if there is no comment. */
+    comment: string;
 
 
     /** Returns the source string with which this instance was constructed. */

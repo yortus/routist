@@ -118,8 +118,9 @@ describe('Constructing a Rule instance', () => {
             let actualComment= '';
             let actualError = '';
             try {
-                let rule = new Rule(new Pattern(test.pattern), test.handler);
-                actualComment = rule.comment;
+                let pattern = new Pattern(test.pattern);
+                let rule = new Rule(pattern, test.handler);
+                actualComment = pattern.comment;
             }
             catch (ex) {
                 actualError = ex.message;

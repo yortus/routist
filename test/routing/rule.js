@@ -114,8 +114,9 @@ describe('Constructing a Rule instance', function () {
             var actualComment = '';
             var actualError = '';
             try {
-                var rule = new rule_1.default(new pattern_1.default(test.pattern), test.handler);
-                actualComment = rule.comment;
+                var pattern = new pattern_1.default(test.pattern);
+                var rule = new rule_1.default(pattern, test.handler);
+                actualComment = pattern.comment;
             }
             catch (ex) {
                 actualError = ex.message;

@@ -50,21 +50,22 @@ export default function test(routeTable: {[patternSource: string]: Function}): M
     normalizedPatterns.forEach(npat => {
         let rules = rulesForPattern.get(npat);
         rules.sort((a, b) => {
-           let moreSpecific = tieBreakFn(a, b);
-           assert(moreSpecific === a || moreSpecific === b, `ambiguous rules - which is more specific? A: ${a}, B: ${b}`);
-           assert.strictEqual(moreSpecific, tieBreakFn(b, a)); // consistency check
-           return moreSpecific === a ? 1 : -1;
+           let moreSpecificPattern = tieBreakFn(a.pattern, b.pattern);
+           let moreSpecificRule = moreSpecificPattern === a.pattern ? a : moreSpecificPattern === b.pattern ? b : null;
+           assert(moreSpecificRule === a || moreSpecificRule === b, `ambiguous rules - which is more specific? A: ${a}, B: ${b}`);
+           assert.strictEqual(moreSpecificPattern, tieBreakFn(b.pattern, a.pattern)); // consistency check
+           return moreSpecificRule === a ? 1 : -1;
         });
     });
 
     // TODO: this should be passed in or somehow provided from outside...
     // TODO: return the WINNER, a.k.a. the MORE SPECIFIC rule
-    function tieBreakFn(a: Rule, b: Rule): Rule {
-        if (a === _404) return b;
-        if (b === _404) return a;
+    function tieBreakFn(a: Pattern, b: Pattern): Pattern {
+        if (a === _404.pattern) return b;
+        if (b === _404.pattern) return a;
         if (a.comment < b.comment) return a;
         if (b.comment < a.comment) return b;
-    }    
+    }
 
 
 

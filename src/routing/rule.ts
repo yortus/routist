@@ -42,11 +42,6 @@ export default class Rule {
         let paramNames = getFunctionParameterNames(handler);
         this.isDecorator = paramNames.indexOf('$next') !== -1;
         this.execute = <any> makeExecuteFunction(pattern, handler, paramNames);
-
-        // TODO: temp testing... extract rule's 'priority' from comment in pattern...
-        // NB: default is 0.
-        // NB: error handling??? throw error if not numeric?
-        this.comment = pattern.toString().split('#')[1] || '';
     }
 
 
@@ -57,10 +52,6 @@ export default class Rule {
      * and non-decorators.
      */
     isDecorator: boolean;
-
-
-    // TODO: doc...
-    comment: string;
 
 
     /**

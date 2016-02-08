@@ -30,10 +30,6 @@ var Rule = (function () {
         var paramNames = util_1.getFunctionParameterNames(handler);
         this.isDecorator = paramNames.indexOf('$next') !== -1;
         this.execute = makeExecuteFunction(pattern, handler, paramNames);
-        // TODO: temp testing... extract rule's 'priority' from comment in pattern...
-        // NB: default is 0.
-        // NB: error handling??? throw error if not numeric?
-        this.comment = pattern.toString().split('#')[1] || '';
     }
     /** Returns a textual representation of this Rule instance. */
     Rule.prototype.toString = function () { return "'" + this.pattern + "': " + this.handler; };

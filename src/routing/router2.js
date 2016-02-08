@@ -37,18 +37,19 @@ function test(routeTable) {
     normalizedPatterns.forEach(function (npat) {
         var rules = rulesForPattern.get(npat);
         rules.sort(function (a, b) {
-            var moreSpecific = tieBreakFn(a, b);
-            assert(moreSpecific === a || moreSpecific === b, "ambiguous rules - which is more specific? A: " + a + ", B: " + b);
-            assert.strictEqual(moreSpecific, tieBreakFn(b, a)); // consistency check
-            return moreSpecific === a ? 1 : -1;
+            var moreSpecificPattern = tieBreakFn(a.pattern, b.pattern);
+            var moreSpecificRule = moreSpecificPattern === a.pattern ? a : moreSpecificPattern === b.pattern ? b : null;
+            assert(moreSpecificRule === a || moreSpecificRule === b, "ambiguous rules - which is more specific? A: " + a + ", B: " + b);
+            assert.strictEqual(moreSpecificPattern, tieBreakFn(b.pattern, a.pattern)); // consistency check
+            return moreSpecificRule === a ? 1 : -1;
         });
     });
     // TODO: this should be passed in or somehow provided from outside...
     // TODO: return the WINNER, a.k.a. the MORE SPECIFIC rule
     function tieBreakFn(a, b) {
-        if (a === _404)
+        if (a === _404.pattern)
             return b;
-        if (b === _404)
+        if (b === _404.pattern)
             return a;
         if (a.comment < b.comment)
             return a;
