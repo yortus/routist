@@ -1,38 +1,17 @@
 # routist
 
+
 ## To Do List
 
-- [x] change pathname to address throughout
-- [ ] introduce 'Rule' interface wherever pattern/handler pairs occur
 - [ ] asyncify Handler#execute
 - [ ] still need `isPromise`? If not, remove it :( Otherwise find a use for it.
-- [ ] add Route interface. Make one per rule
+- [ ] add npmignore
+- [x] change pathname to address throughout
+- [x] introduce 'Rule' interface wherever pattern/handler pairs occur
+- [x] add Route interface. Make one per rule
 
 
-## Handler execution order (when multiple handlers for same pattern)
-### multiple non-decorators
-- method is left up to decorators to resolve
-- default is to throw 'ambiguous' error
-
-### multiple mixed decorators/non-decorators
-- non-decorators are handled as if they were specialisations of the decorators
-
-### multiple decorators
-- assume any order is ok (NOT SAFE! but maybe provide option so it doesn't throw / is allowed)
-- implicit ordering
-  - but how?
-  - order of being added to router? not reliable when multiple sources...
-- explicit ordering
-  - but how?
-  - optional 'ordinal' comment on the end of pattern? like css z-index
-  - action name or parameter that somehow indicates priority?
-
-
-### Options
-- allowAmbiguousDecoratorOrder: true|false
-
-
-### The Pattern DSL
+## The Pattern DSL
 
 A valid pattern string conforms to the following rules:
 - Patterns are case-sensitive.
@@ -54,7 +33,7 @@ A valid pattern string conforms to the following rules:
 - A comment begins with `#` and continues to the end of the string.
 - The special pattern `∅` is permitted. It represents a pattern that matches no addresses.
 
-### Pattern DSL Examples
+## Pattern DSL Examples
 
 - `'/foo'` matches only the literal address `'/foo'` and nothing else
 - `'/foo/*'` matches `'/foo/bar'` and `'/foo/'` but not `'/foo'` or `'/foo/bar/baz'`
@@ -64,7 +43,6 @@ A valid pattern string conforms to the following rules:
 - `'**'` (or `'…'`) matches all addresses
 - `'*'` matches all addresses that do not contain `'/'`
 - `'∅'` matches no addresses
-
 
 
 ## Glossary
