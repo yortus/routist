@@ -22,18 +22,18 @@ export default function makeDispatchFunction<T>(patternHierarchy: Graph<Pattern>
             let nextLevel = specializations.get(spec);
             let isLeaf = nextLevel.size === 0;
             let id = getIdForPattern(spec);
-            let condition = `${indent}${i > 0 ? 'else ' : ''}if (${id}matches(address)) `;
-            let consequent = isLeaf ? `return ${id}target;\n` : `{\n${getBody(nextLevel, spec, nestDepth + 1)}${indent}}\n`; // TODO: shorten to <120
+            let condition = `${indent}${i > 0 ? 'else ' : ''}if (matches${id}(address)) `;
+            let consequent = isLeaf ? `return targetFor${id};\n` : `{\n${getBody(nextLevel, spec, nestDepth + 1)}${indent}}\n`; // TODO: shorten to <120
             return condition + consequent;
         });
-        let lastLine = `${indent}return ${getIdForPattern(fallback)}target;\n`;
+        let lastLine = `${indent}return targetFor${getIdForPattern(fallback)};\n`;
         return firstLines.join('') + lastLine;
     }
 
     // TODO: doc...
     let lines = [
-        ...patterns.map((pat, i) => `let ${getIdForPattern(pat)}matches = patterns[${i}].match;\n`),
-        ...patterns.map((pat, i) => `let ${getIdForPattern(pat)}target = targets[${i}];\n`),
+        ...patterns.map((pat, i) => `let matches${getIdForPattern(pat)} = patterns[${i}].match;\n`),
+        ...patterns.map((pat, i) => `let targetFor${getIdForPattern(pat)} = targets[${i}];\n`),
         '',
         'return function dispatch(address) {',
         getBody(patternHierarchy.get(Pattern.UNIVERSAL), Pattern.UNIVERSAL, 1),
@@ -67,5 +67,5 @@ function getIdForPattern(pattern: Pattern) {
             if (c === '*') return 'ᕽ'; // (U+157D)
             throw new Error(`Unrecognized character '${c}' in pattern '${pattern}'`);
         })
-        .join('') + '__';
+        .join('');
 }

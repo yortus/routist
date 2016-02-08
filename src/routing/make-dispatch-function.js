@@ -15,15 +15,15 @@ function makeDispatchFunction(patternHierarchy, targetMap) {
             var nextLevel = specializations.get(spec);
             var isLeaf = nextLevel.size === 0;
             var id = getIdForPattern(spec);
-            var condition = "" + indent + (i > 0 ? 'else ' : '') + "if (" + id + "matches(address)) ";
-            var consequent = isLeaf ? "return " + id + "target;\n" : "{\n" + getBody(nextLevel, spec, nestDepth + 1) + indent + "}\n"; // TODO: shorten to <120
+            var condition = "" + indent + (i > 0 ? 'else ' : '') + "if (matches" + id + "(address)) ";
+            var consequent = isLeaf ? "return targetFor" + id + ";\n" : "{\n" + getBody(nextLevel, spec, nestDepth + 1) + indent + "}\n"; // TODO: shorten to <120
             return condition + consequent;
         });
-        var lastLine = indent + "return " + getIdForPattern(fallback) + "target;\n";
+        var lastLine = indent + "return targetFor" + getIdForPattern(fallback) + ";\n";
         return firstLines.join('') + lastLine;
     }
     // TODO: doc...
-    var lines = patterns.map(function (pat, i) { return ("let " + getIdForPattern(pat) + "matches = patterns[" + i + "].match;\n"); }).concat(patterns.map(function (pat, i) { return ("let " + getIdForPattern(pat) + "target = targets[" + i + "];\n"); }), [
+    var lines = patterns.map(function (pat, i) { return ("let matches" + getIdForPattern(pat) + " = patterns[" + i + "].match;\n"); }).concat(patterns.map(function (pat, i) { return ("let targetFor" + getIdForPattern(pat) + " = targets[" + i + "];\n"); }), [
         '',
         'return function dispatch(address) {',
         getBody(patternHierarchy.get(pattern_1.default.UNIVERSAL), pattern_1.default.UNIVERSAL, 1),
@@ -63,6 +63,6 @@ function getIdForPattern(pattern) {
             return 'ᕽ'; // (U+157D)
         throw new Error("Unrecognized character '" + c + "' in pattern '" + pattern + "'");
     })
-        .join('') + '__';
+        .join('');
 }
 //# sourceMappingURL=make-dispatch-function.js.map
