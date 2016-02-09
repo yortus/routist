@@ -81,7 +81,7 @@ export default function makeNormalizedHandlerFunction(pattern: Pattern, rawHandl
     // Evaluate the source code into a function, and return it. This use of eval here is safe. In particular, the
     // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
     // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
-    let result: Function = eval(source);
+    let result: HandlerFunction | DecoratorFunction = eval(source);
     return result;
 }
 

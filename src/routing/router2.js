@@ -3,25 +3,32 @@ var assert = require('assert');
 var util_1 = require('../util');
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
 var is_decorator_1 = require('./is-decorator');
+var make_normalized_handler_function_1 = require('./make-normalized-handler-function');
 var pattern_1 = require('../patterns/pattern');
 var route_1 = require('./route');
-var rule_1 = require('./rule');
+//import Rule from './rule';
 var walk_pattern_hierarchy_1 = require('./walk-pattern-hierarchy');
 // TODO: ...
 function test(routeTable) {
     // TODO: ...
-    var rules = Object.keys(routeTable).map(function (ps) { return new rule_1.default(new pattern_1.default(ps), routeTable[ps]); });
-    // // TODO: add special root rule...
-    // // TODO: add it unconditionally and add tieBreak handler that always makes it the least specific rule
-    var _404 = new rule_1.default(pattern_1.default.UNIVERSAL, function () { throw new Error('404!'); });
-    rules.push(_404);
+    var patternsAndHandlers = Object.keys(routeTable).map(function (patternSource) { return ({
+        pattern: new pattern_1.default(patternSource),
+        handler: make_normalized_handler_function_1.default(new pattern_1.default(patternSource), routeTable[patternSource]) // TODO: new Pattern twice! fix this...
+    }); });
+    // TODO: add special root rule...
+    // TODO: add it unconditionally and add tieBreak handler that always makes it the least specific rule
+    var _404 = {
+        pattern: pattern_1.default.UNIVERSAL,
+        handler: function (request) { throw new Error('404!'); }
+    };
+    patternsAndHandlers.push(_404);
     // TODO: get pattern hierarchy...
-    var patternHierarchy = hierarchize_patterns_1.default(rules.map(function (rule) { return rule.pattern; })); // TODO: review this line...
+    var patternHierarchy = hierarchize_patterns_1.default(patternsAndHandlers.map(function (rule) { return rule.pattern; })); // TODO: review this line...
     var normalizedPatterns = util_1.getAllGraphNodes(patternHierarchy);
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
     var rulesForPattern = normalizedPatterns.reduce(function (map, npat) {
-        map.set(npat, rules.filter(function (r) { return r.pattern.normalized === npat; }));
+        map.set(npat, patternsAndHandlers.filter(function (r) { return r.pattern.normalized === npat; }));
         return map;
     }, new Map());
     // TODO: add no-op rules so that for each signature there are 1..M rules
@@ -29,7 +36,10 @@ function test(routeTable) {
     normalizedPatterns.forEach(function (npat) {
         var rules = rulesForPattern.get(npat);
         if (rules.length === 0) {
-            rules.push(new rule_1.default(npat, noop));
+            rules.push({
+                pattern: npat,
+                handler: noop
+            });
         }
     });
     function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
@@ -78,17 +88,20 @@ function test(routeTable) {
         // ensure the non-common parts contain NO decorator rules.
         candidates.forEach(function (cand) {
             var choppedRules = cand.slice(prefix.length, -suffix.length);
-            if (choppedRules.every(function (rule) { return !is_decorator_1.default(rule.execute); }))
+            if (choppedRules.every(function (rule) { return !is_decorator_1.default(rule.handler); }))
                 return;
             // TODO: improve error message/handling
             throw new Error("Multiple routes to '" + npat + "' with different decorators");
         });
         // synthesize a 'crasher' rule that throws an 'ambiguous' error.
         var fallbacks = candidates.map(function (cand) { return cand[cand.length - suffix.length - 1]; });
-        var crasher = new rule_1.default(npat, function crasher() {
-            // TODO: improve error message/handling
-            throw new Error("Multiple possible fallbacks from '" + npat + ": " + fallbacks.map(function (r) { return r.toString(); }));
-        });
+        var crasher = {
+            pattern: npat,
+            handler: function crasher(request) {
+                // TODO: improve error message/handling
+                throw new Error("Multiple possible fallbacks from '" + npat + ": " + fallbacks.map(function (r) { return r.toString(); }));
+            }
+        };
         // final composite rule: splice of common prefix + crasher + common suffix
         map.set(npat, [].concat(prefix, crasher, suffix));
         return map;

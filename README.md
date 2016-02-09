@@ -70,3 +70,54 @@ A valid pattern string conforms to the following rules:
 **Transport:** TODO... listens; maps btw physical<-->logical rq/rs representations
 
 **Router:** TODO... Disptcher. Computes the Route(s?) to a given Address. Needs a set of Rules.
+
+
+
+```
+pattern
+handler
+
+canonical/normalized
+non-canonical/denormalized/raw/plain/input/source
+
+pattern: non-canonical vs canonical
+handler: non-canonical vs canonical
+
+handler: partial vs general
+
+
+
+Route table: set of rules
+rule: pattern/handler pair
+
+pattern:
+    normalized pattern
+handler:
+    raw ???
+    normalized
+    decorator
+    ordinary/vanilla/simple
+
+
+raw pattern
+pattern string
+pattern source
+pattern source string
+normalized pattern
+
+
+raw handler
+handler source
+
+
+normalized handler
+simple handler
+partial handler
+general handler (decorator)
+
+flat handler
+full handler
+part handler
+
+
+```

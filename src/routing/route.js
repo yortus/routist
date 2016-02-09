@@ -8,7 +8,7 @@ var Route = (function () {
         var reverseRules = rules.slice().reverse();
         this.name = reverseRules[0].pattern.toString();
         this.execute = reverseRules.reduce(function (downstream, rule) {
-            var handler = rule.execute;
+            var handler = rule.handler;
             if (is_decorator_1.default(handler)) {
                 return function (request) { return handler(request, downstream); };
             }

@@ -1,14 +1,25 @@
 'use strict';
 import * as assert from 'assert';
 import {getAllGraphNodes, getLongestCommonPrefix} from '../util';
+import Handler from './handler';
 import hierarchizePatterns from '../patterns/hierarchize-patterns';
 import isDecorator from './is-decorator';
+import makeNormalizedHandlerFunction from './make-normalized-handler-function';
 import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
 import Route from './route';
-import Rule from './rule';
+//import Rule from './rule';
 import walkPatternHierarchy from './walk-pattern-hierarchy';
+
+
+
+
+
+type Rule = {
+    pattern: Pattern,
+    handler: Handler
+};
 
 
 
@@ -18,21 +29,27 @@ import walkPatternHierarchy from './walk-pattern-hierarchy';
 export default function test(routeTable: {[patternSource: string]: Function}): Map<Pattern, Route> {
 
     // TODO: ...
-    let rules = Object.keys(routeTable).map(ps => new Rule(new Pattern(ps), routeTable[ps]));
+    let patternsAndHandlers: Rule[] = Object.keys(routeTable).map(patternSource => ({
+        pattern: new Pattern(patternSource),
+        handler: makeNormalizedHandlerFunction(new Pattern(patternSource), routeTable[patternSource]) // TODO: new Pattern twice! fix this...
+    }));
 
-    // // TODO: add special root rule...
-    // // TODO: add it unconditionally and add tieBreak handler that always makes it the least specific rule
-    let _404 = new Rule(Pattern.UNIVERSAL, () => { throw new Error('404!');});
-    rules.push(_404);
+    // TODO: add special root rule...
+    // TODO: add it unconditionally and add tieBreak handler that always makes it the least specific rule
+    let _404: Rule = {
+        pattern: Pattern.UNIVERSAL,
+        handler: (request): any => { throw new Error('404!'); }
+    };
+    patternsAndHandlers.push(_404);
 
     // TODO: get pattern hierarchy...
-    let patternHierarchy = hierarchizePatterns(rules.map(rule => rule.pattern)); // TODO: review this line...
+    let patternHierarchy = hierarchizePatterns(patternsAndHandlers.map(rule => rule.pattern)); // TODO: review this line...
     let normalizedPatterns = getAllGraphNodes(patternHierarchy);
 
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
     let rulesForPattern = normalizedPatterns.reduce((map, npat) => {
-        map.set(npat, rules.filter(r => r.pattern.normalized === npat));
+        map.set(npat, patternsAndHandlers.filter(r => r.pattern.normalized === npat));
         return map;
     }, new Map<Pattern, Rule[]>());
 
@@ -41,7 +58,10 @@ export default function test(routeTable: {[patternSource: string]: Function}): M
     normalizedPatterns.forEach(npat => {
         let rules = rulesForPattern.get(npat);
         if (rules.length === 0) {
-            rules.push(new Rule(npat, noop));
+            rules.push({
+                pattern: npat,
+                handler: noop
+            });
         }
     });
     function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
@@ -100,17 +120,20 @@ export default function test(routeTable: {[patternSource: string]: Function}): M
         // ensure the non-common parts contain NO decorator rules.
         candidates.forEach(cand => {
             let choppedRules = cand.slice(prefix.length, -suffix.length);
-            if (choppedRules.every(rule => !isDecorator(rule.execute))) return;
+            if (choppedRules.every(rule => !isDecorator(rule.handler))) return;
             // TODO: improve error message/handling
             throw new Error(`Multiple routes to '${npat}' with different decorators`);
         });
 
         // synthesize a 'crasher' rule that throws an 'ambiguous' error.
         let fallbacks = candidates.map(cand => cand[cand.length - suffix.length - 1]);
-        let crasher = new Rule(npat, function crasher() {
-            // TODO: improve error message/handling
-            throw new Error(`Multiple possible fallbacks from '${npat}: ${fallbacks.map(r => r.toString())}`);
-        });
+        let crasher: Rule = {
+            pattern: npat,
+            handler: function crasher(request): any {
+                // TODO: improve error message/handling
+                throw new Error(`Multiple possible fallbacks from '${npat}: ${fallbacks.map(r => r.toString())}`);
+            }
+        };
 
         // final composite rule: splice of common prefix + crasher + common suffix
         map.set(npat, [].concat(prefix, crasher, suffix));
