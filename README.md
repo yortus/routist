@@ -74,50 +74,21 @@ A valid pattern string conforms to the following rules:
 
 
 ```
-pattern
-handler
+route table:
+- set of rules (unordered)
 
-canonical/normalized
-non-canonical/denormalized/raw/plain/input/source
+rule:
+- pair of pattern string and handler function
+- captures in pattern string match parameters in handler function
+- called the 'raw' pattern and 'raw' handler for distinction from canonical forms
 
-pattern: non-canonical vs canonical
-handler: non-canonical vs canonical
+normalization:
+- canonical pattern
+- canonical handler
 
-handler: partial vs general
-
-
-
-Route table: set of rules
-rule: pattern/handler pair
-
-pattern:
-    normalized pattern
-handler:
-    raw ???
-    normalized
-    decorator
-    ordinary/vanilla/simple
-
-
-raw pattern
-pattern string
-pattern source
-pattern source string
-normalized pattern
-
-
-raw handler
-handler source
-
-
-normalized handler
-simple handler
-partial handler
-general handler (decorator)
-
-flat handler
-full handler
-part handler
+handler types:
+- partial handler
+- general handler (decorator)
 
 
 ```
