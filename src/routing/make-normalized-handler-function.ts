@@ -7,6 +7,7 @@ import Response from '../response';
 // TODO: review jsdocs after pattern overhaul
 // TODO: make async...
 // TODO: review all comments given recent changes (Handler/Rule, $yield/$next, executeDownstreamHandlers/downstream)
+// TODO: use getIdForPattern from ./make-dispatch-function to generate unique/pretty handler function names
 
 
 
