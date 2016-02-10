@@ -1,7 +1,6 @@
 'use strict';
 import Handler from './handler';
 import isDecorator from './is-decorator';
-import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
 
@@ -14,11 +13,14 @@ export default class Route {
 
 
     // TODO: ...
-    constructor(public rules: {pattern: Pattern; handler: Handler}[]) {
-        let reverseRules = rules.slice().reverse();
-        this.name = reverseRules[0].pattern.toString();
-        this.execute = reverseRules.reduce((downstream, rule) => {
-            let handler = rule.handler;
+    constructor(name: string, public handlers: Handler[]) {
+
+        // TODO: ...
+        this.name = name;
+
+        // TODO: ...
+        let reverseHandlers = handlers.slice().reverse();
+        this.execute = reverseHandlers.reduce((downstream, handler) => {
             if (isDecorator(handler)) {
                 return request => handler(request, downstream);
             }

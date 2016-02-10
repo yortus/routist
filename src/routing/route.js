@@ -3,12 +3,13 @@ var is_decorator_1 = require('./is-decorator');
 // TODO: ...
 var Route = (function () {
     // TODO: ...
-    function Route(rules) {
-        this.rules = rules;
-        var reverseRules = rules.slice().reverse();
-        this.name = reverseRules[0].pattern.toString();
-        this.execute = reverseRules.reduce(function (downstream, rule) {
-            var handler = rule.handler;
+    function Route(name, handlers) {
+        this.handlers = handlers;
+        // TODO: ...
+        this.name = name;
+        // TODO: ...
+        var reverseHandlers = handlers.slice().reverse();
+        this.execute = reverseHandlers.reduce(function (downstream, handler) {
             if (is_decorator_1.default(handler)) {
                 return function (request) { return handler(request, downstream); };
             }
