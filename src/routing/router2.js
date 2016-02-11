@@ -11,42 +11,36 @@ var walk_pattern_hierarchy_1 = require('./walk-pattern-hierarchy');
 // TODO: ...
 function test(routeTable) {
     // TODO: ...
-    var patterns = Object.keys(routeTable).map(function (patternSource) { return new pattern_1.default(patternSource); });
-    var handlers = patterns.map(function (pattern) { return make_normalized_handler_function_1.default(pattern, routeTable[pattern.toString()]); });
+    var rules = Object.keys(routeTable).map(function (patternSource) {
+        var pattern = new pattern_1.default(patternSource);
+        var handler = make_normalized_handler_function_1.default(pattern, routeTable[patternSource]);
+        return { pattern: pattern, handler: handler };
+    });
     // TODO: add special universal fallback rule...
-    patterns.push(pattern_1.default.UNIVERSAL);
-    handlers.push(universalHandler);
+    rules.push(universalRule);
     // TODO: get pattern hierarchy...
-    var patternHierarchy = hierarchize_patterns_1.default(patterns);
+    var patternHierarchy = hierarchize_patterns_1.default(rules.map(function (rule) { return rule.pattern; }));
     var normalizedPatterns = util_2.getAllGraphNodes(patternHierarchy);
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
-    var handlersForPattern = normalizedPatterns.reduce(function (map, npat) {
-        //TODO: bug here... temp testing...
-        //debugger;
-        var hs = handlers.filter(function (_, i) { return patterns[i].normalized === npat; });
-        map.set(npat, handlers.filter(function (_, i) { return patterns[i].normalized === npat; }));
+    var rulesForPattern = normalizedPatterns.reduce(function (map, npat) {
+        map.set(npat, rules.filter(function (rule) { return rule.pattern.normalized === npat; }));
         return map;
     }, new Map());
     // TODO: add no-op rules so that for each signature there are 1..M rules
     // TODO: review this... always correct to use no-op function in these cases? Even for ROOT?
     normalizedPatterns.forEach(function (npat) {
-        var candidates = handlersForPattern.get(npat);
+        var candidates = rulesForPattern.get(npat);
         if (candidates.length > 0)
             return;
-        candidates.push((function noop() { return null; }));
-        patterns.push(npat);
-        handlers.push(candidates[0]);
-        // TODO: was... restore use of reuseable noop handler... handlers.push(noop);
+        candidates.push({ pattern: npat, handler: noop });
     });
-    //TODO: was... restore... see above... function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
+    function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
     // Order equal-best rules using tie-break rules. Fail if any ambiguities remain.
     // TODO: improve error message/handling in here...
     normalizedPatterns.forEach(function (npat) {
-        var candidates = handlersForPattern.get(npat);
-        candidates.sort(function (handlerA, handlerB) {
-            var ruleA = { pattern: patterns[handlers.indexOf(handlerA)], handler: handlerA };
-            var ruleB = { pattern: patterns[handlers.indexOf(handlerB)], handler: handlerB };
+        var candidates = rulesForPattern.get(npat);
+        candidates.sort(function (ruleA, ruleB) {
             var moreSpecificRule = tieBreakFn(ruleA, ruleB);
             assert(moreSpecificRule === ruleA || moreSpecificRule === ruleB, "ambiguous rules - which is more specific? A: " + util_1.inspect(ruleA) + ", B: " + util_1.inspect(ruleB)); // TODO: test/improve this message
             assert.strictEqual(moreSpecificRule, tieBreakFn(ruleB, ruleA)); // consistency check
@@ -57,18 +51,14 @@ function test(routeTable) {
     var patternWalks = walk_pattern_hierarchy_1.default(patternHierarchy, function (path) { return path; });
     //console.log(patternWalks);
     // TODO: map from walks-of-patterns to walks-of-rules
-    var handlerWalks = patternWalks.map(function (patternWalk) { return patternWalk.reduce(function (handlerWalk, pattern) { return handlerWalk.concat(handlersForPattern.get(pattern)); }, []); });
-    //console.log(handlerWalks);
+    var ruleWalks = patternWalks.map(function (patternWalk) { return patternWalk.reduce(function (ruleWalk, pattern) { return ruleWalk.concat(rulesForPattern.get(pattern)); }, []); });
+    //console.log(ruleWalks);
     // TODO: for each pattern signature, get the ONE path or fail trying...
-    var handlerWalkForPattern = normalizedPatterns.reduce(function (map, npat) {
+    var ruleWalkForPattern = normalizedPatterns.reduce(function (map, npat) {
         // TODO: inefficient! review this...
-        var candidates = handlerWalks.filter(function (handlerWalk) {
-            var finalHandler = handlerWalk[handlerWalk.length - 1];
-            if (handlers.indexOf(finalHandler) === -1) {
-                debugger;
-            }
-            var finalPattern = patterns[handlers.indexOf(finalHandler)];
-            return finalPattern.normalized === npat.normalized;
+        var candidates = ruleWalks.filter(function (ruleWalk) {
+            var lastRule = ruleWalk[ruleWalk.length - 1];
+            return lastRule.pattern.normalized === npat.normalized;
         });
         // TODO: ... simple case... explain...
         if (candidates.length === 1) {
@@ -81,41 +71,49 @@ function test(routeTable) {
         // TODO: possible for prefix and suffix to overlap? What to do?
         // Ensure the non-common parts contain NO decorators.
         candidates.forEach(function (cand) {
-            var choppedHandlers = cand.slice(prefix.length, -suffix.length);
-            if (choppedHandlers.every(function (handler) { return !is_decorator_1.default(handler); }))
+            var choppedRules = cand.slice(prefix.length, -suffix.length);
+            if (choppedRules.every(function (rule) { return !is_decorator_1.default(rule.handler); }))
                 return;
             // TODO: improve error message/handling
             throw new Error("Multiple routes to '" + npat + "' with different decorators");
         });
-        // Synthesize a 'crasher' handler that throws an 'ambiguous' error.
+        // Synthesize a 'crasher' rule that throws an 'ambiguous' error.
         var ambiguousFallbacks = candidates.map(function (cand) { return cand[cand.length - suffix.length - 1]; });
-        var crasher = function crasher(request) {
-            // TODO: improve error message/handling
-            throw new Error("Multiple possible fallbacks from '" + npat + ": " + ambiguousFallbacks.map(function (fn) { return fn.toString(); }));
+        var crasher = {
+            pattern: npat,
+            handler: function crasher(request) {
+                // TODO: improve error message/handling
+                throw new Error("Multiple possible fallbacks from '" + npat + ": " + ambiguousFallbacks.map(function (fn) { return fn.toString(); }));
+            }
         };
         // final composite rule: splice of common prefix + crasher + common suffix
         map.set(npat, [].concat(prefix, crasher, suffix));
         return map;
     }, new Map());
     //console.log(handlerWalkForPattern);
-    // reduce each signature's handler walk down to a simple handler function.
+    // reduce each signature's rule walk down to a simple handler function.
     var noMore = function (rq) { return null; };
     var routes = normalizedPatterns.reduce(function (map, npat) {
-        var handlerWalk = handlerWalkForPattern.get(npat);
-        var name = patterns[handlers.indexOf(handlerWalk[handlerWalk.length - 1])].toString(); // TODO: convoluted and inefficient. Fix this.
-        return map.set(npat, new route_1.default(name, handlerWalk));
+        var ruleWalk = ruleWalkForPattern.get(npat);
+        var name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
+        return map.set(npat, new route_1.default(name, ruleWalk.map(function (rule) { return rule.handler; })));
     }, new Map());
     return routes;
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = test;
 // TODO: what should the universal handler really do? Must not be transport-specific.
-var universalHandler = (function (request) { throw new Error('404!'); });
-universalHandler.isDecorator = false;
+var universalRule = {
+    pattern: pattern_1.default.UNIVERSAL,
+    handler: function (request) { throw new Error('404!'); }
+};
+// TODO: this should be passed in or somehow provided from outside...
+// TODO: return the WINNER, a.k.a. the MORE SPECIFIC rule
+// TODO: universalHandler must ALWAYS be the least specific rule
 function tieBreakFn(a, b) {
-    if (a.handler === universalHandler)
+    if (a === universalRule)
         return b;
-    if (b.handler === universalHandler)
+    if (b === universalRule)
         return a;
     if (a.pattern.comment < b.pattern.comment)
         return a;

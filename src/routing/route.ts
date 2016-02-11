@@ -20,17 +20,19 @@ export default class Route {
 
         // TODO: ...
         let reverseHandlers = handlers.slice().reverse();
-        this.execute = reverseHandlers.reduce((downstream, handler) => {
+        this.execute = reverseHandlers.reduce<(rq: Request) => Response>((downstream, handler) => { // TODO: fix cast!
+            let result: (request: Request) => Response;
             if (isDecorator(handler)) {
-                return request => handler(request, downstream);
+                result = request => handler(request, <any>downstream); // TODO: fix cast!!
             }
             else {
-                return request => {
-                    let response = downstream(request);
+                result = request => {
+                    let response = (<any>downstream)(request); // TODO: fix cast!!!
                     if (response !== null) return response;
-                    return (<any>handler)(request); // TODO: fix cast!!!
+                    return (<any>handler)(request); // TODO: fix casts!!!
                 };
             }
+            return result;
         }, noMore);
     }
 

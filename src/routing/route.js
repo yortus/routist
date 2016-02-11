@@ -10,17 +10,19 @@ var Route = (function () {
         // TODO: ...
         var reverseHandlers = handlers.slice().reverse();
         this.execute = reverseHandlers.reduce(function (downstream, handler) {
+            var result;
             if (is_decorator_1.default(handler)) {
-                return function (request) { return handler(request, downstream); };
+                result = function (request) { return handler(request, downstream); }; // TODO: fix cast!!
             }
             else {
-                return function (request) {
-                    var response = downstream(request);
+                result = function (request) {
+                    var response = downstream(request); // TODO: fix cast!!!
                     if (response !== null)
                         return response;
-                    return handler(request); // TODO: fix cast!!!
+                    return handler(request); // TODO: fix casts!!!
                 };
             }
+            return result;
         }, noMore);
     }
     return Route;

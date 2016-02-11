@@ -62,7 +62,6 @@ function makeNormalizedHandlerFunction(pattern, rawHandler) {
     // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
     // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
     var result = eval(source);
-    result.isDecorator = result.length === 2; // TODO: use isDecorator()?
     return result;
 }
 Object.defineProperty(exports, "__esModule", { value: true });

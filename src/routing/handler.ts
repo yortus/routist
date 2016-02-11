@@ -13,9 +13,5 @@ interface Handler {
 
     // TODO: doc...
     (request: Request, downstream: (request: Request) => Response): Response;
-
-
-    // TODO: add these...
-    isDecorator: boolean;
 }
 export default Handler;

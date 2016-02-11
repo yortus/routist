@@ -10,6 +10,7 @@ import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
 import Route from './route';
+import Rule from './rule';
 import walkPatternHierarchy from './walk-pattern-hierarchy';
 
 
@@ -20,49 +21,40 @@ import walkPatternHierarchy from './walk-pattern-hierarchy';
 export default function test(routeTable: {[pattern: string]: Function}): Map<Pattern, Route> {
 
     // TODO: ...
-    let patterns = Object.keys(routeTable).map(patternSource => new Pattern(patternSource));
-    let handlers = patterns.map(pattern => makeNormalizedHandlerFunction(pattern, routeTable[pattern.toString()]));
+    let rules = Object.keys(routeTable).map(patternSource => {
+        let pattern = new Pattern(patternSource);
+        let handler = makeNormalizedHandlerFunction(pattern, routeTable[patternSource]);
+        return <Rule> { pattern, handler };
+    });
 
     // TODO: add special universal fallback rule...
-    patterns.push(Pattern.UNIVERSAL);
-    handlers.push(universalHandler);
+    rules.push(universalRule);
 
     // TODO: get pattern hierarchy...
-    let patternHierarchy = hierarchizePatterns(patterns);
+    let patternHierarchy = hierarchizePatterns(rules.map(rule => rule.pattern));
     let normalizedPatterns = getAllGraphNodes(patternHierarchy);
 
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
     // TODO: assert 1..M such rules for each pattern signature
-    let handlersForPattern = normalizedPatterns.reduce((map, npat) => {
-
-        //TODO: bug here... temp testing...
-        //debugger;
-        let hs = handlers.filter((_, i) => patterns[i].normalized === npat);
-        
-        
-        map.set(npat, handlers.filter((_, i) => patterns[i].normalized === npat));
+    let rulesForPattern = normalizedPatterns.reduce((map, npat) => {
+        map.set(npat, rules.filter(rule => rule.pattern.normalized === npat));
         return map;
-    }, new Map<Pattern, Handler[]>());
+    }, new Map<Pattern, Rule[]>());
 
     // TODO: add no-op rules so that for each signature there are 1..M rules
     // TODO: review this... always correct to use no-op function in these cases? Even for ROOT?
     normalizedPatterns.forEach(npat => {
-        let candidates = handlersForPattern.get(npat);
+        let candidates = rulesForPattern.get(npat);
         if (candidates.length > 0) return;
-        candidates.push(<any> (function noop() { return null; }));
-        patterns.push(npat);
-        handlers.push(candidates[0]);
-        // TODO: was... restore use of reuseable noop handler... handlers.push(noop);
+        candidates.push(<Rule> { pattern: npat, handler: noop });
     });
-    //TODO: was... restore... see above... function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
+    function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
 
     // Order equal-best rules using tie-break rules. Fail if any ambiguities remain.
     // TODO: improve error message/handling in here...
     normalizedPatterns.forEach(npat => {
-        let candidates = handlersForPattern.get(npat);
-        candidates.sort((handlerA, handlerB) => {
-            let ruleA = { pattern: patterns[handlers.indexOf(handlerA)], handler: handlerA };
-            let ruleB = { pattern: patterns[handlers.indexOf(handlerB)], handler: handlerB };
+        let candidates = rulesForPattern.get(npat);
+        candidates.sort((ruleA, ruleB) => {
             let moreSpecificRule = tieBreakFn(ruleA, ruleB);
             assert(moreSpecificRule === ruleA || moreSpecificRule === ruleB, `ambiguous rules - which is more specific? A: ${inspect(ruleA)}, B: ${inspect(ruleB)}`); // TODO: test/improve this message
             assert.strictEqual(moreSpecificRule, tieBreakFn(ruleB, ruleA)); // consistency check
@@ -75,24 +67,20 @@ export default function test(routeTable: {[pattern: string]: Function}): Map<Pat
 //console.log(patternWalks);
 
     // TODO: map from walks-of-patterns to walks-of-rules
-    let handlerWalks = patternWalks.map(patternWalk => patternWalk.reduce(
-        (handlerWalk, pattern) => handlerWalk.concat(handlersForPattern.get(pattern)),
-        <Handler[]>[]
+    let ruleWalks = patternWalks.map(patternWalk => patternWalk.reduce(
+        (ruleWalk, pattern) => ruleWalk.concat(rulesForPattern.get(pattern)),
+        <Rule[]>[]
     ));
-//console.log(handlerWalks);
+//console.log(ruleWalks);
 
 
     // TODO: for each pattern signature, get the ONE path or fail trying...
-    let handlerWalkForPattern = normalizedPatterns.reduce((map, npat) => {
+    let ruleWalkForPattern = normalizedPatterns.reduce((map, npat) => {
 
         // TODO: inefficient! review this...
-        let candidates = handlerWalks.filter(handlerWalk => {
-            let finalHandler = handlerWalk[handlerWalk.length - 1];
-            if (handlers.indexOf(finalHandler) === -1) {
-                debugger;
-            }
-            let finalPattern = patterns[handlers.indexOf(finalHandler)];
-            return finalPattern.normalized === npat.normalized;
+        let candidates = ruleWalks.filter(ruleWalk => {
+            let lastRule = ruleWalk[ruleWalk.length - 1];
+            return lastRule.pattern.normalized === npat.normalized;
         });
 
         // TODO: ... simple case... explain...
@@ -109,32 +97,35 @@ export default function test(routeTable: {[pattern: string]: Function}): Map<Pat
 
         // Ensure the non-common parts contain NO decorators.
         candidates.forEach(cand => {
-            let choppedHandlers = cand.slice(prefix.length, -suffix.length);
-            if (choppedHandlers.every(handler => !isDecorator(handler))) return;
+            let choppedRules = cand.slice(prefix.length, -suffix.length);
+            if (choppedRules.every(rule => !isDecorator(rule.handler))) return;
             // TODO: improve error message/handling
             throw new Error(`Multiple routes to '${npat}' with different decorators`);
         });
 
-        // Synthesize a 'crasher' handler that throws an 'ambiguous' error.
+        // Synthesize a 'crasher' rule that throws an 'ambiguous' error.
         let ambiguousFallbacks = candidates.map(cand => cand[cand.length - suffix.length - 1]);
-        let crasher: Handler = <any> function crasher(request): any {
-            // TODO: improve error message/handling
-            throw new Error(`Multiple possible fallbacks from '${npat}: ${ambiguousFallbacks.map(fn => fn.toString())}`);
-        }
+        let crasher: Rule = {
+            pattern: npat,
+            handler: function crasher(request): any {
+                // TODO: improve error message/handling
+                throw new Error(`Multiple possible fallbacks from '${npat}: ${ambiguousFallbacks.map(fn => fn.toString())}`);
+            }
+        };
 
         // final composite rule: splice of common prefix + crasher + common suffix
         map.set(npat, [].concat(prefix, crasher, suffix));
         return map;
-    }, new Map<Pattern, Handler[]>());
+    }, new Map<Pattern, Rule[]>());
 //console.log(handlerWalkForPattern);
 
 
-    // reduce each signature's handler walk down to a simple handler function.
+    // reduce each signature's rule walk down to a simple handler function.
     const noMore = (rq: Request) => <Response> null;
     let routes = normalizedPatterns.reduce((map, npat) => {
-        let handlerWalk = handlerWalkForPattern.get(npat);
-        let name = patterns[handlers.indexOf(handlerWalk[handlerWalk.length - 1])].toString(); // TODO: convoluted and inefficient. Fix this.
-        return map.set(npat, new Route(name, handlerWalk));
+        let ruleWalk = ruleWalkForPattern.get(npat);
+        let name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
+        return map.set(npat, new Route(name, ruleWalk.map(rule => rule.handler)));
     }, new Map<Pattern, Route>());
 
     return routes;
@@ -145,8 +136,10 @@ export default function test(routeTable: {[pattern: string]: Function}): Map<Pat
 
 
 // TODO: what should the universal handler really do? Must not be transport-specific.
-let universalHandler: Handler = <any> ((request): any => { throw new Error('404!'); });
-universalHandler.isDecorator = false;
+let universalRule: Rule = {
+    pattern: Pattern.UNIVERSAL,
+    handler: (request): any => { throw new Error('404!'); }
+};
 
 
 
@@ -155,10 +148,9 @@ universalHandler.isDecorator = false;
 // TODO: this should be passed in or somehow provided from outside...
 // TODO: return the WINNER, a.k.a. the MORE SPECIFIC rule
 // TODO: universalHandler must ALWAYS be the least specific rule
-interface Ruleish { pattern: Pattern; handler: Handler; } // TODO: where 2 put? keep?
-function tieBreakFn(a: Ruleish, b: Ruleish): Ruleish {
-    if (a.handler === universalHandler) return b;
-    if (b.handler === universalHandler) return a;
+function tieBreakFn(a: Rule, b: Rule): Rule {
+    if (a === universalRule) return b;
+    if (b === universalRule) return a;
     if (a.pattern.comment < b.pattern.comment) return a;
     if (b.pattern.comment < a.pattern.comment) return b;
 }

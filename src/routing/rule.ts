@@ -1,11 +1,29 @@
-// 'use strict';
+'use strict';
 // import makeNormalizedHandlerFunction from './make-normalized-handler-function';
-// import Pattern from '../patterns/pattern';
+import Handler from './handler';
+import Pattern from '../patterns/pattern';
 // import Request from '../request';
 // import Response from '../response';
 // // TODO: review jsdocs after pattern overhaul
 // // TODO: make async...
 // // TODO: review all comments given recent changes (Handler/Rule, $yield/$next, executeDownstreamHandlers/downstream)
+
+
+
+
+
+// TODO: doc...
+interface Rule {
+    pattern: Pattern;
+    handler: Handler;
+}
+export default Rule;
+
+
+
+
+
+//TODO: was... reuse docs below...
 // 
 // 
 // 
