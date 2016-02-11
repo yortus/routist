@@ -85,7 +85,6 @@ export default function makeNormalizedHandlerFunction(pattern: Pattern, rawHandl
     // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
     // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
     let result: Handler = eval(source);
-    result.pattern = pattern;
     result.isDecorator = result.length === 2; // TODO: use isDecorator()?
     return result;
 }

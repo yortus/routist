@@ -15,10 +15,6 @@ interface Handler {
     (request: Request, downstream: (request: Request) => Response): Response;
 
 
-    // TODO: temporary! de-couple pattern&handler. Then make 'Rule' = pattern + handler
-    pattern: Pattern;
-
-
     // TODO: add these...
     isDecorator: boolean;
 }

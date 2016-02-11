@@ -56,10 +56,9 @@ function test(routeTable) {
     // TODO: for each pattern signature, get the list of paths through the pattern hierarchy that lead to it
     var patternWalks = walk_pattern_hierarchy_1.default(patternHierarchy, function (path) { return path; });
     //console.log(patternWalks);
-    debugger;
     // TODO: map from walks-of-patterns to walks-of-rules
     var handlerWalks = patternWalks.map(function (patternWalk) { return patternWalk.reduce(function (handlerWalk, pattern) { return handlerWalk.concat(handlersForPattern.get(pattern)); }, []); });
-    console.log(handlerWalks);
+    //console.log(handlerWalks);
     // TODO: for each pattern signature, get the ONE path or fail trying...
     var handlerWalkForPattern = normalizedPatterns.reduce(function (map, npat) {
         // TODO: inefficient! review this...
@@ -112,7 +111,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = test;
 // TODO: what should the universal handler really do? Must not be transport-specific.
 var universalHandler = (function (request) { throw new Error('404!'); });
-universalHandler.pattern = pattern_1.default.UNIVERSAL;
 universalHandler.isDecorator = false;
 function tieBreakFn(a, b) {
     if (a.handler === universalHandler)

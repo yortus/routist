@@ -73,14 +73,13 @@ export default function test(routeTable: {[pattern: string]: Function}): Map<Pat
     // TODO: for each pattern signature, get the list of paths through the pattern hierarchy that lead to it
     let patternWalks = walkPatternHierarchy(patternHierarchy, path => path);
 //console.log(patternWalks);
-debugger;
 
     // TODO: map from walks-of-patterns to walks-of-rules
     let handlerWalks = patternWalks.map(patternWalk => patternWalk.reduce(
         (handlerWalk, pattern) => handlerWalk.concat(handlersForPattern.get(pattern)),
         <Handler[]>[]
     ));
-console.log(handlerWalks);
+//console.log(handlerWalks);
 
 
     // TODO: for each pattern signature, get the ONE path or fail trying...
@@ -147,7 +146,6 @@ console.log(handlerWalks);
 
 // TODO: what should the universal handler really do? Must not be transport-specific.
 let universalHandler: Handler = <any> ((request): any => { throw new Error('404!'); });
-universalHandler.pattern = Pattern.UNIVERSAL;
 universalHandler.isDecorator = false;
 
 
