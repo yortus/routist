@@ -1,6 +1,8 @@
 'use strict';
 var util_1 = require('../util');
+var make_pattern_identifier_1 = require('./make-pattern-identifier');
 var pattern_1 = require('../patterns/pattern');
+// TODO: factor/reduce repeated makePatternIdentifier calls...
 // TODO: ...
 // TODO: construct patternHierarchy from targets? ie don't need it as parameter, can calc it
 // TODO: shorten sig to < 120chars
@@ -14,16 +16,16 @@ function makeDispatchFunction(patternHierarchy, targetMap) {
         var firstLines = Array.from(specializations.keys()).map(function (spec, i) {
             var nextLevel = specializations.get(spec);
             var isLeaf = nextLevel.size === 0;
-            var id = getIdForPattern(spec);
+            var id = make_pattern_identifier_1.default(spec);
             var condition = "" + indent + (i > 0 ? 'else ' : '') + "if (matches" + id + "(address)) ";
             var consequent = isLeaf ? "return targetFor" + id + ";\n" : "{\n" + getBody(nextLevel, spec, nestDepth + 1) + indent + "}\n"; // TODO: shorten to <120
             return condition + consequent;
         });
-        var lastLine = indent + "return targetFor" + getIdForPattern(fallback) + ";\n";
+        var lastLine = indent + "return targetFor" + make_pattern_identifier_1.default(fallback) + ";\n";
         return firstLines.join('') + lastLine;
     }
     // TODO: doc...
-    var lines = patterns.map(function (pat, i) { return ("let matches" + getIdForPattern(pat) + " = patterns[" + i + "].match;\n"); }).concat(patterns.map(function (pat, i) { return ("let targetFor" + getIdForPattern(pat) + " = targets[" + i + "];\n"); }), [
+    var lines = patterns.map(function (pat, i) { return ("let matches" + make_pattern_identifier_1.default(pat) + " = patterns[" + i + "].match;\n"); }).concat(patterns.map(function (pat, i) { return ("let targetFor" + make_pattern_identifier_1.default(pat) + " = targets[" + i + "];\n"); }), [
         '',
         'return function dispatch(address) {',
         getBody(patternHierarchy.get(pattern_1.default.UNIVERSAL), pattern_1.default.UNIVERSAL, 1),
@@ -42,27 +44,4 @@ function makeDispatchFunction(patternHierarchy, targetMap) {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = makeDispatchFunction;
-// TODO: ...
-function getIdForPattern(pattern) {
-    return '__' + pattern.toString()
-        .split('')
-        .map(function (c) {
-        if (/[a-zA-Z0-9_]/.test(c))
-            return c;
-        if (c === '/')
-            return 'ﾉ'; // (U+FF89)
-        if (c === '.')
-            return 'ˌ'; // (U+02CC)
-        if (c === '-')
-            return 'ー'; // (U+30FC)
-        if (c === ' ')
-            return 'ㆍ'; // (U+318D)
-        if (c === '…')
-            return '﹍'; // (U+FE4D)
-        if (c === '*')
-            return 'ᕽ'; // (U+157D)
-        throw new Error("Unrecognized character '" + c + "' in pattern '" + pattern + "'");
-    })
-        .join('');
-}
 //# sourceMappingURL=make-dispatch-function.js.map

@@ -1,7 +1,37 @@
 'use strict';
 var assert = require('assert');
 var util_1 = require('../util');
+var make_pattern_identifier_1 = require('./make-pattern-identifier');
 var pattern_1 = require('../patterns/pattern');
+// TODO: review jsdocs after pattern overhaul
+// TODO: make async...
+// TODO: review all comments given recent changes (Handler/Rule, $yield/$next, executeDownstreamHandlers/downstream)
+// TODO: use getIdForPattern from ./make-dispatch-function to generate unique/pretty handler function names
+// TODO: review comments below...
+/**
+ * Executes the rule. There are two modes of execution depending on whether or not
+ * the rule is a decorator:
+ * (1) A decorator has control over downstream execution. Its handler's $next' parameter
+ * is bound to the `executeDownstreamHandlers` callback passed to `execute`. A decorator
+ * may perform arbitrary steps before downstream execution, including modifying the
+ * request. It may also perform arbitrary steps after downstream execution, including
+ * modifying the response.
+ * (2) A non-decorator rule always perform downstream execution first, and then only
+ * executes its handler if the downsteam handlers did not produce a response.
+ * @param {Request} request - an object containing all information relevant to producing
+ *        a response, including the address from which capture name/value pairs are bound
+ *        to handler function parameters.
+ * @param {(request?: Request) => Response} executeDownstreamHandlers - a callback that
+ *        executes all downsteam handlers and returns their collective response. The
+ *        callback is already bound to the current request, and passes it to downstream
+ *        handlers if invoked with no argument. A modified or alternative request may be
+ *        passed to downstream handlers by passing it to this callback.
+ * @returns {Response} - the response object returned by the handler. The handler may
+ *        return null to indicate that it declined to produce a response. Processing
+ *        proceeds upstream until a handler responds are all decorators have run.
+ */
+// export type HandlerFunction = (request: Request) => Response;
+// export type DecoratorFunction = (request: Request, downstream: HandlerFunction) => Response;
 /** Internal function used to create the Rule#execute method. */
 function makeNormalizedHandlerFunction(pattern, rawHandler) {
     // TODO: get capture names and match function... review these lines...
@@ -27,11 +57,13 @@ function makeNormalizedHandlerFunction(pattern, rawHandler) {
     //   `executeDownstreamHandlers` callback.
     // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
     //   Otherwise, execute the handler function and return its response.
-    var source = "(function handle(request" + (isDecorator ? ', downstream' : '') + ") {\n        var paramBindings = match(typeof request === 'string' ? request : request.address);\n        if (!paramBindings) return null; // pattern didn't match address\n        return rawHandler(" + paramNames.map(function (name) { return paramMappings[name]; }) + ");\n    })";
+    var source = "(function " + make_pattern_identifier_1.default(pattern) + "(request" + (isDecorator ? ', downstream' : '') + ") {\n        var paramBindings = match(typeof request === 'string' ? request : request.address);\n        if (!paramBindings) return null; // pattern didn't match address\n        return rawHandler(" + paramNames.map(function (name) { return paramMappings[name]; }) + ");\n    })";
     // Evaluate the source code into a function, and return it. This use of eval here is safe. In particular, the
     // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
     // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
     var result = eval(source);
+    result.pattern = pattern;
+    result.isDecorator = result.length === 2; // TODO: use isDecorator()?
     return result;
 }
 Object.defineProperty(exports, "__esModule", { value: true });

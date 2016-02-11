@@ -18,7 +18,7 @@ var Route = (function () {
                     var response = downstream(request);
                     if (response !== null)
                         return response;
-                    return handler(request);
+                    return handler(request); // TODO: fix cast!!!
                 };
             }
         }, noMore);

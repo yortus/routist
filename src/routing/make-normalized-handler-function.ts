@@ -1,6 +1,8 @@
 'use strict';
 import * as assert from 'assert';
 import {getFunctionParameterNames} from '../util';
+import Handler from './handler';
+import makePatternIdentifier from './make-pattern-identifier';
 import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
@@ -36,8 +38,8 @@ import Response from '../response';
  *        return null to indicate that it declined to produce a response. Processing
  *        proceeds upstream until a handler responds are all decorators have run.
  */
-export type HandlerFunction = (request: Request) => Response;
-export type DecoratorFunction = (request: Request, downstream: HandlerFunction) => Response;
+// export type HandlerFunction = (request: Request) => Response;
+// export type DecoratorFunction = (request: Request, downstream: HandlerFunction) => Response;
 
 
 
@@ -73,7 +75,7 @@ export default function makeNormalizedHandlerFunction(pattern: Pattern, rawHandl
     //   `executeDownstreamHandlers` callback.
     // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
     //   Otherwise, execute the handler function and return its response.
-    let source = `(function handle(request${isDecorator ? ', downstream' : ''}) {
+    let source = `(function ${makePatternIdentifier(pattern)}(request${isDecorator ? ', downstream' : ''}) {
         var paramBindings = match(typeof request === 'string' ? request : request.address);
         if (!paramBindings) return null; // pattern didn't match address
         return rawHandler(${paramNames.map(name => paramMappings[name])});
@@ -82,7 +84,9 @@ export default function makeNormalizedHandlerFunction(pattern: Pattern, rawHandl
     // Evaluate the source code into a function, and return it. This use of eval here is safe. In particular, the
     // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
     // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
-    let result: HandlerFunction | DecoratorFunction = eval(source);
+    let result: Handler = eval(source);
+    result.pattern = pattern;
+    result.isDecorator = result.length === 2; // TODO: use isDecorator()?
     return result;
 }
 

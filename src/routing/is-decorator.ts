@@ -23,4 +23,8 @@ export default function isDecorator(handler: Handler): handler is Decorator {
 
 
 // TODO: doc...
-type Decorator = (request: Request, downstream: (request: Request) => Response) => Response;
+interface Decorator {
+    (request: Request, downstream: (request: Request) => Response): Response;
+    pattern: any;
+    isDecorator: boolean;
+}

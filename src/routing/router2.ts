@@ -47,11 +47,14 @@ export default function test(routeTable: {[pattern: string]: Function}): Map<Pat
     // TODO: add no-op rules so that for each signature there are 1..M rules
     // TODO: review this... always correct to use no-op function in these cases? Even for ROOT?
     normalizedPatterns.forEach(npat => {
-        let handlers = handlersForPattern.get(npat);
-        if (handlers.length > 0) return;
-        handlers.push(noop);
+        let candidates = handlersForPattern.get(npat);
+        if (candidates.length > 0) return;
+        candidates.push(<any> (function noop() { return null; }));
+        patterns.push(npat);
+        handlers.push(candidates[0]);
+        // TODO: was... restore use of reuseable noop handler... handlers.push(noop);
     });
-    function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
+    //TODO: was... restore... see above... function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
 
     // Order equal-best rules using tie-break rules. Fail if any ambiguities remain.
     // TODO: improve error message/handling in here...
@@ -69,7 +72,7 @@ export default function test(routeTable: {[pattern: string]: Function}): Map<Pat
 
     // TODO: for each pattern signature, get the list of paths through the pattern hierarchy that lead to it
     let patternWalks = walkPatternHierarchy(patternHierarchy, path => path);
-console.log(patternWalks);
+//console.log(patternWalks);
 debugger;
 
     // TODO: map from walks-of-patterns to walks-of-rules
@@ -77,7 +80,7 @@ debugger;
         (handlerWalk, pattern) => handlerWalk.concat(handlersForPattern.get(pattern)),
         <Handler[]>[]
     ));
-//console.log(handlerWalks);
+console.log(handlerWalks);
 
 
     // TODO: for each pattern signature, get the ONE path or fail trying...
@@ -86,6 +89,9 @@ debugger;
         // TODO: inefficient! review this...
         let candidates = handlerWalks.filter(handlerWalk => {
             let finalHandler = handlerWalk[handlerWalk.length - 1];
+            if (handlers.indexOf(finalHandler) === -1) {
+                debugger;
+            }
             let finalPattern = patterns[handlers.indexOf(finalHandler)];
             return finalPattern.normalized === npat.normalized;
         });
@@ -112,7 +118,7 @@ debugger;
 
         // Synthesize a 'crasher' handler that throws an 'ambiguous' error.
         let ambiguousFallbacks = candidates.map(cand => cand[cand.length - suffix.length - 1]);
-        let crasher: Handler = function crasher(request): any {
+        let crasher: Handler = <any> function crasher(request): any {
             // TODO: improve error message/handling
             throw new Error(`Multiple possible fallbacks from '${npat}: ${ambiguousFallbacks.map(fn => fn.toString())}`);
         }
@@ -140,7 +146,9 @@ debugger;
 
 
 // TODO: what should the universal handler really do? Must not be transport-specific.
-const universalHandler = (request): any => { throw new Error('404!'); };
+let universalHandler: Handler = <any> ((request): any => { throw new Error('404!'); });
+universalHandler.pattern = Pattern.UNIVERSAL;
+universalHandler.isDecorator = false;
 
 
 

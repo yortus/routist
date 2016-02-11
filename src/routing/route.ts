@@ -28,7 +28,7 @@ export default class Route {
                 return request => {
                     let response = downstream(request);
                     if (response !== null) return response;
-                    return handler(request);
+                    return (<any>handler)(request); // TODO: fix cast!!!
                 };
             }
         }, noMore);

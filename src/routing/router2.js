@@ -31,12 +31,15 @@ function test(routeTable) {
     // TODO: add no-op rules so that for each signature there are 1..M rules
     // TODO: review this... always correct to use no-op function in these cases? Even for ROOT?
     normalizedPatterns.forEach(function (npat) {
-        var handlers = handlersForPattern.get(npat);
-        if (handlers.length > 0)
+        var candidates = handlersForPattern.get(npat);
+        if (candidates.length > 0)
             return;
-        handlers.push(noop);
+        candidates.push((function noop() { return null; }));
+        patterns.push(npat);
+        handlers.push(candidates[0]);
+        // TODO: was... restore use of reuseable noop handler... handlers.push(noop);
     });
-    function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
+    //TODO: was... restore... see above... function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
     // Order equal-best rules using tie-break rules. Fail if any ambiguities remain.
     // TODO: improve error message/handling in here...
     normalizedPatterns.forEach(function (npat) {
@@ -52,16 +55,19 @@ function test(routeTable) {
     });
     // TODO: for each pattern signature, get the list of paths through the pattern hierarchy that lead to it
     var patternWalks = walk_pattern_hierarchy_1.default(patternHierarchy, function (path) { return path; });
-    console.log(patternWalks);
+    //console.log(patternWalks);
     debugger;
     // TODO: map from walks-of-patterns to walks-of-rules
     var handlerWalks = patternWalks.map(function (patternWalk) { return patternWalk.reduce(function (handlerWalk, pattern) { return handlerWalk.concat(handlersForPattern.get(pattern)); }, []); });
-    //console.log(handlerWalks);
+    console.log(handlerWalks);
     // TODO: for each pattern signature, get the ONE path or fail trying...
     var handlerWalkForPattern = normalizedPatterns.reduce(function (map, npat) {
         // TODO: inefficient! review this...
         var candidates = handlerWalks.filter(function (handlerWalk) {
             var finalHandler = handlerWalk[handlerWalk.length - 1];
+            if (handlers.indexOf(finalHandler) === -1) {
+                debugger;
+            }
             var finalPattern = patterns[handlers.indexOf(finalHandler)];
             return finalPattern.normalized === npat.normalized;
         });
@@ -105,7 +111,9 @@ function test(routeTable) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = test;
 // TODO: what should the universal handler really do? Must not be transport-specific.
-var universalHandler = function (request) { throw new Error('404!'); };
+var universalHandler = (function (request) { throw new Error('404!'); });
+universalHandler.pattern = pattern_1.default.UNIVERSAL;
+universalHandler.isDecorator = false;
 function tieBreakFn(a, b) {
     if (a.handler === universalHandler)
         return b;
