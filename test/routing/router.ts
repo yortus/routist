@@ -21,7 +21,7 @@ import makeDispatchFunction from '../../src/routing/make-dispatch-function';
 describe('Constructing a Router instance', () => {
 
     let routeTable: {[pattern: string]: Function} = {
-        '**': () => null, // no-op catch-all rule (tests for 'clash' with always-added 404 rule)
+        '**': () => null, // no-op catch-all rule (this would be implicitly present even if not listed here)
         '/foo': () => 'foo',
         '/bar': () => 'bar',
         '/baz': () => 'baz',
@@ -66,10 +66,10 @@ describe('Constructing a Router instance', () => {
         `/foo ==> foo`,
         `/bar ==> ---bar---`,
         `/baz ==> ---baz---`,
-        `/quux ==> ERROR: 404!`, // TODO: using temp error code... will fail when fixed
+        `/quux ==> UNHANDLED`,
         `/qaax ==> ---NONE---`,
         `/a ==> ---NONE---`,
-        `/ ==> ERROR: 404!`, // TODO: using temp error code... will fail when fixed
+        `/ ==> UNHANDLED`,
 
         `a/foo ==> starts with 'a'`,
         `foo/b ==> ends with 'b'`,
@@ -90,6 +90,7 @@ describe('Constructing a Router instance', () => {
     tests.forEach(test => it(test, () => {
         let request = test.split(' ==> ')[0];
         let expected = test.split(' ==> ')[1];
+        if (expected === 'UNHANDLED') expected = null;
         let actual: string;
         try {
             actual = <string> router.dispatch(request);

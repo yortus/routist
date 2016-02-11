@@ -20,59 +20,35 @@ import walkPatternHierarchy from './walk-pattern-hierarchy';
 // TODO: ...
 export default function test(routeTable: {[pattern: string]: Function}): Map<Pattern, Route> {
 
-    // TODO: ...
+    // Form a list of rules from the given route table. Each rule's handler is normalized.
     let rules = Object.keys(routeTable).map(patternSource => {
         let pattern = new Pattern(patternSource);
         let handler = makeNormalizedHandlerFunction(pattern, routeTable[patternSource]);
         return <Rule> { pattern, handler };
     });
 
-    // TODO: add special universal fallback rule...
-    rules.push(universalRule);
-
-    // TODO: get pattern hierarchy...
+    // TODO: get pattern hierarchy... NB: will always be rooted at '…' even if no '…' rule exists
     let patternHierarchy = hierarchizePatterns(rules.map(rule => rule.pattern));
     let normalizedPatterns = getAllGraphNodes(patternHierarchy);
 
     // TODO: for each pattern, get the list of rules that are equal-best matches for it...
-    // TODO: assert 1..M such rules for each pattern signature
+    // TODO: add no-op rules as needed so that code below may assume there are 1..M rules for each signature.
+    // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
     let rulesForPattern = normalizedPatterns.reduce((map, npat) => {
-        map.set(npat, rules.filter(rule => rule.pattern.normalized === npat));
-        return map;
+        let equalBestRules = rules.filter(rule => rule.pattern.normalized === npat);
+        if (equalBestRules.length === 0) {
+            equalBestRules.push({ pattern: npat, handler: nullHandler });
+        }
+        equalBestRules.sort(ruleComparator);
+        return map.set(npat, equalBestRules);
     }, new Map<Pattern, Rule[]>());
 
-    // TODO: add no-op rules so that for each signature there are 1..M rules
-    // TODO: review this... always correct to use no-op function in these cases? Even for ROOT?
-    normalizedPatterns.forEach(npat => {
-        let candidates = rulesForPattern.get(npat);
-        if (candidates.length > 0) return;
-        candidates.push(<Rule> { pattern: npat, handler: noop });
-    });
-    function noop() { return null; } // TODO: put elsewhere? Use Function.empty?
-
-    // Order equal-best rules using tie-break rules. Fail if any ambiguities remain.
-    // TODO: improve error message/handling in here...
-    normalizedPatterns.forEach(npat => {
-        let candidates = rulesForPattern.get(npat);
-        candidates.sort((ruleA, ruleB) => {
-            let moreSpecificRule = tieBreakFn(ruleA, ruleB);
-            assert(moreSpecificRule === ruleA || moreSpecificRule === ruleB, `ambiguous rules - which is more specific? A: ${inspect(ruleA)}, B: ${inspect(ruleB)}`); // TODO: test/improve this message
-            assert.strictEqual(moreSpecificRule, tieBreakFn(ruleB, ruleA)); // consistency check
-            return moreSpecificRule === ruleA ? 1 : -1;
-        });
-    });
-
-    // TODO: for each pattern signature, get the list of paths through the pattern hierarchy that lead to it
+    // TODO: for each pattern signature, get the list of rules that match, from least to most specific.
     let patternWalks = walkPatternHierarchy(patternHierarchy, path => path);
-//console.log(patternWalks);
-
-    // TODO: map from walks-of-patterns to walks-of-rules
     let ruleWalks = patternWalks.map(patternWalk => patternWalk.reduce(
         (ruleWalk, pattern) => ruleWalk.concat(rulesForPattern.get(pattern)),
         <Rule[]>[]
     ));
-//console.log(ruleWalks);
-
 
     // TODO: for each pattern signature, get the ONE path or fail trying...
     let ruleWalkForPattern = normalizedPatterns.reduce((map, npat) => {
@@ -135,11 +111,21 @@ export default function test(routeTable: {[pattern: string]: Function}): Map<Pat
 
 
 
-// TODO: what should the universal handler really do? Must not be transport-specific.
-let universalRule: Rule = {
-    pattern: Pattern.UNIVERSAL,
-    handler: (request): any => { throw new Error('404!'); }
-};
+// TODO: doc...
+const nullHandler: Handler = request => null;
+
+
+
+
+
+// TODO: doc...
+// TODO: improve error message/handling in here...
+function ruleComparator(ruleA, ruleB) {
+    let moreSpecificRule = tieBreakFn(ruleA, ruleB);
+    assert(moreSpecificRule === ruleA || moreSpecificRule === ruleB, `ambiguous rules - which is more specific? A: ${inspect(ruleA)}, B: ${inspect(ruleB)}`); // TODO: test/improve this message
+    assert.strictEqual(moreSpecificRule, tieBreakFn(ruleB, ruleA)); // consistency check
+    return moreSpecificRule === ruleA ? 1 : -1;
+}
 
 
 
@@ -147,10 +133,7 @@ let universalRule: Rule = {
 
 // TODO: this should be passed in or somehow provided from outside...
 // TODO: return the WINNER, a.k.a. the MORE SPECIFIC rule
-// TODO: universalHandler must ALWAYS be the least specific rule
 function tieBreakFn(a: Rule, b: Rule): Rule {
-    if (a === universalRule) return b;
-    if (b === universalRule) return a;
     if (a.pattern.comment < b.pattern.comment) return a;
     if (b.pattern.comment < a.pattern.comment) return b;
 }

@@ -10,6 +10,7 @@ var router_1 = require('../../src/routing/router');
 describe('Constructing a Router instance', function () {
     var routeTable = {
         '**': function () { return null; },
+        '** #2': function () { return null; },
         '/foo': function () { return 'foo'; },
         '/bar': function () { return 'bar'; },
         '/baz': function () { return 'baz'; },
@@ -45,10 +46,10 @@ describe('Constructing a Router instance', function () {
         "/foo ==> foo",
         "/bar ==> ---bar---",
         "/baz ==> ---baz---",
-        "/quux ==> ERROR: 404!",
+        "/quux ==> UNHANDLED",
         "/qaax ==> ---NONE---",
         "/a ==> ---NONE---",
-        "/ ==> ERROR: 404!",
+        "/ ==> UNHANDLED",
         "a/foo ==> starts with 'a'",
         "foo/b ==> ends with 'b'",
         "a/b ==> starts with 'a' AND ends with 'b'",
@@ -64,6 +65,8 @@ describe('Constructing a Router instance', function () {
     tests.forEach(function (test) { return it(test, function () {
         var request = test.split(' ==> ')[0];
         var expected = test.split(' ==> ')[1];
+        if (expected === 'UNHANDLED')
+            expected = null;
         var actual;
         try {
             actual = router.dispatch(request);
