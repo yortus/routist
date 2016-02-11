@@ -2,6 +2,8 @@
 import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
+// TODO: split into PartialHandler and GeneralHandler
+// Put PartialHandler everywhere literal type (request: Request) => Response appears
 
 
 

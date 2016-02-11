@@ -11,7 +11,7 @@ import Pattern from '../patterns/pattern';
 // TODO: ...
 // TODO: construct patternHierarchy from targets? ie don't need it as parameter, can calc it
 // TODO: shorten sig to < 120chars
-export default function makeDispatchFunction<T>(patternHierarchy: Graph<Pattern>, targetMap: Map<Pattern, T>): (address: string) => T {
+export default function makeDispatcher<T>(patternHierarchy: Graph<Pattern>, targetMap: Map<Pattern, T>): (address: string) => T {
 
     // TODO: ...
     let patterns = getAllGraphNodes(patternHierarchy);

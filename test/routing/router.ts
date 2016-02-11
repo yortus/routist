@@ -1,13 +1,13 @@
 'use strict';
 import {expect} from 'chai';
-import Router from '../../src/routing/router';
+import compile from '../../src/routing/compile';
 
 
 // TODO: temp testing...
-import test from '../../src/routing/router2';
-import Pattern from '../../src/patterns/pattern';
-import hierarchizePatterns from '../../src/patterns/hierarchize-patterns';
-import makeDispatchFunction from '../../src/routing/make-dispatch-function';
+//import test from '../../src/routing/router2';
+//import Pattern from '../../src/patterns/pattern';
+//import hierarchizePatterns from '../../src/patterns/hierarchize-patterns';
+//import makeDispatchFunction from '../../src/routing/make-dispatch-function';
 
 
 // TODO: More coverage:
@@ -84,8 +84,7 @@ describe('Constructing a Router instance', () => {
         `api/bar ==> fallback`,
     ];
 
-    let router = new Router();
-    router.add(routeTable);
+    let router = compile(routeTable);
 
     tests.forEach(test => it(test, () => {
         let request = test.split(' ==> ')[0];
@@ -93,7 +92,7 @@ describe('Constructing a Router instance', () => {
         if (expected === 'UNHANDLED') expected = null;
         let actual: string;
         try {
-            actual = <string> router.dispatch(request);
+            actual = <string> router(request);
         }
         catch (ex) {
             actual = 'ERROR: ' + ex.message;

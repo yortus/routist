@@ -1,6 +1,11 @@
 'use strict';
 var chai_1 = require('chai');
-var router_1 = require('../../src/routing/router');
+var compile_1 = require('../../src/routing/compile');
+// TODO: temp testing...
+//import test from '../../src/routing/router2';
+//import Pattern from '../../src/patterns/pattern';
+//import hierarchizePatterns from '../../src/patterns/hierarchize-patterns';
+//import makeDispatchFunction from '../../src/routing/make-dispatch-function';
 // TODO: More coverage:
 // - multiple non-decorator handlers for same pattern
 // - multiple decorator handlers for same pattern
@@ -59,8 +64,7 @@ describe('Constructing a Router instance', function () {
         "api/foo ==> FOO",
         "api/bar ==> fallback",
     ];
-    var router = new router_1.default();
-    router.add(routeTable);
+    var router = compile_1.default(routeTable);
     tests.forEach(function (test) { return it(test, function () {
         var request = test.split(' ==> ')[0];
         var expected = test.split(' ==> ')[1];
@@ -68,7 +72,7 @@ describe('Constructing a Router instance', function () {
             expected = null;
         var actual;
         try {
-            actual = router.dispatch(request);
+            actual = router(request);
         }
         catch (ex) {
             actual = 'ERROR: ' + ex.message;

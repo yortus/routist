@@ -6,7 +6,7 @@ var pattern_1 = require('../patterns/pattern');
 // TODO: ...
 // TODO: construct patternHierarchy from targets? ie don't need it as parameter, can calc it
 // TODO: shorten sig to < 120chars
-function makeDispatchFunction(patternHierarchy, targetMap) {
+function makeDispatcher(patternHierarchy, targetMap) {
     // TODO: ...
     var patterns = util_1.getAllGraphNodes(patternHierarchy);
     var targets = patterns.map(function (pat) { return targetMap.get(pat); });
@@ -43,5 +43,5 @@ function makeDispatchFunction(patternHierarchy, targetMap) {
     return fn;
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = makeDispatchFunction;
-//# sourceMappingURL=make-dispatch-function.js.map
+exports.default = makeDispatcher;
+//# sourceMappingURL=make-dispatcher.js.map

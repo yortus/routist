@@ -5,11 +5,11 @@ import {getAllGraphNodes, getLongestCommonPrefix} from '../util';
 import Handler from './handler';
 import hierarchizePatterns from '../patterns/hierarchize-patterns';
 import isDecorator from './is-decorator';
+import makeRouter from './make-router';
 import normalizeHandler from './normalize-handler';
 import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
-import Route from './route';
 import Rule from './rule';
 import walkPatternHierarchy from './walk-pattern-hierarchy';
 
@@ -18,7 +18,7 @@ import walkPatternHierarchy from './walk-pattern-hierarchy';
 
 
 // TODO: ...
-export default function test(routeTable: {[pattern: string]: Function}): Map<Pattern, Route> {
+export default function test(routeTable: {[pattern: string]: Function}): Map<Pattern, (request: Request) => Response> {
 
     // Form a list of rules from the given route table. Each rule's handler is normalized.
     let rules = Object.keys(routeTable).map(patternSource => {
@@ -101,8 +101,8 @@ export default function test(routeTable: {[pattern: string]: Function}): Map<Pat
     let routes = normalizedPatterns.reduce((map, npat) => {
         let ruleWalk = ruleWalkForPattern.get(npat);
         let name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
-        return map.set(npat, new Route(name, ruleWalk.map(rule => rule.handler)));
-    }, new Map<Pattern, Route>());
+        return map.set(npat, makeRouter(ruleWalk));
+    }, new Map<Pattern, (request: Request) => Response>());
 
     return routes;
 }

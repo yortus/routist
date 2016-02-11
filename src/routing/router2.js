@@ -4,9 +4,9 @@ var util_1 = require('util');
 var util_2 = require('../util');
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
 var is_decorator_1 = require('./is-decorator');
+var make_router_1 = require('./make-router');
 var normalize_handler_1 = require('./normalize-handler');
 var pattern_1 = require('../patterns/pattern');
-var route_1 = require('./route');
 var walk_pattern_hierarchy_1 = require('./walk-pattern-hierarchy');
 // TODO: ...
 function test(routeTable) {
@@ -76,7 +76,7 @@ function test(routeTable) {
     var routes = normalizedPatterns.reduce(function (map, npat) {
         var ruleWalk = ruleWalkForPattern.get(npat);
         var name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
-        return map.set(npat, new route_1.default(name, ruleWalk.map(function (rule) { return rule.handler; })));
+        return map.set(npat, make_router_1.default(ruleWalk));
     }, new Map());
     return routes;
 }
