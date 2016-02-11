@@ -1,5 +1,6 @@
 'use strict';
 import {PatternAST} from './parse-pattern-source';
+// TODO: revise all docs below...
 
 
 
@@ -9,11 +10,10 @@ import {PatternAST} from './parse-pattern-source';
 export default function makePatternMatcher(patternSource: string, patternAST: PatternAST) {
 
     // Gather information about the pattern to be matched.
-    let simplifiedPatternSignature = patternAST.signature.replace(/[^*…]+/g, 'LITERAL');
-    let literalPart = patternAST.signature.replace(/[*…]/g, '');
+    let lit = patternAST.signature.replace(/[*…]/g, '');
+    let litLen = lit.length;
     let captureNames = patternAST.captures.filter(capture => capture !== '?');
-    let hasCaptureNames = captureNames.length > 0;
-    let firstCaptureName = captureNames[0];
+    let capName = captureNames[0];
 
     // Construct the match function, using optimizations where possible.
     // Pattern matching may be done frequently, possibly on a critical path.
@@ -24,45 +24,95 @@ export default function makePatternMatcher(patternSource: string, patternAST: Pa
     // commented out with no change in runtime behaviour. The additional
     // cases are strictly optimizations.
     let matchFunction: MatchFunction;
+    let simplifiedPatternSignature = patternSource // TODO: explain this line...
+        .replace(/\*\*/g, '…')
+        .replace(/{[^.}]+}/g, 'ᕽ')
+        .replace(/{\.+[^}]+}/g, '﹍')
+        .replace(/[^*…ᕽ﹍]+/g, 'lit')
+        .replace(/ᕽ/g, '{cap}')
+        .replace(/﹍/g, '{...cap}');
     switch (simplifiedPatternSignature) {
-        case 'LITERAL':
-            matchFunction = (address: string) => address === patternSource ? SUCCESSFUL_MATCH_WITH_NO_CAPTURES : null;
+        case 'lit':
+            matchFunction = addr => addr === lit ? SUCCESSFUL_MATCH_NO_CAPTURES : null;
             break;
 
         case '*':
-        case '…':
-            matchFunction = (address: string) => {
-                if (simplifiedPatternSignature === '*' && address.indexOf('/') !== -1) return null;
-                return hasCaptureNames ? {[firstCaptureName]: address} : SUCCESSFUL_MATCH_WITH_NO_CAPTURES;
-            }
+            matchFunction = addr => addr.indexOf('/') === -1 ? SUCCESSFUL_MATCH_NO_CAPTURES : null;
             break;
 
-        case 'LITERAL*':
-        case 'LITERAL…':
-            matchFunction = (address: string) => {
-                let i = address.indexOf(literalPart);
-                if (i !== 0) return null;
-                let captureValue = address.slice(literalPart.length);
-                if (simplifiedPatternSignature === 'LITERAL*' && captureValue.indexOf('/') !== -1) return null;
-                return hasCaptureNames ? {[firstCaptureName]: captureValue} : SUCCESSFUL_MATCH_WITH_NO_CAPTURES;
+        case '{cap}':
+            matchFunction = addr => addr.indexOf('/') === -1 ? {[capName]: addr} : null;
+            break;
+
+        case '…':
+            matchFunction = addr => SUCCESSFUL_MATCH_NO_CAPTURES;
+            break;
+
+        case '{...cap}':
+            matchFunction = addr => ({[capName]: addr});
+            break;
+
+        case 'lit*':
+            matchFunction = addr => {
+                if (addr.indexOf(lit) !== 0) return null;
+                return addr.indexOf('/', lit.length) === -1 ? SUCCESSFUL_MATCH_NO_CAPTURES : null;
             };
             break;
 
-        case '*LITERAL':
-        case '…LITERAL':
-            matchFunction = (address: string) => {
-                let i = address.lastIndexOf(literalPart);
-                if (i === -1 || i !== address.length - literalPart.length) return null;
-                let captureValue = address.slice(0, -literalPart.length);
-                if (simplifiedPatternSignature === 'LITERAL*' && captureValue.indexOf('/') !== -1) return null;
-                return hasCaptureNames ? {[firstCaptureName]: captureValue} : SUCCESSFUL_MATCH_WITH_NO_CAPTURES;
+        case 'lit{cap}':
+            matchFunction = addr => {
+                if (addr.indexOf(lit) !== 0) return null;
+                if (addr.indexOf('/', lit.length) !== -1) return null;
+                return {[capName]: addr.slice(lit.length)}
+            };
+            break;
+
+        case 'lit…':
+            matchFunction = addr => addr.indexOf(lit) === 0 ? SUCCESSFUL_MATCH_NO_CAPTURES : null;
+            break;
+
+        case 'lit{...cap}':
+            matchFunction = addr => addr.indexOf(lit) === 0 ? {[capName]: addr.slice(lit.length)} : null;
+            break;
+
+        case '*lit':
+            matchFunction = addr => {
+                let litStart = addr.length - litLen;
+                if (litStart < 0) return null;
+                if (addr.indexOf(lit, litStart) !== litStart) return null;
+                return addr.lastIndexOf('/', litStart - 1) === -1 ? SUCCESSFUL_MATCH_NO_CAPTURES : null;
+            };
+            break;
+
+        case '{cap}lit':
+            matchFunction = addr => {
+                let litStart = addr.length - litLen;
+                if (litStart < 0) return null;
+                if (addr.indexOf(lit, litStart) !== litStart) return null;
+                return addr.lastIndexOf('/', litStart - 1) === -1 ? {[capName]: addr.slice(0, litStart)} : null;
+            };
+            break;
+
+        case '…lit':
+            matchFunction = addr => {
+                let litStart = addr.length - litLen;
+                if (litStart < 0) return null;
+                return addr.indexOf(lit, litStart) === litStart ? SUCCESSFUL_MATCH_NO_CAPTURES : null;
+            };
+            break;
+
+        case '{...cap}lit':
+            matchFunction = addr => {
+                let litStart = addr.length - litLen;
+                if (litStart < 0) return null;
+                return addr.indexOf(lit, litStart) === litStart ? {[capName]: addr.slice(0, litStart)} : null;
             };
             break;
 
         default:
             let recogniser = makeAddressRecogniser(patternAST);
-            matchFunction = (address: string) => {
-                let matches = address.match(recogniser);
+            matchFunction = addr => {
+                let matches = addr.match(recogniser);
                 if (!matches) return null;
                 let result = captureNames
                     .reduce((hash, name, i) => (hash[name] = matches[i + 1], hash), <any>{});
@@ -85,6 +135,7 @@ type MatchFunction  = (address: string) => {[captureName: string]: string};
 
 
 
+// TODO: describe optimisations performed below...
 /**
  * Constructs a regular expression that matches all addresses recognised by the given pattern.
  * Each globstar/wildcard in the pattern corresponds to a capture group in the regular expression.
@@ -115,5 +166,5 @@ function makeAddressRecogniser(patternAST: PatternAST) {
 // Make a singleton match result that may be returned in all cases of a successful
 // match with no named captures. This reduces the number of cases where calls to match
 // functions create new heap objects.
-const SUCCESSFUL_MATCH_WITH_NO_CAPTURES = <{[captureName: string]: string}> {};
-Object.freeze(SUCCESSFUL_MATCH_WITH_NO_CAPTURES);
+const SUCCESSFUL_MATCH_NO_CAPTURES = <{[captureName: string]: string}> {};
+Object.freeze(SUCCESSFUL_MATCH_NO_CAPTURES);
