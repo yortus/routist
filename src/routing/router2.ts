@@ -5,7 +5,7 @@ import {getAllGraphNodes, getLongestCommonPrefix} from '../util';
 import Handler from './handler';
 import hierarchizePatterns from '../patterns/hierarchize-patterns';
 import isDecorator from './is-decorator';
-import makeNormalizedHandlerFunction from './make-normalized-handler-function';
+import normalizeHandler from './normalize-handler';
 import Pattern from '../patterns/pattern';
 import Request from '../request';
 import Response from '../response';
@@ -23,7 +23,7 @@ export default function test(routeTable: {[pattern: string]: Function}): Map<Pat
     // Form a list of rules from the given route table. Each rule's handler is normalized.
     let rules = Object.keys(routeTable).map(patternSource => {
         let pattern = new Pattern(patternSource);
-        let handler = makeNormalizedHandlerFunction(pattern, routeTable[patternSource]);
+        let handler = normalizeHandler(pattern, routeTable[patternSource]);
         return <Rule> { pattern, handler };
     });
 

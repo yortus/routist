@@ -46,7 +46,7 @@ import Response from '../response';
 
 
 /** Internal function used to create the Rule#execute method. */
-export default function makeNormalizedHandlerFunction(pattern: Pattern, rawHandler: Function) {
+export default function normalizeHandler(pattern: Pattern, rawHandler: Function) {
 
     // TODO: get capture names and match function... review these lines...
     // TODO: integrate back into pattern class?

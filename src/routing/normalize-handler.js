@@ -33,7 +33,7 @@ var pattern_1 = require('../patterns/pattern');
 // export type HandlerFunction = (request: Request) => Response;
 // export type DecoratorFunction = (request: Request, downstream: HandlerFunction) => Response;
 /** Internal function used to create the Rule#execute method. */
-function makeNormalizedHandlerFunction(pattern, rawHandler) {
+function normalizeHandler(pattern, rawHandler) {
     // TODO: get capture names and match function... review these lines...
     // TODO: integrate back into pattern class?
     var paramNames = util_1.getFunctionParameterNames(rawHandler);
@@ -65,7 +65,7 @@ function makeNormalizedHandlerFunction(pattern, rawHandler) {
     return result;
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = makeNormalizedHandlerFunction;
+exports.default = normalizeHandler;
 /**
  * Lists the names of builtins with special meanings when they
  * are used as formal parameter names in handler functions.
@@ -97,4 +97,4 @@ function validateNames(pattern, captureNames, paramNames) {
     ok = excessParams.length === 0;
     assert(ok, "Handler parameter(s) '" + excessParams.join("', '") + "' not captured by pattern '" + pattern + "'");
 }
-//# sourceMappingURL=make-normalized-handler-function.js.map
+//# sourceMappingURL=normalize-handler.js.map

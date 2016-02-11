@@ -10,7 +10,6 @@ var router_1 = require('../../src/routing/router');
 describe('Constructing a Router instance', function () {
     var routeTable = {
         '**': function () { return null; },
-        '** #2': function () { return null; },
         '/foo': function () { return 'foo'; },
         '/bar': function () { return 'bar'; },
         '/baz': function () { return 'baz'; },

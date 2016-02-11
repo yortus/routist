@@ -4,7 +4,7 @@ var util_1 = require('util');
 var util_2 = require('../util');
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
 var is_decorator_1 = require('./is-decorator');
-var make_normalized_handler_function_1 = require('./make-normalized-handler-function');
+var normalize_handler_1 = require('./normalize-handler');
 var pattern_1 = require('../patterns/pattern');
 var route_1 = require('./route');
 var walk_pattern_hierarchy_1 = require('./walk-pattern-hierarchy');
@@ -13,7 +13,7 @@ function test(routeTable) {
     // Form a list of rules from the given route table. Each rule's handler is normalized.
     var rules = Object.keys(routeTable).map(function (patternSource) {
         var pattern = new pattern_1.default(patternSource);
-        var handler = make_normalized_handler_function_1.default(pattern, routeTable[patternSource]);
+        var handler = normalize_handler_1.default(pattern, routeTable[patternSource]);
         return { pattern: pattern, handler: handler };
     });
     // TODO: get pattern hierarchy... NB: will always be rooted at '…' even if no '…' rule exists
@@ -30,12 +30,9 @@ function test(routeTable) {
         equalBestRules.sort(ruleComparator);
         return map.set(npat, equalBestRules);
     }, new Map());
-    // TODO: for each pattern signature, get the list of paths through the pattern hierarchy that lead to it
+    // TODO: for each pattern signature, get the list of rules that match, from least to most specific.
     var patternWalks = walk_pattern_hierarchy_1.default(patternHierarchy, function (path) { return path; });
-    console.log(patternWalks);
-    // TODO: map from walks-of-patterns to walks-of-rules
     var ruleWalks = patternWalks.map(function (patternWalk) { return patternWalk.reduce(function (ruleWalk, pattern) { return ruleWalk.concat(rulesForPattern.get(pattern)); }, []); });
-    //console.log(ruleWalks);
     // TODO: for each pattern signature, get the ONE path or fail trying...
     var ruleWalkForPattern = normalizedPatterns.reduce(function (map, npat) {
         // TODO: inefficient! review this...
@@ -97,10 +94,7 @@ function ruleComparator(ruleA, ruleB) {
 }
 // TODO: this should be passed in or somehow provided from outside...
 // TODO: return the WINNER, a.k.a. the MORE SPECIFIC rule
-// TODO: universalHandler must ALWAYS be the least specific rule
 function tieBreakFn(a, b) {
-    // if (a === universalRule) return b;
-    // if (b === universalRule) return a;
     if (a.pattern.comment < b.pattern.comment)
         return a;
     if (b.pattern.comment < a.pattern.comment)
