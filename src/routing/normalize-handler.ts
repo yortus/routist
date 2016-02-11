@@ -75,7 +75,7 @@ export default function normalizeHandler(pattern: Pattern, rawHandler: Function)
     //   `executeDownstreamHandlers` callback.
     // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
     //   Otherwise, execute the handler function and return its response.
-    let source = `(function ${makePatternIdentifier(pattern)}(request${isDecorator ? ', downstream' : ''}) {
+    let source = `(function __${makePatternIdentifier(pattern)}__(request${isDecorator ? ', downstream' : ''}) {
         var paramBindings = match(typeof request === 'string' ? request : request.address);
         if (!paramBindings) return null; // pattern didn't match address
         return rawHandler(${paramNames.map(name => paramMappings[name])});

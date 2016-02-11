@@ -17,15 +17,15 @@ function makeDispatchFunction(patternHierarchy, targetMap) {
             var nextLevel = specializations.get(spec);
             var isLeaf = nextLevel.size === 0;
             var id = make_pattern_identifier_1.default(spec);
-            var condition = "" + indent + (i > 0 ? 'else ' : '') + "if (matches" + id + "(address)) ";
-            var consequent = isLeaf ? "return targetFor" + id + ";\n" : "{\n" + getBody(nextLevel, spec, nestDepth + 1) + indent + "}\n"; // TODO: shorten to <120
+            var condition = "" + indent + (i > 0 ? 'else ' : '') + "if (matches_" + id + "(address)) ";
+            var consequent = isLeaf ? "return _" + id + ";\n" : "{\n" + getBody(nextLevel, spec, nestDepth + 1) + indent + "}\n"; // TODO: shorten to <120
             return condition + consequent;
         });
-        var lastLine = indent + "return targetFor" + make_pattern_identifier_1.default(fallback) + ";\n";
+        var lastLine = indent + "return _" + make_pattern_identifier_1.default(fallback) + ";\n";
         return firstLines.join('') + lastLine;
     }
     // TODO: doc...
-    var lines = patterns.map(function (pat, i) { return ("let matches" + make_pattern_identifier_1.default(pat) + " = patterns[" + i + "].match;\n"); }).concat(patterns.map(function (pat, i) { return ("let targetFor" + make_pattern_identifier_1.default(pat) + " = targets[" + i + "];\n"); }), [
+    var lines = patterns.map(function (pat, i) { return ("let matches_" + make_pattern_identifier_1.default(pat) + " = patterns[" + i + "].match;\n"); }).concat(patterns.map(function (pat, i) { return ("let _" + make_pattern_identifier_1.default(pat) + " = targets[" + i + "];\n"); }), [
         '',
         'return function dispatch(address) {',
         getBody(patternHierarchy.get(pattern_1.default.UNIVERSAL), pattern_1.default.UNIVERSAL, 1),

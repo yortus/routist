@@ -1,13 +1,19 @@
 'use strict';
+import * as assert from 'assert';
 import Pattern from '../patterns/pattern';
-// TODO: only prepend '_' if pattern starts with digit?
 
 
 
 
 
+// TODO: doc...
+// TODO: document that caller is responsible to ensure first char is legal, eg by prepending '_' or similar
 export default function makePatternIdentifier(pattern: Pattern) {
-    return '__' + pattern.normalized.toString()
+
+    // Use unicode substitutions to create a legal identifier that 'looks' like the pattern.
+    // NB: The resulting identifier's may start with a non-letter character and hence be illegal
+    // as-is. It is the caller's responsibility to prepend a legal starting character in that case.
+    return pattern.normalized.toString()
         .split('')
         .map(c => {
             if (/[a-zA-Z0-9_]/.test(c)) return c;

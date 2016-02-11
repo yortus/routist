@@ -33,7 +33,6 @@ export default class Router {
         let patternHierarchy = hierarchizePatterns(Object.keys(routeTable).map(src => new Pattern(src)));
         let selectRoute = makeDispatchFunction(patternHierarchy, routes);
 
-
         this.dispatch = (request: Request) => {
             let address = typeof request === 'string' ? request : request.address;
             let route = selectRoute(address);

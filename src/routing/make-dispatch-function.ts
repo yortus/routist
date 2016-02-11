@@ -24,18 +24,18 @@ export default function makeDispatchFunction<T>(patternHierarchy: Graph<Pattern>
             let nextLevel = specializations.get(spec);
             let isLeaf = nextLevel.size === 0;
             let id = makePatternIdentifier(spec);
-            let condition = `${indent}${i > 0 ? 'else ' : ''}if (matches${id}(address)) `;
-            let consequent = isLeaf ? `return targetFor${id};\n` : `{\n${getBody(nextLevel, spec, nestDepth + 1)}${indent}}\n`; // TODO: shorten to <120
+            let condition = `${indent}${i > 0 ? 'else ' : ''}if (matches_${id}(address)) `;
+            let consequent = isLeaf ? `return _${id};\n` : `{\n${getBody(nextLevel, spec, nestDepth + 1)}${indent}}\n`; // TODO: shorten to <120
             return condition + consequent;
         });
-        let lastLine = `${indent}return targetFor${makePatternIdentifier(fallback)};\n`;
+        let lastLine = `${indent}return _${makePatternIdentifier(fallback)};\n`;
         return firstLines.join('') + lastLine;
     }
 
     // TODO: doc...
     let lines = [
-        ...patterns.map((pat, i) => `let matches${makePatternIdentifier(pat)} = patterns[${i}].match;\n`),
-        ...patterns.map((pat, i) => `let targetFor${makePatternIdentifier(pat)} = targets[${i}];\n`),
+        ...patterns.map((pat, i) => `let matches_${makePatternIdentifier(pat)} = patterns[${i}].match;\n`),
+        ...patterns.map((pat, i) => `let _${makePatternIdentifier(pat)} = targets[${i}];\n`),
         '',
         'return function dispatch(address) {',
         getBody(patternHierarchy.get(Pattern.UNIVERSAL), Pattern.UNIVERSAL, 1),
