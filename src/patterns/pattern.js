@@ -1,5 +1,5 @@
 'use strict';
-var make_match_function_1 = require('./make-match-function');
+var make_pattern_matcher_1 = require('./make-pattern-matcher');
 var parse_pattern_source_1 = require('./parse-pattern-source');
 /**
  * Holds a singleton instance for every normalized pattern that has been instantiated.
@@ -37,7 +37,7 @@ var Pattern = (function () {
         // Initialize members.
         this.normalized = new Pattern(ast.signature); // NB: recursive.
         this.captureNames = ast.captures.filter(function (capture) { return capture !== '?'; });
-        this.match = make_match_function_1.default(source, ast);
+        this.match = make_pattern_matcher_1.default(source, ast);
         this.comment = source.split('#')[1] || '';
     }
     /** Returns the source string with which this instance was constructed. */

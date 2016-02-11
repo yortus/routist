@@ -1,6 +1,6 @@
 'use strict';
 /** Internal function used to create the Pattern#match method. */
-function makeMatchFunction(patternSource, patternAST) {
+function makePatternMatcher(patternSource, patternAST) {
     // Gather information about the pattern to be matched.
     var simplifiedPatternSignature = patternAST.signature.replace(/[^*…]+/g, 'LITERAL');
     var literalPart = patternAST.signature.replace(/[*…]/g, '');
@@ -70,7 +70,7 @@ function makeMatchFunction(patternSource, patternAST) {
     return matchFunction;
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = makeMatchFunction;
+exports.default = makePatternMatcher;
 /**
  * Constructs a regular expression that matches all addresses recognised by the given pattern.
  * Each globstar/wildcard in the pattern corresponds to a capture group in the regular expression.
@@ -98,4 +98,4 @@ function makeAddressRecogniser(patternAST) {
 // functions create new heap objects.
 var SUCCESSFUL_MATCH_WITH_NO_CAPTURES = {};
 Object.freeze(SUCCESSFUL_MATCH_WITH_NO_CAPTURES);
-//# sourceMappingURL=make-match-function.js.map
+//# sourceMappingURL=make-pattern-matcher.js.map

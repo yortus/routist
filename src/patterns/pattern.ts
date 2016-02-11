@@ -1,5 +1,5 @@
 'use strict';
-import makeMatchFunction from './make-match-function';
+import makePatternMatcher from './make-pattern-matcher';
 import parsePatternSource from './parse-pattern-source';
 
 
@@ -51,7 +51,7 @@ export default class Pattern {
         // Initialize members.
         this.normalized = new Pattern(ast.signature); // NB: recursive.
         this.captureNames = ast.captures.filter(capture => capture !== '?');
-        this.match = makeMatchFunction(source, ast);
+        this.match = makePatternMatcher(source, ast);
         this.comment = source.split('#')[1] || '';
     }
 

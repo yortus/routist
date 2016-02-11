@@ -6,7 +6,7 @@ import {PatternAST} from './parse-pattern-source';
 
 
 /** Internal function used to create the Pattern#match method. */
-export default function makeMatchFunction(patternSource: string, patternAST: PatternAST) {
+export default function makePatternMatcher(patternSource: string, patternAST: PatternAST) {
 
     // Gather information about the pattern to be matched.
     let simplifiedPatternSignature = patternAST.signature.replace(/[^*…]+/g, 'LITERAL');
