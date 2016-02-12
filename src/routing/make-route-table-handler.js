@@ -29,66 +29,60 @@ function makeRouteTableHandler(routeTable) {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = makeRouteTableHandler;
+// TODO:  make jsdoc...
+// Associate each distinct pattern (ie unique by signature) with the set of rules from the route table that *exactly* match
+// it. Some patterns may have no such rules. Because:
+// > // patternHierarchy may include some patterns that are not in the route table, such as the always-present root pattern '…', as
+// > // well as patterns synthesized at the intersection of overlapping patterns in the route table.
+// In such cases we
+// synthesize a single rule whose handler never handles the request. This makes subsequent logic
+// simpler because it can assume there are 1..M rules for each distinct pattern.
+// TODO: add comment about Rule order in result (using tiebreak function).
+function getEqualBestRulesForEachDistinctPattern(distinctPatterns, routeTable) {
+    return distinctPatterns.reduce(function (allRulesSoFar, distinctPattern) {
+        // Compile the rule list for this pattern from the route table entries.
+        var equalBestRulesForPattern = Object.keys(routeTable)
+            .map(function (key) { return new pattern_1.default(key); })
+            .filter(function (pattern) { return pattern.normalized === distinctPattern; })
+            .map(function (pattern) { return ({ pattern: pattern, handler: normalize_handler_1.default(pattern, routeTable[pattern.toString()]) }); });
+        // TODO: explain sort... all rules are equal by pattern signature, but we need specificity order.
+        // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
+        equalBestRulesForPattern.sort(ruleComparator); // NB: may throw
+        // If the route table had no matching rules for this pattern, synthesize one now.
+        if (equalBestRulesForPattern.length === 0) {
+            equalBestRulesForPattern.push({ pattern: distinctPattern, handler: nullHandler });
+        }
+        // Update the map.
+        allRulesSoFar.set(distinctPattern, equalBestRulesForPattern);
+        return allRulesSoFar;
+    }, new Map());
+}
 // TODO: ...
-function getAllMatchingRulesForEachDistinctPatternInHierarchy(patternHierarchy, routeTable) {
+function makeAllPathwayHandlers(patternHierarchy, routeTable) {
     // Get a list of all the distinct patterns that occur in the pattern hierarchy. This may include
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
     // well as patterns synthesized at the intersection of overlapping patterns in the route table.
     var distinctPatterns = util_2.getAllGraphNodes(patternHierarchy);
-    // Now, associate each distinct pattern with the set of rules from the route table that *exactly*
-    // match it. As noted in the previous comment, some patterns may have no such rules. In such cases
-    // we synthesize a single rule whose handler never handles the request. This makes subsequent
-    // logic simpler because it can assume there are 1..M rules for each distinct pattern.
-    var allRules = distinctPatterns.reduce(function (allRulesSoFar, distinctPattern) {
-        // Compile the rule list for this pattern from the route table entries.
-        var rulesForPattern = Object.keys(routeTable)
-            .map(function (key) { return new pattern_1.default(key); })
-            .filter(function (pattern) { return pattern.normalized === distinctPattern; })
-            .map(function (pattern) { return ({ pattern: pattern, handler: normalize_handler_1.default(pattern, routeTable[pattern.toString()]) }); });
-        // If the route table had no matching rules for this pattern, synthesize one now.
-        if (rulesForPattern.length === 0) {
-            rulesForPattern.push({ pattern: distinctPattern, handler: nullHandler });
-        }
-        // Update the map.
-        allRulesSoFar.set(distinctPattern, rulesForPattern);
-        return allRulesSoFar;
-    }, new Map());
-    return allRules;
-}
-// TODO: ...
-function makeAllPathwayHandlers(patternHierarchy, routeTable) {
     // TODO: ...
-    var allRules = getAllMatchingRulesForEachDistinctPatternInHierarchy(patternHierarchy, routeTable);
-    var x = Array.from(allRules.entries()).forEach(function (_a) {
-        var pattern = _a[0], rules = _a[1];
-        // TODO: doc...
-        rules.sort(ruleComparator);
-    });
+    var allRules = getEqualBestRulesForEachDistinctPattern(distinctPatterns, routeTable);
+    // TODO: ...
+    var patternWalks = walk_pattern_hierarchy_1.default(patternHierarchy, function (path) { return path; });
+    // TODO: ...
+    //     let x = Array.from(allRules.entries()).forEach(([pattern, rules]) => {
+    // 
+    //         // TODO: get all pattern walks ending at the desired pattern.
+    //         let y = patternWalks.filter(pw => pw[pw.length - 1] === pattern);
+    // 
+    // 
+    // 
+    //                 
+    // 
+    // 
+    //     });
     // TODO: doc...
     var rulesForPattern = allRules;
-    var distinctPatterns = util_2.getAllGraphNodes(patternHierarchy);
-    // // Transform the given route table into a list of rules.
-    // let rules = Object.keys(routeTable).map(patternSource => {
-    //     let pattern = new Pattern(patternSource);
-    //     let handler = normalizeHandler(pattern, routeTable[patternSource]);
-    //     return <Rule> { pattern, handler };
-    // });
-    // // TODO: for each pattern, get the list of rules that are equal-best matches for it...
-    // // TODO: add no-op rules as needed so that code below may assume there are 1..M rules for each signature.
-    // // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
-    // let rulesForPattern = distinctPatterns.reduce((map, npat) => {
-    //     let equalBestRules = rules.filter(rule => rule.pattern.normalized === npat);
-    //     if (equalBestRules.length === 0) {
-    //         equalBestRules.push({ pattern: npat, handler: nullHandler });
-    //     }
-    //     
-    //     // TODO: sort!!!
-    //     equalBestRules.sort(ruleComparator);
-    //     return map.set(npat, equalBestRules);
-    // }, new Map<Pattern, Rule[]>());
     // TODO: for each pattern signature, get the list of rules that match, from least to most specific.
-    var patternWalks = walk_pattern_hierarchy_1.default(patternHierarchy, function (path) { return path; });
-    var ruleWalks = patternWalks.map(function (patternWalk) { return patternWalk.reduce(function (ruleWalk, pattern) { return ruleWalk.concat(rulesForPattern.get(pattern)); }, []); });
+    var ruleWalks = patternWalks.map(function (pw) { return pw.reduce(function (ruleWalk, pattern) { return ruleWalk.concat(rulesForPattern.get(pattern)); }, []); });
     // TODO: for each pattern signature, get the ONE path or fail trying...
     var ruleWalkForPattern = distinctPatterns.reduce(function (map, npat) {
         // TODO: inefficient! review this...
