@@ -1,16 +1,14 @@
 'use strict';
-import Handler from './handler';
-import isDecorator from './is-decorator';
+import {Handler, PartialHandler, GeneralHandler, Rule} from './types';
+import isPartialHandler from './is-partial-handler';
 import makePatternIdentifier from './make-pattern-identifier';
-import Request from '../request';
-import Response from '../response';
-import Rule from './rule';
+
 
 
 
 
 // TODO: ...
-export default function makeRouter(ruleWalk: Rule[]) {
+export default function makeRouter(ruleWalk: Rule[]): Handler {
 
     let reverseRuleWalk = ruleWalk.slice().reverse();
 
@@ -19,25 +17,22 @@ export default function makeRouter(ruleWalk: Rule[]) {
 
 
     // TODO: ...
-    let execute = reverseRuleWalk.reduce<(rq: Request) => Response>((downstream, rule) => { // TODO: fix cast!
-        let result: (request: Request) => Response;
-        let handler = <(request: Request, downstream?: Function) => Response>  rule.handler; // TODO: fix cast
-        if (isDecorator(rule.handler)) {
-            result = request => handler(request, downstream);
-        }
-        else {
-            result = request => {
+    let execute = reverseRuleWalk.reduce<Handler>((downstream, rule) => {
+        let handler: PartialHandler|GeneralHandler = rule.handler;
+        if (isPartialHandler(handler)) {
+            return request => {
                 let response = downstream(request);
                 if (response !== null) return response;
                 return handler(request);
             };
         }
-        return result;
-    }, noMore);
+        else {
+            return request => handler(request, downstream);
+        }
+    }, nullHandler);
 
     let source = `function ${name}(request) { return execute(request); }`;
-    let result: (request: Request) => Response;
-    result = eval(`(${source})`);
+    let result: Handler = eval(`(${source})`);
     return result;
 }
 
@@ -46,4 +41,4 @@ export default function makeRouter(ruleWalk: Rule[]) {
 
 
 // TODO: ...
-const noMore = (rq: Request) => <Response> null;
+const nullHandler: Handler = request => null;

@@ -2,15 +2,12 @@
 import * as assert from 'assert';
 import {inspect} from 'util';
 import {getAllGraphNodes, getLongestCommonPrefix} from '../util';
-import Handler from './handler';
+import {Handler, Rule} from './types';
 import hierarchizePatterns from '../patterns/hierarchize-patterns';
-import isDecorator from './is-decorator';
+import isPartialHandler from './is-partial-handler';
 import makeRouter from './make-router';
 import normalizeHandler from './normalize-handler';
 import Pattern from '../patterns/pattern';
-import Request from '../request';
-import Response from '../response';
-import Rule from './rule';
 import walkPatternHierarchy from './walk-pattern-hierarchy';
 
 
@@ -18,7 +15,7 @@ import walkPatternHierarchy from './walk-pattern-hierarchy';
 
 
 // TODO: ...
-export default function test(routeTable: {[pattern: string]: Function}): Map<Pattern, (request: Request) => Response> {
+export default function test(routeTable: {[pattern: string]: Function}): Map<Pattern, Handler> {
 
     // Form a list of rules from the given route table. Each rule's handler is normalized.
     let rules = Object.keys(routeTable).map(patternSource => {
@@ -74,7 +71,7 @@ export default function test(routeTable: {[pattern: string]: Function}): Map<Pat
         // Ensure the non-common parts contain NO decorators.
         candidates.forEach(cand => {
             let choppedRules = cand.slice(prefix.length, -suffix.length);
-            if (choppedRules.every(rule => !isDecorator(rule.handler))) return;
+            if (choppedRules.every(rule => isPartialHandler(rule.handler))) return;
             // TODO: improve error message/handling
             throw new Error(`Multiple routes to '${npat}' with different decorators`);
         });
@@ -97,12 +94,12 @@ export default function test(routeTable: {[pattern: string]: Function}): Map<Pat
 
 
     // reduce each signature's rule walk down to a simple handler function.
-    const noMore = (rq: Request) => <Response> null;
+    const noMore: Handler = request => null;
     let routes = normalizedPatterns.reduce((map, npat) => {
         let ruleWalk = ruleWalkForPattern.get(npat);
         let name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
         return map.set(npat, makeRouter(ruleWalk));
-    }, new Map<Pattern, (request: Request) => Response>());
+    }, new Map<Pattern, Handler>());
 
     return routes;
 }

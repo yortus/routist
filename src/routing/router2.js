@@ -3,7 +3,7 @@ var assert = require('assert');
 var util_1 = require('util');
 var util_2 = require('../util');
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
-var is_decorator_1 = require('./is-decorator');
+var is_partial_handler_1 = require('./is-partial-handler');
 var make_router_1 = require('./make-router');
 var normalize_handler_1 = require('./normalize-handler');
 var pattern_1 = require('../patterns/pattern');
@@ -52,7 +52,7 @@ function test(routeTable) {
         // Ensure the non-common parts contain NO decorators.
         candidates.forEach(function (cand) {
             var choppedRules = cand.slice(prefix.length, -suffix.length);
-            if (choppedRules.every(function (rule) { return !is_decorator_1.default(rule.handler); }))
+            if (choppedRules.every(function (rule) { return is_partial_handler_1.default(rule.handler); }))
                 return;
             // TODO: improve error message/handling
             throw new Error("Multiple routes to '" + npat + "' with different decorators");
@@ -72,7 +72,7 @@ function test(routeTable) {
     }, new Map());
     //console.log(handlerWalkForPattern);
     // reduce each signature's rule walk down to a simple handler function.
-    var noMore = function (rq) { return null; };
+    var noMore = function (request) { return null; };
     var routes = normalizedPatterns.reduce(function (map, npat) {
         var ruleWalk = ruleWalkForPattern.get(npat);
         var name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.

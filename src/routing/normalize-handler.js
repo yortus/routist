@@ -33,6 +33,20 @@ var pattern_1 = require('../patterns/pattern');
 // export type HandlerFunction = (request: Request) => Response;
 // export type DecoratorFunction = (request: Request, downstream: HandlerFunction) => Response;
 /** Internal function used to create the Rule#execute method. */
+// TODO: incorporate this comment from old Rule class...
+//     /**
+//      * Constructs a Rule instance.
+//      * @param {string} patternSource - the pattern recognized by this handler.
+//      * @param {Function} handler - a function providing processing logic for producing
+//      *        a reponse from a given request. The `action` function may be invoked when
+//      *        the `Handler#execute` method is called. Each of the `action` function's
+//      *        formal parameter names must match either a capture name from `pattern`, or
+//      *        a builtin name such as `$req` or `$yield`. Capture values and/or builtin
+//      *        values are passed to the matching parameters of `action` upon invocation.
+//      *        A non-null return value from `action` is interpreted as a response. A null
+//      *        return value from `action` signifies that the action declined to respond to
+//      *        the given request, even if the pattern matched the request's address.
+//      */
 function normalizeHandler(pattern, rawHandler) {
     // TODO: get capture names and match function... review these lines...
     // TODO: integrate back into pattern class?

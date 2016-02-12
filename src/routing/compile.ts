@@ -2,7 +2,6 @@
 import hierarchizePatterns from '../patterns/hierarchize-patterns';
 import Pattern from '../patterns/pattern';
 import Request from '../request';
-import Response from '../response';
 
 
 

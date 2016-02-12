@@ -1,11 +1,9 @@
 'use strict';
 import * as assert from 'assert';
 import {getFunctionParameterNames} from '../util';
-import Handler from './handler';
+import {Handler} from './types';
 import makePatternIdentifier from './make-pattern-identifier';
 import Pattern from '../patterns/pattern';
-import Request from '../request';
-import Response from '../response';
 // TODO: review jsdocs after pattern overhaul
 // TODO: make async...
 // TODO: review all comments given recent changes (Handler/Rule, $yield/$next, executeDownstreamHandlers/downstream)
@@ -46,6 +44,27 @@ import Response from '../response';
 
 
 /** Internal function used to create the Rule#execute method. */
+
+
+
+// TODO: incorporate this comment from old Rule class...
+//     /**
+//      * Constructs a Rule instance.
+//      * @param {string} patternSource - the pattern recognized by this handler.
+//      * @param {Function} handler - a function providing processing logic for producing
+//      *        a reponse from a given request. The `action` function may be invoked when
+//      *        the `Handler#execute` method is called. Each of the `action` function's
+//      *        formal parameter names must match either a capture name from `pattern`, or
+//      *        a builtin name such as `$req` or `$yield`. Capture values and/or builtin
+//      *        values are passed to the matching parameters of `action` upon invocation.
+//      *        A non-null return value from `action` is interpreted as a response. A null
+//      *        return value from `action` signifies that the action declined to respond to
+//      *        the given request, even if the pattern matched the request's address.
+//      */
+
+
+
+
 export default function normalizeHandler(pattern: Pattern, rawHandler: Function) {
 
     // TODO: get capture names and match function... review these lines...
