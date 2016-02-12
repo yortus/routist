@@ -2,11 +2,11 @@
 var is_partial_handler_1 = require('./is-partial-handler');
 var make_pattern_identifier_1 = require('./make-pattern-identifier');
 // TODO: ...
-function makeRouter(ruleWalk) {
-    var reverseRuleWalk = ruleWalk.slice().reverse();
-    var name = '__' + make_pattern_identifier_1.default(reverseRuleWalk[0].pattern) + '__';
+function makePathwayHandler(pathway) {
+    var reversePathway = pathway.slice().reverse();
+    var name = '__' + make_pattern_identifier_1.default(reversePathway[0].pattern) + '__';
     // TODO: ...
-    var execute = reverseRuleWalk.reduce(function (downstream, rule) {
+    var execute = reversePathway.reduce(function (downstream, rule) {
         var handler = rule.handler;
         if (is_partial_handler_1.default(handler)) {
             return function (request) {
@@ -25,7 +25,7 @@ function makeRouter(ruleWalk) {
     return result;
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = makeRouter;
+exports.default = makePathwayHandler;
 // TODO: ...
 var nullHandler = function (request) { return null; };
-//# sourceMappingURL=make-router.js.map
+//# sourceMappingURL=make-pathway-handler.js.map

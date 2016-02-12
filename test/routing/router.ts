@@ -1,6 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import compile from '../../src/routing/compile';
+import makeRouteTableHandler from '../../src/routing/make-route-table-handler';
 
 
 // TODO: temp testing...
@@ -84,7 +84,7 @@ describe('Constructing a Router instance', () => {
         `api/bar ==> fallback`,
     ];
 
-    let router = compile(routeTable);
+    let routeTableHandler = makeRouteTableHandler(routeTable);
 
     tests.forEach(test => it(test, () => {
         let request = test.split(' ==> ')[0];
@@ -92,7 +92,7 @@ describe('Constructing a Router instance', () => {
         if (expected === 'UNHANDLED') expected = null;
         let actual: string;
         try {
-            actual = <string> router(request);
+            actual = <string> routeTableHandler(request);
         }
         catch (ex) {
             actual = 'ERROR: ' + ex.message;

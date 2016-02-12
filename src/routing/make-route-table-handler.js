@@ -5,53 +5,92 @@ var util_2 = require('../util');
 var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
 var is_partial_handler_1 = require('./is-partial-handler');
 var make_dispatcher_1 = require('./make-dispatcher');
-var make_router_1 = require('./make-router');
+var make_pathway_handler_1 = require('./make-pathway-handler');
 var normalize_handler_1 = require('./normalize-handler');
 var pattern_1 = require('../patterns/pattern');
 var walk_pattern_hierarchy_1 = require('./walk-pattern-hierarchy');
 // TODO: doc...
-function compile(routeTable) {
-    var routes = test(routeTable); // TODO: fix terminology: 'handler' is taken...
+function makeRouteTableHandler(routeTable) {
+    // TODO: ...
     var patternHierarchy = hierarchize_patterns_1.default(Object.keys(routeTable).map(function (src) { return new pattern_1.default(src); }));
-    var selectRoute = make_dispatcher_1.default(patternHierarchy, routes);
+    // TODO: ...
+    var pathwayHandlers = makeAllPathwayHandlers(patternHierarchy, routeTable);
+    // TODO: ...
+    var selectPathwayHandler = make_dispatcher_1.default(patternHierarchy, pathwayHandlers);
+    // TODO: ...
     function __compiledRouteTable__(request) {
         var address = typeof request === 'string' ? request : request.address;
-        var route = selectRoute(address);
-        var response = route(request);
+        var handlePathway = selectPathwayHandler(address);
+        var response = handlePathway(request);
         return response;
     }
     ;
     return __compiledRouteTable__;
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = compile;
+exports.default = makeRouteTableHandler;
 // TODO: ...
-function test(routeTable) {
-    // Form a list of rules from the given route table. Each rule's handler is normalized.
-    var rules = Object.keys(routeTable).map(function (patternSource) {
-        var pattern = new pattern_1.default(patternSource);
-        var handler = normalize_handler_1.default(pattern, routeTable[patternSource]);
-        return { pattern: pattern, handler: handler };
-    });
-    // TODO: get pattern hierarchy... NB: will always be rooted at '…' even if no '…' rule exists
-    var patternHierarchy = hierarchize_patterns_1.default(rules.map(function (rule) { return rule.pattern; }));
-    var normalizedPatterns = util_2.getAllGraphNodes(patternHierarchy);
-    // TODO: for each pattern, get the list of rules that are equal-best matches for it...
-    // TODO: add no-op rules as needed so that code below may assume there are 1..M rules for each signature.
-    // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
-    var rulesForPattern = normalizedPatterns.reduce(function (map, npat) {
-        var equalBestRules = rules.filter(function (rule) { return rule.pattern.normalized === npat; });
-        if (equalBestRules.length === 0) {
-            equalBestRules.push({ pattern: npat, handler: nullHandler });
+function getAllMatchingRulesForEachDistinctPatternInHierarchy(patternHierarchy, routeTable) {
+    // Get a list of all the distinct patterns that occur in the pattern hierarchy. This may include
+    // some patterns that are not in the route table, such as the always-present root pattern '…', as
+    // well as patterns synthesized at the intersection of overlapping patterns in the route table.
+    var distinctPatterns = util_2.getAllGraphNodes(patternHierarchy);
+    // Now, associate each distinct pattern with the set of rules from the route table that *exactly*
+    // match it. As noted in the previous comment, some patterns may have no such rules. In such cases
+    // we synthesize a single rule whose handler never handles the request. This makes subsequent
+    // logic simpler because it can assume there are 1..M rules for each distinct pattern.
+    var allRules = distinctPatterns.reduce(function (allRulesSoFar, distinctPattern) {
+        // Compile the rule list for this pattern from the route table entries.
+        var rulesForPattern = Object.keys(routeTable)
+            .map(function (key) { return new pattern_1.default(key); })
+            .filter(function (pattern) { return pattern.normalized === distinctPattern; })
+            .map(function (pattern) { return ({ pattern: pattern, handler: normalize_handler_1.default(pattern, routeTable[pattern.toString()]) }); });
+        // If the route table had no matching rules for this pattern, synthesize one now.
+        if (rulesForPattern.length === 0) {
+            rulesForPattern.push({ pattern: distinctPattern, handler: nullHandler });
         }
-        equalBestRules.sort(ruleComparator);
-        return map.set(npat, equalBestRules);
+        // Update the map.
+        allRulesSoFar.set(distinctPattern, rulesForPattern);
+        return allRulesSoFar;
     }, new Map());
+    return allRules;
+}
+// TODO: ...
+function makeAllPathwayHandlers(patternHierarchy, routeTable) {
+    // TODO: ...
+    var allRules = getAllMatchingRulesForEachDistinctPatternInHierarchy(patternHierarchy, routeTable);
+    var x = Array.from(allRules.entries()).forEach(function (_a) {
+        var pattern = _a[0], rules = _a[1];
+        // TODO: doc...
+        rules.sort(ruleComparator);
+    });
+    // TODO: doc...
+    var rulesForPattern = allRules;
+    var distinctPatterns = util_2.getAllGraphNodes(patternHierarchy);
+    // // Transform the given route table into a list of rules.
+    // let rules = Object.keys(routeTable).map(patternSource => {
+    //     let pattern = new Pattern(patternSource);
+    //     let handler = normalizeHandler(pattern, routeTable[patternSource]);
+    //     return <Rule> { pattern, handler };
+    // });
+    // // TODO: for each pattern, get the list of rules that are equal-best matches for it...
+    // // TODO: add no-op rules as needed so that code below may assume there are 1..M rules for each signature.
+    // // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
+    // let rulesForPattern = distinctPatterns.reduce((map, npat) => {
+    //     let equalBestRules = rules.filter(rule => rule.pattern.normalized === npat);
+    //     if (equalBestRules.length === 0) {
+    //         equalBestRules.push({ pattern: npat, handler: nullHandler });
+    //     }
+    //     
+    //     // TODO: sort!!!
+    //     equalBestRules.sort(ruleComparator);
+    //     return map.set(npat, equalBestRules);
+    // }, new Map<Pattern, Rule[]>());
     // TODO: for each pattern signature, get the list of rules that match, from least to most specific.
     var patternWalks = walk_pattern_hierarchy_1.default(patternHierarchy, function (path) { return path; });
     var ruleWalks = patternWalks.map(function (patternWalk) { return patternWalk.reduce(function (ruleWalk, pattern) { return ruleWalk.concat(rulesForPattern.get(pattern)); }, []); });
     // TODO: for each pattern signature, get the ONE path or fail trying...
-    var ruleWalkForPattern = normalizedPatterns.reduce(function (map, npat) {
+    var ruleWalkForPattern = distinctPatterns.reduce(function (map, npat) {
         // TODO: inefficient! review this...
         var candidates = ruleWalks.filter(function (ruleWalk) {
             var lastRule = ruleWalk[ruleWalk.length - 1];
@@ -90,15 +129,15 @@ function test(routeTable) {
     //console.log(handlerWalkForPattern);
     // reduce each signature's rule walk down to a simple handler function.
     var noMore = function (request) { return null; };
-    var routes = normalizedPatterns.reduce(function (map, npat) {
+    var routes = distinctPatterns.reduce(function (map, npat) {
         var ruleWalk = ruleWalkForPattern.get(npat);
         var name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
-        return map.set(npat, make_router_1.default(ruleWalk));
+        return map.set(npat, make_pathway_handler_1.default(ruleWalk));
     }, new Map());
     return routes;
 }
 // TODO: doc...
-var nullHandler = function (request) { return null; };
+var nullHandler = function __nullHandler__(request) { return null; };
 // TODO: doc...
 // TODO: improve error message/handling in here...
 function ruleComparator(ruleA, ruleB) {
@@ -115,4 +154,4 @@ function tieBreakFn(a, b) {
     if (b.pattern.comment < a.pattern.comment)
         return b;
 }
-//# sourceMappingURL=compile.js.map
+//# sourceMappingURL=make-route-table-handler.js.map

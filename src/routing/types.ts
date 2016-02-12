@@ -7,12 +7,13 @@ import Response from '../response';
 
 
 
-
-
-
-
 // TODO: doc...
-// TODO: Put Handler everywhere literal type (request: Request) => Response appears
+export type RouteTable = { [pattern: string]: Function };
+
+
+
+
+
 
 
 // TODO: incorporate this old doc...
@@ -22,13 +23,12 @@ import Response from '../response';
 //  */
 
 
+// TODO: doc...
 export type Handler = (request: Request) => Response;
 
 
+// TODO: doc...
 export type PartialHandler = (request: Request) => Response;
-
-
-
 
 
 // TODO: doc...
@@ -38,13 +38,16 @@ export type GeneralHandler = (request: Request, downstream: Handler) => Response
 
 
 
+// TODO: doc...
+export interface Rule {
+    pattern: Pattern;
+    handler: Handler; // TODO:. doc.. Each rule's handler is normalized.
+}
 
 
 
 
 
 // TODO: doc...
-export interface Rule {
-    pattern: Pattern;
-    handler: Handler;
-}
+// doc... from most general rule to most specific rule
+export type Pathway = Rule[];
