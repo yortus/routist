@@ -41,25 +41,22 @@ exports.default = makeRouteTableHandler;
 // synthesize a single rule whose handler never handles the request. This makes subsequent logic
 // simpler because it can assume there are 1..M rules for each distinct pattern.
 // TODO: add comment about Rule order in result (using tiebreak function).
-function getEqualBestRulesForEachPattern(distinctPatterns, routeTable) {
-    return distinctPatterns.reduce(function (allRulesSoFar, distinctPattern) {
-        // Compile the rule list for this pattern from the route table entries.
-        var equalBestRulesForPattern = Object.keys(routeTable)
-            .map(function (key) { return new pattern_1.default(key); })
-            .filter(function (pattern) { return pattern.normalized === distinctPattern; })
-            .map(function (pattern) { return ({ pattern: pattern, handler: normalize_handler_1.default(pattern, routeTable[pattern.toString()]) }); });
-        // TODO: explain sort... all rules are equal by pattern signature, but we need specificity order.
-        // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
-        equalBestRulesForPattern.sort(ruleComparator); // NB: may throw
-        // TODO: remove? seems unneccessary...
-        // // If the route table had no matching rules for this pattern, synthesize one now.
-        // if (equalBestRulesForPattern.length === 0) {
-        //     equalBestRulesForPattern.push({ pattern: distinctPattern, handler: nullHandler });
-        // }
-        // Update the map.
-        allRulesSoFar.set(distinctPattern, equalBestRulesForPattern);
-        return allRulesSoFar;
-    }, new Map());
+function getEqualBestRulesForPattern(normalizedPattern, routeTable) {
+    // Compile the rule list for this pattern from the route table entries.
+    var rules = Object.keys(routeTable)
+        .map(function (key) { return new pattern_1.default(key); })
+        .filter(function (pattern) { return pattern.normalized === normalizedPattern; })
+        .map(function (pattern) { return ({ pattern: pattern, handler: normalize_handler_1.default(pattern, routeTable[pattern.toString()]) }); });
+    // TODO: explain sort... all rules are equal by pattern signature, but we need specificity order.
+    // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
+    rules.sort(ruleComparator); // NB: may throw
+    // TODO: ...
+    return rules;
+}
+// TODO: doc...
+function getAllRoutesToPattern(normalizedPattern, bestRuleForPatterns) {
+    // TODO: ...
+    throw 1;
 }
 // TODO: ...
 function makeAllPathwayHandlers(patternHierarchy, routeTable) {
@@ -68,12 +65,7 @@ function makeAllPathwayHandlers(patternHierarchy, routeTable) {
     // well as patterns synthesized at the intersection of overlapping patterns in the route table.
     var distinctPatterns = util_2.getAllGraphNodes(patternHierarchy);
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
-    var bestRulesByPattern = getEqualBestRulesForEachPattern(distinctPatterns, routeTable);
-    // TODO: for each pattern signature, get the list of rules that match, from least to most specific.
-    // let ruleWalks = walkPatternHierarchy(patternHierarchy).map(pw => pw.reduce(
-    //     (ruleWalk, pattern) => ruleWalk.concat(bestRulesForPattern.get(pattern)),
-    //     [universalRule]
-    // ));
+    var bestRulesByPattern = distinctPatterns.reduce(function (map, pattern) { return map.set(pattern, getEqualBestRulesForPattern(pattern, routeTable)); }, new Map());
     var ruleWalksByPattern = walk_pattern_hierarchy_1.default(patternHierarchy).reduce(function (ruleWalksSoFar, patternWalk) {
         // TODO: the key is the pattern of the last node in the walk
         var key = patternWalk[patternWalk.length - 1];

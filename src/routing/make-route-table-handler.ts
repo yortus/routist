@@ -2,6 +2,7 @@
 import * as assert from 'assert';
 import {inspect} from 'util';
 import {Graph, getAllGraphNodes, getLongestCommonPrefix} from '../util';
+import {Handler, Route, RouteTable, Rule} from './types';
 import hierarchizePatterns from '../patterns/hierarchize-patterns';
 import isPartialHandler from './is-partial-handler';
 import makeDispatcher from './make-dispatcher';
@@ -9,7 +10,6 @@ import makePathwayHandler from './make-pathway-handler';
 import normalizeHandler from './normalize-handler';
 import Pattern from '../patterns/pattern';
 import Request from '../request';
-import {RouteTable, Handler, Rule} from './types';
 import walkPatternHierarchy from './walk-pattern-hierarchy';
 
 
@@ -56,34 +56,32 @@ export default function makeRouteTableHandler(routeTable: {[pattern: string]: Fu
 // synthesize a single rule whose handler never handles the request. This makes subsequent logic
 // simpler because it can assume there are 1..M rules for each distinct pattern.
 // TODO: add comment about Rule order in result (using tiebreak function).
-function getEqualBestRulesForEachPattern(distinctPatterns: Pattern[], routeTable: RouteTable): Map<Pattern, Rule[]> {
-    return distinctPatterns.reduce(
-        (allRulesSoFar, distinctPattern) => {
+function getEqualBestRulesForPattern(normalizedPattern: Pattern, routeTable: RouteTable): Rule[] {
 
-            // Compile the rule list for this pattern from the route table entries.
-            let equalBestRulesForPattern = Object.keys(routeTable)
-                .map(key => new Pattern(key))
-                .filter(pattern => pattern.normalized === distinctPattern)
-                .map<Rule>(pattern => ({ pattern, handler: normalizeHandler(pattern, routeTable[pattern.toString()]) }));
+    // Compile the rule list for this pattern from the route table entries.
+    let rules = Object.keys(routeTable)
+        .map(key => new Pattern(key))
+        .filter(pattern => pattern.normalized === normalizedPattern)
+        .map<Rule>(pattern => ({ pattern, handler: normalizeHandler(pattern, routeTable[pattern.toString()]) }));
 
-            // TODO: explain sort... all rules are equal by pattern signature, but we need specificity order.
-            // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
-            equalBestRulesForPattern.sort(ruleComparator); // NB: may throw
+    // TODO: explain sort... all rules are equal by pattern signature, but we need specificity order.
+    // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
+    rules.sort(ruleComparator); // NB: may throw
 
-            // TODO: remove? seems unneccessary...
-            // // If the route table had no matching rules for this pattern, synthesize one now.
-            // if (equalBestRulesForPattern.length === 0) {
-            //     equalBestRulesForPattern.push({ pattern: distinctPattern, handler: nullHandler });
-            // }
-
-            // Update the map.
-            allRulesSoFar.set(distinctPattern, equalBestRulesForPattern);
-            return allRulesSoFar;
-        },
-        new Map<Pattern, Rule[]>()
-    );
+    // TODO: ...
+    return rules;
 }
 
+
+
+
+
+// TODO: doc...
+function getAllRoutesToPattern(normalizedPattern: Pattern, bestRuleForPatterns: Map<Pattern, Rule[]>): Route[] {
+    // TODO: ...
+    throw 1;
+    
+}
 
 
 
@@ -98,14 +96,14 @@ function makeAllPathwayHandlers(patternHierarchy: Graph<Pattern>, routeTable: Ro
 
 
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
-    let bestRulesByPattern = getEqualBestRulesForEachPattern(distinctPatterns, routeTable);
+    let bestRulesByPattern = distinctPatterns.reduce(
+        (map, pattern) => map.set(pattern, getEqualBestRulesForPattern(pattern, routeTable)),
+        new Map<Pattern, Rule[]>()
+    );
+
+        
 
 
-    // TODO: for each pattern signature, get the list of rules that match, from least to most specific.
-    // let ruleWalks = walkPatternHierarchy(patternHierarchy).map(pw => pw.reduce(
-    //     (ruleWalk, pattern) => ruleWalk.concat(bestRulesForPattern.get(pattern)),
-    //     [universalRule]
-    // ));
 
     let ruleWalksByPattern = walkPatternHierarchy(patternHierarchy).reduce(
         (ruleWalksSoFar, patternWalk) => {
