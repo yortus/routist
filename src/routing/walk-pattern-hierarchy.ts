@@ -1,6 +1,7 @@
 'use strict';
 import {Graph} from '../util';
 import Pattern from '../patterns/pattern';
+// TODO: review all docs in here... function signatures were changed (callback removed)
 
 
 
@@ -16,9 +17,8 @@ import Pattern from '../patterns/pattern';
  * @param {(path: Pattern[]) => T} callback - the function to be called once for each walk.
  * @returns an array of the return values from each invocation of `callback`.
  */
-export default function walkPatternHierarchy<T>(patternHierarchy: Graph<Pattern>, callback: (path: Pattern[]) => T): T[] {
-    let walks = getAllWalksStartingFrom(Pattern.UNIVERSAL, patternHierarchy.get(Pattern.UNIVERSAL));
-    return walks.map(callback);
+export default function walkPatternHierarchy(patternHierarchy: Graph<Pattern>): Pattern[][] {
+    return getAllWalksStartingFrom(Pattern.UNIVERSAL, patternHierarchy.get(Pattern.UNIVERSAL));
 }
 
 

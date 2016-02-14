@@ -21,7 +21,7 @@ import makeRouteTableHandler from '../../src/routing/make-route-table-handler';
 describe('Constructing a Router instance', () => {
 
     let routeTable: {[pattern: string]: Function} = {
-        '**': () => null, // no-op catch-all rule (this would be implicitly present even if not listed here)
+        //'**': () => null, // no-op catch-all rule (this would be implicitly present even if not listed here)
         '/foo': () => 'foo',
         '/bar': () => 'bar',
         '/baz': () => 'baz',

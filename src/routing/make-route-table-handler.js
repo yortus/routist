@@ -34,11 +34,14 @@ exports.default = makeRouteTableHandler;
 // it. Some patterns may have no such rules. Because:
 // > // patternHierarchy may include some patterns that are not in the route table, such as the always-present root pattern '…', as
 // > // well as patterns synthesized at the intersection of overlapping patterns in the route table.
+// TODO: this next bit may be actually uneccessary? I think... Work it out...
+// - definitely not needed at general end - universalRule is always added there.
+// - at most specialized end? 
 // In such cases we
 // synthesize a single rule whose handler never handles the request. This makes subsequent logic
 // simpler because it can assume there are 1..M rules for each distinct pattern.
 // TODO: add comment about Rule order in result (using tiebreak function).
-function getEqualBestRulesForEachDistinctPattern(distinctPatterns, routeTable) {
+function getEqualBestRulesForEachPattern(distinctPatterns, routeTable) {
     return distinctPatterns.reduce(function (allRulesSoFar, distinctPattern) {
         // Compile the rule list for this pattern from the route table entries.
         var equalBestRulesForPattern = Object.keys(routeTable)
@@ -48,10 +51,11 @@ function getEqualBestRulesForEachDistinctPattern(distinctPatterns, routeTable) {
         // TODO: explain sort... all rules are equal by pattern signature, but we need specificity order.
         // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
         equalBestRulesForPattern.sort(ruleComparator); // NB: may throw
-        // If the route table had no matching rules for this pattern, synthesize one now.
-        if (equalBestRulesForPattern.length === 0) {
-            equalBestRulesForPattern.push({ pattern: distinctPattern, handler: nullHandler });
-        }
+        // TODO: remove? seems unneccessary...
+        // // If the route table had no matching rules for this pattern, synthesize one now.
+        // if (equalBestRulesForPattern.length === 0) {
+        //     equalBestRulesForPattern.push({ pattern: distinctPattern, handler: nullHandler });
+        // }
         // Update the map.
         allRulesSoFar.set(distinctPattern, equalBestRulesForPattern);
         return allRulesSoFar;
@@ -63,33 +67,38 @@ function makeAllPathwayHandlers(patternHierarchy, routeTable) {
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
     // well as patterns synthesized at the intersection of overlapping patterns in the route table.
     var distinctPatterns = util_2.getAllGraphNodes(patternHierarchy);
-    // TODO: ...
-    var allRules = getEqualBestRulesForEachDistinctPattern(distinctPatterns, routeTable);
-    // TODO: ...
-    var patternWalks = walk_pattern_hierarchy_1.default(patternHierarchy, function (path) { return path; });
-    // TODO: ...
-    //     let x = Array.from(allRules.entries()).forEach(([pattern, rules]) => {
-    // 
-    //         // TODO: get all pattern walks ending at the desired pattern.
-    //         let y = patternWalks.filter(pw => pw[pw.length - 1] === pattern);
-    // 
-    // 
-    // 
-    //                 
-    // 
-    // 
-    //     });
-    // TODO: doc...
-    var rulesForPattern = allRules;
+    // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
+    var bestRulesByPattern = getEqualBestRulesForEachPattern(distinctPatterns, routeTable);
     // TODO: for each pattern signature, get the list of rules that match, from least to most specific.
-    var ruleWalks = patternWalks.map(function (pw) { return pw.reduce(function (ruleWalk, pattern) { return ruleWalk.concat(rulesForPattern.get(pattern)); }, []); });
+    // let ruleWalks = walkPatternHierarchy(patternHierarchy).map(pw => pw.reduce(
+    //     (ruleWalk, pattern) => ruleWalk.concat(bestRulesForPattern.get(pattern)),
+    //     [universalRule]
+    // ));
+    var ruleWalksByPattern = walk_pattern_hierarchy_1.default(patternHierarchy).reduce(function (ruleWalksSoFar, patternWalk) {
+        // TODO: the key is the pattern of the last node in the walk
+        var key = patternWalk[patternWalk.length - 1];
+        // TODO: since we are walking a DAG, there may be multiple walks arriving at the same pattern.
+        var ruleWalksForThisPattern = ruleWalksSoFar.get(key);
+        if (!ruleWalksForThisPattern) {
+            ruleWalksForThisPattern = [];
+            ruleWalksSoFar.set(key, ruleWalksForThisPattern);
+        }
+        // TODO: create and add another rule walk for this pattern
+        var value = patternWalk.reduce(function (ruleWalk, pattern) { return ruleWalk.concat(bestRulesByPattern.get(pattern)); }, [universalRule]);
+        ruleWalksForThisPattern.push(value);
+        // TODO: keep accumulating
+        return ruleWalksSoFar;
+    }, new Map());
     // TODO: for each pattern signature, get the ONE path or fail trying...
-    var ruleWalkForPattern = distinctPatterns.reduce(function (map, npat) {
+    var compositeRuleWalkByPattern = distinctPatterns.reduce(function (map, npat) {
+        // TODO: ...
+        var candidates = ruleWalksByPattern.get(npat);
+        //was...
         // TODO: inefficient! review this...
-        var candidates = ruleWalks.filter(function (ruleWalk) {
-            var lastRule = ruleWalk[ruleWalk.length - 1];
-            return lastRule.pattern.normalized === npat.normalized;
-        });
+        // let candidates = ruleWalks.filter(ruleWalk => {
+        //     let lastRule = ruleWalk[ruleWalk.length - 1];
+        //     return lastRule.pattern.normalized === npat.normalized;
+        // });
         // TODO: ... simple case... explain...
         if (candidates.length === 1) {
             map.set(npat, candidates[0]);
@@ -124,7 +133,7 @@ function makeAllPathwayHandlers(patternHierarchy, routeTable) {
     // reduce each signature's rule walk down to a simple handler function.
     var noMore = function (request) { return null; };
     var routes = distinctPatterns.reduce(function (map, npat) {
-        var ruleWalk = ruleWalkForPattern.get(npat);
+        var ruleWalk = compositeRuleWalkByPattern.get(npat);
         var name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
         return map.set(npat, make_pathway_handler_1.default(ruleWalk));
     }, new Map());
@@ -132,6 +141,8 @@ function makeAllPathwayHandlers(patternHierarchy, routeTable) {
 }
 // TODO: doc...
 var nullHandler = function __nullHandler__(request) { return null; };
+// TODO: doc...
+var universalRule = { pattern: pattern_1.default.UNIVERSAL, handler: nullHandler };
 // TODO: doc...
 // TODO: improve error message/handling in here...
 function ruleComparator(ruleA, ruleB) {

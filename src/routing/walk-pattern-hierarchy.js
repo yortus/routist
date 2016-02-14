@@ -1,5 +1,6 @@
 'use strict';
 var pattern_1 = require('../patterns/pattern');
+// TODO: review all docs in here... function signatures were changed (callback removed)
 /**
  * Enumerates every possible walk[1] in the `patternHierarchy` DAG that begins at the root Pattern
  * and ends at any Pattern reachable from the root. The provided `callback` function is called once
@@ -10,9 +11,8 @@ var pattern_1 = require('../patterns/pattern');
  * @param {(path: Pattern[]) => T} callback - the function to be called once for each walk.
  * @returns an array of the return values from each invocation of `callback`.
  */
-function walkPatternHierarchy(patternHierarchy, callback) {
-    var walks = getAllWalksStartingFrom(pattern_1.default.UNIVERSAL, patternHierarchy.get(pattern_1.default.UNIVERSAL));
-    return walks.map(callback);
+function walkPatternHierarchy(patternHierarchy) {
+    return getAllWalksStartingFrom(pattern_1.default.UNIVERSAL, patternHierarchy.get(pattern_1.default.UNIVERSAL));
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = walkPatternHierarchy;

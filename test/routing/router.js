@@ -14,7 +14,7 @@ var make_route_table_handler_1 = require('../../src/routing/make-route-table-han
 // - decorators along ambiguous paths (not same decorators on all paths)
 describe('Constructing a Router instance', function () {
     var routeTable = {
-        '**': function () { return null; },
+        //'**': () => null, // no-op catch-all rule (this would be implicitly present even if not listed here)
         '/foo': function () { return 'foo'; },
         '/bar': function () { return 'bar'; },
         '/baz': function () { return 'baz'; },
