@@ -152,7 +152,7 @@
 // 
 // 
 // /** Helper function that converts a Graph<Pattern> to a simple nested object with pattern sources for keys */
-// function mapToObj(map: Graph<any>) {
+// function mapToObj(map: Graph<any>): {} {
 //     let patterns = Array.from(map.keys());
 //     return patterns.reduce((obj, pat) => (obj[pat.source] = mapToObj(map.get(pat)), obj), {});
 // }
