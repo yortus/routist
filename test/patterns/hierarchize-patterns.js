@@ -14,13 +14,11 @@ describe('Hierarchizing a set of patterns', function () {
                 '/foo/bar'
             ],
             hierarchy: {
-                "…": {
-                    "/…": {
-                        "/foo/*": {
-                            "/foo/bar": {}
-                        },
-                        "/bar/*": {}
-                    }
+                "/…": {
+                    "/foo/*": {
+                        "/foo/bar": {}
+                    },
+                    "/bar/*": {}
                 }
             }
         },
@@ -55,73 +53,71 @@ describe('Hierarchizing a set of patterns', function () {
                 '/*z/b',
             ],
             hierarchy: {
-                "…": {
-                    "a*": {
-                        "a*m*": {
-                            "a*m*z": {}
-                        },
-                        "a*z": {
-                            "a*m*z": {}
-                        }
+                "a*": {
+                    "a*m*": {
+                        "a*m*z": {}
                     },
-                    "*m*": {
-                        "a*m*": {
-                            "a*m*z": {}
-                        },
-                        "*m*z": {
-                            "a*m*z": {}
-                        }
+                    "a*z": {
+                        "a*m*z": {}
+                    }
+                },
+                "*m*": {
+                    "a*m*": {
+                        "a*m*z": {}
                     },
-                    "*z": {
-                        "a*z": {
-                            "a*m*z": {}
-                        },
-                        "*m*z": {
-                            "a*m*z": {}
-                        }
+                    "*m*z": {
+                        "a*m*z": {}
+                    }
+                },
+                "*z": {
+                    "a*z": {
+                        "a*m*z": {}
                     },
-                    "/*": {
-                        "/bar": {},
-                        "/*o*o*": {
-                            "/foo": {},
-                            "/*o*o*.html": {}
-                        }
+                    "*m*z": {
+                        "a*m*z": {}
+                    }
+                },
+                "/*": {
+                    "/bar": {},
+                    "/*o*o*": {
+                        "/foo": {},
+                        "/*o*o*.html": {}
+                    }
+                },
+                "/…o…o…": {
+                    "/*o*o*": {
+                        "/foo": {},
+                        "/*o*o*.html": {}
                     },
-                    "/…o…o…": {
-                        "/*o*o*": {
-                            "/foo": {},
-                            "/*o*o*.html": {}
-                        },
-                        "/…o…o….html": {
-                            "/*o*o*.html": {},
-                            "/foo/*.html": {},
-                            "/a/*o*o*.html": {}
-                        },
-                        "/a/*o*o*": {
-                            "/a/*o*o*.html": {}
-                        },
-                        "/*o*o*/b": {
-                            "/*o*o*z/b": {}
-                        }
+                    "/…o…o….html": {
+                        "/*o*o*.html": {},
+                        "/foo/*.html": {},
+                        "/a/*o*o*.html": {}
                     },
-                    "/a/*": {
-                        "/a/*o*o*": {
-                            "/a/*o*o*.html": {}
-                        },
-                        "/a/b": {}
+                    "/a/*o*o*": {
+                        "/a/*o*o*.html": {}
                     },
-                    "/*/b": {
-                        "/*o*o*/b": {
-                            "/*o*o*z/b": {}
-                        },
-                        "/a/b": {},
-                        "/*z/b": {
-                            "/*o*o*z/b": {}
-                        }
+                    "/*o*o*/b": {
+                        "/*o*o*z/b": {}
+                    }
+                },
+                "/a/*": {
+                    "/a/*o*o*": {
+                        "/a/*o*o*.html": {}
                     },
+                    "/a/b": {}
+                },
+                "/*/b": {
+                    "/*o*o*/b": {
+                        "/*o*o*z/b": {}
+                    },
+                    "/a/b": {},
                     "/*z/b": {
                         "/*o*o*z/b": {}
                     }
+                },
+                "/*z/b": {
+                    "/*o*o*z/b": {}
                 }
             }
         }
@@ -132,7 +128,7 @@ describe('Hierarchizing a set of patterns', function () {
             var expected = test.hierarchy;
             var actual;
             try {
-                actual = mapToObj(hierarchize_patterns_1.default(patterns));
+                actual = nodeToObj(hierarchize_patterns_1.default(patterns));
             }
             catch (ex) {
                 actual = 'ERROR: ' + ex.message;
@@ -144,9 +140,8 @@ describe('Hierarchizing a set of patterns', function () {
         });
     });
 });
-/** Helper function that converts a Graph<Pattern> to a simple nested object with pattern sources for keys */
-function mapToObj(map) {
-    var patterns = Array.from(map.keys());
-    return patterns.reduce(function (obj, pat) { return (obj[pat.source] = mapToObj(map.get(pat)), obj); }, {});
+/** Helper function that converts a PatternNode to a simple nested object with pattern sources for keys */
+function nodeToObj(node) {
+    return node.children.reduce(function (obj, node) { return (obj[node.pattern.toString()] = nodeToObj(node), obj); }, {});
 }
 //# sourceMappingURL=hierarchize-patterns.js.map

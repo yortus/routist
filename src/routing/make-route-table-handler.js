@@ -65,7 +65,7 @@ function makeAllPathwayHandlers(patternHierarchy, routeTable) {
     // well as patterns synthesized at the intersection of overlapping patterns in the route table.
     var distinctPatterns = util_2.getAllGraphNodes(patternHierarchy);
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
-    var bestRulesByPattern = distinctPatterns.reduce(function (map, pattern) { return map.set(pattern, getEqualBestRulesForPattern(pattern, routeTable)); }, new Map());
+    var bestRulesByPattern = distinctPatterns.reduce(function (map, node) { return map.set(node.pattern, getEqualBestRulesForPattern(node.pattern, routeTable)); }, new Map());
     var ruleWalksByPattern = walk_pattern_hierarchy_1.default(patternHierarchy).reduce(function (ruleWalksSoFar, patternWalk) {
         // TODO: the key is the pattern of the last node in the walk
         var key = patternWalk[patternWalk.length - 1];
@@ -84,7 +84,7 @@ function makeAllPathwayHandlers(patternHierarchy, routeTable) {
     // TODO: for each pattern signature, get the ONE path or fail trying...
     var compositeRuleWalkByPattern = distinctPatterns.reduce(function (map, npat) {
         // TODO: ...
-        var candidates = ruleWalksByPattern.get(npat);
+        var candidates = ruleWalksByPattern.get(npat.pattern);
         //was...
         // TODO: inefficient! review this...
         // let candidates = ruleWalks.filter(ruleWalk => {
@@ -93,7 +93,7 @@ function makeAllPathwayHandlers(patternHierarchy, routeTable) {
         // });
         // TODO: ... simple case... explain...
         if (candidates.length === 1) {
-            map.set(npat, candidates[0]);
+            map.set(npat.pattern, candidates[0]);
             return map;
         }
         // Find the longest common prefix and suffix of all the candidates.
@@ -111,23 +111,23 @@ function makeAllPathwayHandlers(patternHierarchy, routeTable) {
         // Synthesize a 'crasher' rule that throws an 'ambiguous' error.
         var ambiguousFallbacks = candidates.map(function (cand) { return cand[cand.length - suffix.length - 1]; });
         var crasher = {
-            pattern: npat,
+            pattern: npat.pattern,
             handler: function crasher(request) {
                 // TODO: improve error message/handling
                 throw new Error("Multiple possible fallbacks from '" + npat + ": " + ambiguousFallbacks.map(function (fn) { return fn.toString(); }));
             }
         };
         // final composite rule: splice of common prefix + crasher + common suffix
-        map.set(npat, [].concat(prefix, crasher, suffix));
+        map.set(npat.pattern, [].concat(prefix, crasher, suffix));
         return map;
     }, new Map());
     //console.log(handlerWalkForPattern);
     // reduce each signature's rule walk down to a simple handler function.
     var noMore = function (request) { return null; };
     var routes = distinctPatterns.reduce(function (map, npat) {
-        var ruleWalk = compositeRuleWalkByPattern.get(npat);
+        var ruleWalk = compositeRuleWalkByPattern.get(npat.pattern);
         var name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
-        return map.set(npat, make_pathway_handler_1.default(ruleWalk));
+        return map.set(npat.pattern, make_pathway_handler_1.default(ruleWalk));
     }, new Map());
     return routes;
 }

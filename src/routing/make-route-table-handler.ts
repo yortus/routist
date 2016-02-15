@@ -1,9 +1,9 @@
 'use strict';
 import * as assert from 'assert';
 import {inspect} from 'util';
-import {Graph, getAllGraphNodes, getLongestCommonPrefix} from '../util';
+import {getAllGraphNodes, getLongestCommonPrefix} from '../util';
 import {Handler, Route, RouteTable, Rule} from './types';
-import hierarchizePatterns from '../patterns/hierarchize-patterns';
+import hierarchizePatterns, {PatternNode} from '../patterns/hierarchize-patterns';
 import isPartialHandler from './is-partial-handler';
 import makeDispatcher from './make-dispatcher';
 import makePathwayHandler from './make-pathway-handler';
@@ -89,7 +89,7 @@ function getAllRoutesToPattern(normalizedPattern: Pattern, bestRulesByPattern: M
 
 
 // TODO: ...
-function makeAllPathwayHandlers(patternHierarchy: Graph<Pattern>, routeTable: RouteTable): Map<Pattern, Handler> {
+function makeAllPathwayHandlers(patternHierarchy: PatternNode, routeTable: RouteTable): Map<Pattern, Handler> {
 
     // Get a list of all the distinct patterns that occur in the pattern hierarchy. This may include
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
@@ -99,7 +99,7 @@ function makeAllPathwayHandlers(patternHierarchy: Graph<Pattern>, routeTable: Ro
 
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
     let bestRulesByPattern = distinctPatterns.reduce(
-        (map, pattern) => map.set(pattern, getEqualBestRulesForPattern(pattern, routeTable)),
+        (map, node) => map.set(node.pattern, getEqualBestRulesForPattern(node.pattern, routeTable)),
         new Map<Pattern, Rule[]>()
     );
 
@@ -144,7 +144,7 @@ function makeAllPathwayHandlers(patternHierarchy: Graph<Pattern>, routeTable: Ro
     let compositeRuleWalkByPattern = distinctPatterns.reduce((map, npat) => {
 
         // TODO: ...
-        let candidates = ruleWalksByPattern.get(npat);
+        let candidates = ruleWalksByPattern.get(npat.pattern);
         //was...
         // TODO: inefficient! review this...
         // let candidates = ruleWalks.filter(ruleWalk => {
@@ -154,7 +154,7 @@ function makeAllPathwayHandlers(patternHierarchy: Graph<Pattern>, routeTable: Ro
 
         // TODO: ... simple case... explain...
         if (candidates.length === 1) {
-            map.set(npat, candidates[0]);
+            map.set(npat.pattern, candidates[0]);
             return map;
         }
 
@@ -175,7 +175,7 @@ function makeAllPathwayHandlers(patternHierarchy: Graph<Pattern>, routeTable: Ro
         // Synthesize a 'crasher' rule that throws an 'ambiguous' error.
         let ambiguousFallbacks = candidates.map(cand => cand[cand.length - suffix.length - 1]);
         let crasher: Rule = {
-            pattern: npat,
+            pattern: npat.pattern,
             handler: function crasher(request): any {
                 // TODO: improve error message/handling
                 throw new Error(`Multiple possible fallbacks from '${npat}: ${ambiguousFallbacks.map(fn => fn.toString())}`);
@@ -183,7 +183,7 @@ function makeAllPathwayHandlers(patternHierarchy: Graph<Pattern>, routeTable: Ro
         };
 
         // final composite rule: splice of common prefix + crasher + common suffix
-        map.set(npat, [].concat(prefix, crasher, suffix));
+        map.set(npat.pattern, [].concat(prefix, crasher, suffix));
         return map;
     }, new Map<Pattern, Rule[]>());
 //console.log(handlerWalkForPattern);
@@ -192,9 +192,9 @@ function makeAllPathwayHandlers(patternHierarchy: Graph<Pattern>, routeTable: Ro
     // reduce each signature's rule walk down to a simple handler function.
     const noMore: Handler = request => null;
     let routes = distinctPatterns.reduce((map, npat) => {
-        let ruleWalk = compositeRuleWalkByPattern.get(npat);
+        let ruleWalk = compositeRuleWalkByPattern.get(npat.pattern);
         let name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
-        return map.set(npat, makePathwayHandler(ruleWalk));
+        return map.set(npat.pattern, makePathwayHandler(ruleWalk));
     }, new Map<Pattern, Handler>());
 
     return routes;

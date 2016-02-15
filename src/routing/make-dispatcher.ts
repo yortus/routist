@@ -1,7 +1,8 @@
 'use strict';
-import {Graph, getAllGraphNodes} from '../util';
+import {getAllGraphNodes} from '../util';
 import makePatternIdentifier from './make-pattern-identifier';
 import Pattern from '../patterns/pattern';
+import {PatternNode} from '../patterns/hierarchize-patterns';
 // TODO: factor/reduce repeated makePatternIdentifier calls...
 
 
@@ -11,21 +12,21 @@ import Pattern from '../patterns/pattern';
 // TODO: ...
 // TODO: construct patternHierarchy from targets? ie don't need it as parameter, can calc it
 // TODO: shorten sig to < 120chars
-export default function makeDispatcher<T>(patternHierarchy: Graph<Pattern>, targetMap: Map<Pattern, T>): (address: string) => T {
+export default function makeDispatcher<T>(patternHierarchy: PatternNode, targetMap: Map<Pattern, T>): (address: string) => T {
 
     // TODO: ...
-    let patterns = getAllGraphNodes(patternHierarchy);
+    let patterns = getAllGraphNodes(patternHierarchy).map(node => node.pattern);
     let targets = patterns.map(pat => targetMap.get(pat));
 
     // TODO: doc...
-    function getBody(specializations: Graph<Pattern>, fallback: Pattern, nestDepth: number): string {
+    function getBody(specializations: PatternNode[], fallback: Pattern, nestDepth: number): string {
         let indent = ' '.repeat(nestDepth * 4);
-        let firstLines = Array.from(specializations.keys()).map((spec, i) => {
-            let nextLevel = specializations.get(spec);
-            let isLeaf = nextLevel.size === 0;
-            let id = makePatternIdentifier(spec);
+        let firstLines = specializations.map((spec, i) => {
+            let nextLevel = spec.children;
+            let isLeaf = nextLevel.length === 0;
+            let id = makePatternIdentifier(spec.pattern);
             let condition = `${indent}${i > 0 ? 'else ' : ''}if (matches_${id}(address)) `;
-            let consequent = isLeaf ? `return _${id};\n` : `{\n${getBody(nextLevel, spec, nestDepth + 1)}${indent}}\n`; // TODO: shorten to <120
+            let consequent = isLeaf ? `return _${id};\n` : `{\n${getBody(nextLevel, spec.pattern, nestDepth + 1)}${indent}}\n`; // TODO: shorten to <120
             return condition + consequent;
         });
         let lastLine = `${indent}return _${makePatternIdentifier(fallback)};\n`;
@@ -38,7 +39,7 @@ export default function makeDispatcher<T>(patternHierarchy: Graph<Pattern>, targ
         ...patterns.map((pat, i) => `let _${makePatternIdentifier(pat)} = targets[${i}];\n`),
         '',
         'return function dispatch(address) {',
-        getBody(patternHierarchy.get(Pattern.UNIVERSAL), Pattern.UNIVERSAL, 1),
+        getBody(patternHierarchy.children, Pattern.UNIVERSAL, 1),
         '};'
     ];
 // console.log(lines);

@@ -8,17 +8,17 @@ var pattern_1 = require('../patterns/pattern');
 // TODO: shorten sig to < 120chars
 function makeDispatcher(patternHierarchy, targetMap) {
     // TODO: ...
-    var patterns = util_1.getAllGraphNodes(patternHierarchy);
+    var patterns = util_1.getAllGraphNodes(patternHierarchy).map(function (node) { return node.pattern; });
     var targets = patterns.map(function (pat) { return targetMap.get(pat); });
     // TODO: doc...
     function getBody(specializations, fallback, nestDepth) {
         var indent = ' '.repeat(nestDepth * 4);
-        var firstLines = Array.from(specializations.keys()).map(function (spec, i) {
-            var nextLevel = specializations.get(spec);
-            var isLeaf = nextLevel.size === 0;
-            var id = make_pattern_identifier_1.default(spec);
+        var firstLines = specializations.map(function (spec, i) {
+            var nextLevel = spec.children;
+            var isLeaf = nextLevel.length === 0;
+            var id = make_pattern_identifier_1.default(spec.pattern);
             var condition = "" + indent + (i > 0 ? 'else ' : '') + "if (matches_" + id + "(address)) ";
-            var consequent = isLeaf ? "return _" + id + ";\n" : "{\n" + getBody(nextLevel, spec, nestDepth + 1) + indent + "}\n"; // TODO: shorten to <120
+            var consequent = isLeaf ? "return _" + id + ";\n" : "{\n" + getBody(nextLevel, spec.pattern, nestDepth + 1) + indent + "}\n"; // TODO: shorten to <120
             return condition + consequent;
         });
         var lastLine = indent + "return _" + make_pattern_identifier_1.default(fallback) + ";\n";
@@ -28,7 +28,7 @@ function makeDispatcher(patternHierarchy, targetMap) {
     var lines = patterns.map(function (pat, i) { return ("let matches_" + make_pattern_identifier_1.default(pat) + " = patterns[" + i + "].match;\n"); }).concat(patterns.map(function (pat, i) { return ("let _" + make_pattern_identifier_1.default(pat) + " = targets[" + i + "];\n"); }), [
         '',
         'return function dispatch(address) {',
-        getBody(patternHierarchy.get(pattern_1.default.UNIVERSAL), pattern_1.default.UNIVERSAL, 1),
+        getBody(patternHierarchy.children, pattern_1.default.UNIVERSAL, 1),
         '};'
     ]);
     // console.log(lines);

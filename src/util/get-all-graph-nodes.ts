@@ -1,13 +1,14 @@
 'use strict';
-import Graph from './graph';
+import {PatternNode} from '../patterns/hierarchize-patterns';
+// TODO: this don't belong in util since it calls out to ../patterns
 
 
 
 
 
 /** Returns all the nodes that comprise the given graph. */
-export default function getAllGraphNodes<T>(graph: Graph<T>): T[] {
-    let allNodes = new Set<T>();
+export default function getAllGraphNodes(graph: PatternNode): PatternNode[] {
+    let allNodes = new Set<PatternNode>();
     collectAllGraphNodes(graph, allNodes);
     return Array.from(allNodes.values());
 }
@@ -17,14 +18,17 @@ export default function getAllGraphNodes<T>(graph: Graph<T>): T[] {
 
 
 /** Helper function that recurses over the graph without revisiting already-visited nodes. */
-function collectAllGraphNodes<T>(node: Graph<T>, allNodes: Set<T>) {
+function collectAllGraphNodes(node: PatternNode, allNodes: Set<PatternNode>) {
+
+    // TODO: temp testing... rearranged...
+    allNodes.add(node);
 
     // Get all as-yet-unvisited child nodes of the given node.
-    let childNodes = Array.from(node.keys()).filter(childNode => !allNodes.has(childNode));
+    let childNodes = node.children.filter(childNode => !allNodes.has(childNode));
 
     // Visit each child recursively, adding all unvisited nodes to allNodes.
     childNodes.forEach(childNode => {
-        allNodes.add(childNode);
-        collectAllGraphNodes(node.get(childNode), allNodes);
+        // TODO: was... remove... allNodes.add(childNode);
+        collectAllGraphNodes(childNode, allNodes);
     });
 }

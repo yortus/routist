@@ -1,7 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import hierarchizePatterns from '../../src/patterns/hierarchize-patterns';
-import {Graph} from '../../src/util';
+import hierarchizePatterns, {PatternNode} from '../../src/patterns/hierarchize-patterns';
 import Pattern from '../../src/patterns/pattern';
 
 
@@ -18,13 +17,11 @@ describe('Hierarchizing a set of patterns', () => {
                 '/foo/bar'
             ],
             hierarchy: {
-                "…": {
-                    "/…": {
-                        "/foo/*": {
-                            "/foo/bar": {}
-                        },
-                        "/bar/*": {}
-                    }
+                "/…": {
+                    "/foo/*": {
+                        "/foo/bar": {}
+                    },
+                    "/bar/*": {}
                 }
             }
         },
@@ -59,73 +56,71 @@ describe('Hierarchizing a set of patterns', () => {
                 '/*z/b',
             ],
             hierarchy: {
-                "…": {
-                    "a*": {
-                        "a*m*": {
-                            "a*m*z": {}
-                        },
-                        "a*z": {
-                            "a*m*z": {}
-                        }
+                "a*": {
+                    "a*m*": {
+                        "a*m*z": {}
                     },
-                    "*m*": {
-                        "a*m*": {
-                            "a*m*z": {}
-                        },
-                        "*m*z": {
-                            "a*m*z": {}
-                        }
+                    "a*z": {
+                        "a*m*z": {}
+                    }
+                },
+                "*m*": {
+                    "a*m*": {
+                        "a*m*z": {}
                     },
-                    "*z": {
-                        "a*z": {
-                            "a*m*z": {}
-                        },
-                        "*m*z": {
-                            "a*m*z": {}
-                        }
+                    "*m*z": {
+                        "a*m*z": {}
+                    }
+                },
+                "*z": {
+                    "a*z": {
+                        "a*m*z": {}
                     },
-                    "/*": {
-                        "/bar": {},
-                        "/*o*o*": {
-                            "/foo": {},
-                            "/*o*o*.html": {}
-                        }
+                    "*m*z": {
+                        "a*m*z": {}
+                    }
+                },
+                "/*": {
+                    "/bar": {},
+                    "/*o*o*": {
+                        "/foo": {},
+                        "/*o*o*.html": {}
+                    }
+                },
+                "/…o…o…": {
+                    "/*o*o*": {
+                        "/foo": {},
+                        "/*o*o*.html": {}
                     },
-                    "/…o…o…": {
-                        "/*o*o*": {
-                            "/foo": {},
-                            "/*o*o*.html": {}
-                        },
-                        "/…o…o….html": {
-                            "/*o*o*.html": {},
-                            "/foo/*.html": {},
-                            "/a/*o*o*.html": {}
-                        },
-                        "/a/*o*o*": {
-                            "/a/*o*o*.html": {}
-                        },
-                        "/*o*o*/b": {
-                            "/*o*o*z/b": {}
-                        }
+                    "/…o…o….html": {
+                        "/*o*o*.html": {},
+                        "/foo/*.html": {},
+                        "/a/*o*o*.html": {}
                     },
-                    "/a/*": {
-                        "/a/*o*o*": {
-                            "/a/*o*o*.html": {}
-                        },
-                        "/a/b": {}
+                    "/a/*o*o*": {
+                        "/a/*o*o*.html": {}
                     },
-                    "/*/b": {
-                        "/*o*o*/b": {
-                            "/*o*o*z/b": {}
-                        },
-                        "/a/b": {},
-                        "/*z/b": {
-                            "/*o*o*z/b": {}
-                        }
+                    "/*o*o*/b": {
+                        "/*o*o*z/b": {}
+                    }
+                },
+                "/a/*": {
+                    "/a/*o*o*": {
+                        "/a/*o*o*.html": {}
                     },
+                    "/a/b": {}
+                },
+                "/*/b": {
+                    "/*o*o*/b": {
+                        "/*o*o*z/b": {}
+                    },
+                    "/a/b": {},
                     "/*z/b": {
                         "/*o*o*z/b": {}
                     }
+                },
+                "/*z/b": {
+                    "/*o*o*z/b": {}
                 }
             }
         }
@@ -137,7 +132,7 @@ describe('Hierarchizing a set of patterns', () => {
             let expected: any = test.hierarchy;
             let actual: any;
             try {
-                actual = mapToObj(hierarchizePatterns(patterns));
+                actual = nodeToObj(hierarchizePatterns(patterns));
             }
             catch (ex) {
                 actual = 'ERROR: ' + ex.message;
@@ -151,8 +146,7 @@ describe('Hierarchizing a set of patterns', () => {
 });
 
 
-/** Helper function that converts a Graph<Pattern> to a simple nested object with pattern sources for keys */
-function mapToObj(map: Graph<any>): {} {
-    let patterns = Array.from(map.keys());
-    return patterns.reduce((obj, pat) => (obj[pat.source] = mapToObj(map.get(pat)), obj), {});
+/** Helper function that converts a PatternNode to a simple nested object with pattern sources for keys */
+function nodeToObj(node: PatternNode): {} {
+    return node.children.reduce((obj, node) => (obj[node.pattern.toString()] = nodeToObj(node), obj), {});
 }

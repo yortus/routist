@@ -1,6 +1,33 @@
 'use strict';
+var assert = require('assert');
 var intersect_patterns_1 = require('./intersect-patterns');
 var pattern_1 = require('./pattern');
+// TODO: review all docs below after data structure changes
+// TODO: temp testing
+var PatternNode = (function () {
+    function PatternNode(pattern) {
+        this.pattern = pattern;
+        this.parents = [];
+        this.children = [];
+    }
+    PatternNode.prototype.hasChild = function (childNode) {
+        return this.children.indexOf(childNode) !== -1;
+    };
+    PatternNode.prototype.addChild = function (childNode) {
+        // NB: If the child is already there, make this a no-op.
+        if (this.hasChild(childNode))
+            return;
+        this.children.push(childNode);
+        childNode.parents.push(this);
+    };
+    PatternNode.prototype.removeChild = function (childNode) {
+        assert(this.hasChild(childNode));
+        this.children.splice(this.children.indexOf(childNode), 1);
+        childNode.parents.splice(childNode.parents.indexOf(this), 1);
+    };
+    return PatternNode;
+}());
+exports.PatternNode = PatternNode;
 /**
  * Arranges the given list of patterns into a directed acyclic graph (DAG), according to their set
  * relationships (recall that each pattern represents a set of addresses). The arrangement is akin
@@ -37,10 +64,10 @@ function hierarchizePatterns(patterns) {
     var allNodes = new Map();
     var nodeFor = function (pattern) {
         var node = allNodes.get(pattern);
-        if (node)
-            return node;
-        node = new Map();
-        allNodes.set(pattern, node);
+        if (!node) {
+            node = new PatternNode(pattern);
+            allNodes.set(pattern, node);
+        }
         return node;
     };
     // Insert each of the given patterns (except '…' and '∅') into a DAG rooted at '…'.
@@ -48,7 +75,7 @@ function hierarchizePatterns(patterns) {
         .filter(function (p) { return p !== pattern_1.default.UNIVERSAL && p !== pattern_1.default.EMPTY; })
         .forEach(function (p) { return insert(p, pattern_1.default.UNIVERSAL, nodeFor); });
     // Return a new top-level node with the single key '…'.
-    return new Map().set(pattern_1.default.UNIVERSAL, nodeFor(pattern_1.default.UNIVERSAL));
+    return nodeFor(pattern_1.default.UNIVERSAL);
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = hierarchizePatterns;
@@ -64,17 +91,18 @@ exports.default = hierarchizePatterns;
 function insert(insertee, ancestor, nodeFor) {
     // Compute information about all the existing child patterns of the `ancestor` pattern.
     // NB: we only care about the ones that are non-disjoint with `insertee`.
-    var nonDisjointComparands = Array.from(nodeFor(ancestor).keys())
+    var nonDisjointComparands = nodeFor(ancestor).children
+        .map(function (node) { return node.pattern; })
         .map(function (pattern) { return ({ pattern: pattern, intersection: intersect_patterns_1.default(insertee, pattern) }); })
         .filter(function (cmp) { return cmp.intersection !== pattern_1.default.EMPTY; });
     // If the `ancestor` pattern has no existing child patterns that are non-disjoint
     // with `insertee`, then we simply add `insertee` as a direct child of `ancestor`.
     if (nonDisjointComparands.length === 0) {
-        nodeFor(ancestor).set(insertee, nodeFor(insertee));
+        nodeFor(ancestor).addChild(nodeFor(insertee));
     }
     // If `insertee` already exists as a direct subset of `ancestor` at this point
     // (including if it was just added above), then we are done.
-    if (nodeFor(ancestor).has(insertee))
+    if (nodeFor(ancestor).hasChild(nodeFor(insertee)))
         return;
     // `insertee` has subset/superset/overlapping relationships with one or more of
     // `ancestor`'s existing child patterns. Work out how and where to insert it.
@@ -84,11 +112,11 @@ function insert(insertee, ancestor, nodeFor) {
         var isOverlappingComparand = !isSubsetOfComparand && !isSupersetOfComparand;
         if (isSupersetOfComparand) {
             // Remove the comparand from `ancestor`. It will be re-inserted as a subset of `insertee` below.
-            nodeFor(ancestor).delete(comparand.pattern);
+            nodeFor(ancestor).removeChild(nodeFor(comparand.pattern));
         }
         if (isSupersetOfComparand || isOverlappingComparand) {
             // Add `insertee` as a direct child of `ancestor`.
-            nodeFor(ancestor).set(insertee, nodeFor(insertee));
+            nodeFor(ancestor).addChild(nodeFor(insertee));
             // Recursively re-insert the comparand (or insert the overlap) as a subset of `insertee`.
             insert(comparand.intersection, insertee, nodeFor);
         }
