@@ -54,7 +54,7 @@ function getEqualBestRulesForPattern(normalizedPattern, routeTable) {
     return rules;
 }
 // TODO: doc...
-function getAllRoutesToPattern(normalizedPattern, bestRuleForPatterns) {
+function getAllRoutesToPattern(normalizedPattern, bestRulesByPattern) {
     // TODO: ...
     throw 1;
 }

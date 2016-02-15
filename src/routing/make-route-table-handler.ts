@@ -77,9 +77,11 @@ function getEqualBestRulesForPattern(normalizedPattern: Pattern, routeTable: Rou
 
 
 // TODO: doc...
-function getAllRoutesToPattern(normalizedPattern: Pattern, bestRuleForPatterns: Map<Pattern, Rule[]>): Route[] {
+function getAllRoutesToPattern(normalizedPattern: Pattern, bestRulesByPattern: Map<Pattern, Rule[]>): Route[] {
     // TODO: ...
     throw 1;
+
+
     
 }
 
