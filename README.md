@@ -3,7 +3,7 @@
 
 ## To Do List
 
-- [ ] add Pattern#intersect, update all call sites (just make-taxonomy)
+- [x] add Pattern#intersect, update all call sites (just make-taxonomy)
 - [ ] create Taxonomy class and/or add /src/taxonomy/index.ts
 - [ ] improve taxonomy test coverage
 - [ ] asyncify Handler#execute

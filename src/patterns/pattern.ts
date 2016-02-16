@@ -1,4 +1,5 @@
 'use strict';
+import intersectPatterns from './intersect-patterns';
 import makePatternMatcher from './make-pattern-matcher';
 import parsePatternSource from './parse-pattern-source';
 
@@ -24,6 +25,7 @@ const normalizedPatternCache = new Map<string, Pattern>();
  * specifically to address recognition. Pattern instances that represent normalized
  * patterns are always singletons. Consult the documentation for information about
  * the pattern DSL used to construct Pattern instances.
+ * NB: All operations on patterns are case-sensitive.
  */
 export default class Pattern {
 
@@ -75,11 +77,24 @@ export default class Pattern {
      * Attempts to match a given address against this pattern. If the match is successful, an
      * object is returned containing the name/value pairs for each named capture in the pattern.
      * If the match fails, the return value is null.
-     * NB: The matching operation is case-sensitive.
      * @param {string} address - the address to match against this pattern.
      * @returns {Object} null if the match failed, otherwise a hash of captured name/value pairs.
      */
     match: (address: string) => {[captureName: string]: string};
+
+
+    /**
+     * Returns a new pattern that matches all the addresses that are matched by *both* this
+     * pattern and the `other` pattern. Returns the empty pattern '∅' if there are no addresses
+     * matched by both patterns. Throws an error if the intersection cannot be expressed as a
+     * single pattern. The resulting pattern is guaranteed to be normalized.
+     * @param {Pattern} other - a pattern instance. May or may not be normalized.
+     * @returns {Pattern} - a normalized pattern representing the set of addresses S,
+     *        such that R ∈ S iff R ∈ `this` and R ∈ `other`.
+     */
+    intersect(other: Pattern): Pattern {
+        return intersectPatterns(this, other);
+    }
 
 
     /** The text of the comment portion of the pattern source, or '' if there is no comment. */

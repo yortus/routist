@@ -1,6 +1,5 @@
 'use strict';
 var assert = require('assert');
-var intersect_patterns_1 = require('../patterns/intersect-patterns');
 var pattern_1 = require('../patterns/pattern');
 // TODO: review all docs below after data structure changes
 // TODO: temp testing
@@ -93,7 +92,7 @@ function insert(insertee, ancestor, nodeFor) {
     // NB: we only care about the ones that are non-disjoint with `insertee`.
     var nonDisjointComparands = nodeFor(ancestor).children
         .map(function (node) { return node.pattern; })
-        .map(function (pattern) { return ({ pattern: pattern, intersection: intersect_patterns_1.default(insertee, pattern) }); })
+        .map(function (pattern) { return ({ pattern: pattern, intersection: insertee.intersect(pattern) }); })
         .filter(function (cmp) { return cmp.intersection !== pattern_1.default.EMPTY; });
     // If the `ancestor` pattern has no existing child patterns that are non-disjoint
     // with `insertee`, then we simply add `insertee` as a direct child of `ancestor`.

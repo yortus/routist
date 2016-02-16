@@ -1,6 +1,5 @@
 'use strict';
 import * as assert from 'assert';
-import intersectPatterns from '../patterns/intersect-patterns';
 import Pattern from '../patterns/pattern';
 // TODO: review all docs below after data structure changes
 
@@ -118,7 +117,7 @@ function insert(insertee: Pattern, ancestor: Pattern, nodeFor: (pattern: Pattern
     // NB: we only care about the ones that are non-disjoint with `insertee`.
     let nonDisjointComparands = nodeFor(ancestor).children
         .map(node => node.pattern)
-        .map(pattern => ({ pattern, intersection: intersectPatterns(insertee, pattern) }))
+        .map(pattern => ({ pattern, intersection: insertee.intersect(pattern) }))
         .filter(cmp => cmp.intersection !== Pattern.EMPTY);
 
     // If the `ancestor` pattern has no existing child patterns that are non-disjoint
