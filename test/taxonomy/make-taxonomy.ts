@@ -1,6 +1,7 @@
 'use strict';
 import {expect} from 'chai';
-import makeTaxonomy, {Taxonomy} from '../../src/taxonomy/make-taxonomy';
+import makeTaxonomy from '../../src/taxonomy/make-taxonomy';
+import Taxonomy from '../../src/taxonomy/taxonomy';
 import Pattern from '../../src/pattern';
 
 

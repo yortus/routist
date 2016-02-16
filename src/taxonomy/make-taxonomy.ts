@@ -1,44 +1,7 @@
 'use strict';
-import * as assert from 'assert';
 import Pattern from '../pattern';
+import Taxonomy from './taxonomy';
 // TODO: review all docs below after data structure changes
-
-
-
-
-
-// TODO: temp testing
-export class Taxonomy {
-
-
-    constructor(public pattern: Pattern) { }
-
-
-    parents: Taxonomy[] = [];
-
-
-    children: Taxonomy[] = [];
-
-
-    hasChild(childNode: Taxonomy): boolean {
-        return this.children.indexOf(childNode) !== -1;
-    }
-
-
-    addChild(childNode: Taxonomy) {
-        // NB: If the child is already there, make this a no-op.
-        if (this.hasChild(childNode)) return;
-        this.children.push(childNode);
-        childNode.parents.push(this);
-    }
-
-
-    removeChild(childNode: Taxonomy) {
-        assert(this.hasChild(childNode));
-        this.children.splice(this.children.indexOf(childNode), 1);
-        childNode.parents.splice(childNode.parents.indexOf(this), 1);
-    }
-}
 
 
 

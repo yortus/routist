@@ -1,32 +1,7 @@
 'use strict';
-var assert = require('assert');
 var pattern_1 = require('../pattern');
+var taxonomy_1 = require('./taxonomy');
 // TODO: review all docs below after data structure changes
-// TODO: temp testing
-var Taxonomy = (function () {
-    function Taxonomy(pattern) {
-        this.pattern = pattern;
-        this.parents = [];
-        this.children = [];
-    }
-    Taxonomy.prototype.hasChild = function (childNode) {
-        return this.children.indexOf(childNode) !== -1;
-    };
-    Taxonomy.prototype.addChild = function (childNode) {
-        // NB: If the child is already there, make this a no-op.
-        if (this.hasChild(childNode))
-            return;
-        this.children.push(childNode);
-        childNode.parents.push(this);
-    };
-    Taxonomy.prototype.removeChild = function (childNode) {
-        assert(this.hasChild(childNode));
-        this.children.splice(this.children.indexOf(childNode), 1);
-        childNode.parents.splice(childNode.parents.indexOf(this), 1);
-    };
-    return Taxonomy;
-}());
-exports.Taxonomy = Taxonomy;
 /**
  * Arranges the given list of patterns into a directed acyclic graph (DAG), according to their set
  * relationships (recall that each pattern represents a set of addresses). The arrangement is akin
@@ -64,7 +39,7 @@ function makeTaxonomy(patterns) {
     var nodeFor = function (pattern) {
         var node = allNodes.get(pattern);
         if (!node) {
-            node = new Taxonomy(pattern);
+            node = new taxonomy_1.default(pattern);
             allNodes.set(pattern, node);
         }
         return node;
