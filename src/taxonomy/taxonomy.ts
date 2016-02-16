@@ -16,32 +16,34 @@ export default class Taxonomy {
 
 
     // TODO: doc...
-    parents: Taxonomy[] = [];
+    generalizations: Taxonomy[] = [];
 
 
     // TODO: doc...
-    children: Taxonomy[] = [];
+    specializations: Taxonomy[] = [];
 
 
     // TODO: doc...
-    hasChild(childNode: Taxonomy): boolean {
-        return this.children.indexOf(childNode) !== -1;
+    hasSpecialization(spcialization: Taxonomy): boolean {
+        return this.specializations.indexOf(spcialization) !== -1;
     }
 
 
     // TODO: doc...
-    addChild(childNode: Taxonomy) {
+    // TODO: should be 'internal' to makeTaxonomy...
+    addSpecialization(specialization: Taxonomy) {
         // NB: If the child is already there, make this a no-op.
-        if (this.hasChild(childNode)) return;
-        this.children.push(childNode);
-        childNode.parents.push(this);
+        if (this.hasSpecialization(specialization)) return;
+        this.specializations.push(specialization);
+        specialization.generalizations.push(this);
     }
 
 
     // TODO: doc...
-    removeChild(childNode: Taxonomy) {
-        assert(this.hasChild(childNode));
-        this.children.splice(this.children.indexOf(childNode), 1);
-        childNode.parents.splice(childNode.parents.indexOf(this), 1);
+    // TODO: should be 'internal' to makeTaxonomy...
+    removeSpecialization(specialization: Taxonomy) {
+        assert(this.hasSpecialization(specialization));
+        this.specializations.splice(this.specializations.indexOf(specialization), 1);
+        specialization.generalizations.splice(specialization.generalizations.indexOf(this), 1);
     }
 }

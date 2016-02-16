@@ -7,27 +7,29 @@ var Taxonomy = (function () {
     function Taxonomy(pattern) {
         this.pattern = pattern;
         // TODO: doc...
-        this.parents = [];
+        this.generalizations = [];
         // TODO: doc...
-        this.children = [];
+        this.specializations = [];
     }
     // TODO: doc...
-    Taxonomy.prototype.hasChild = function (childNode) {
-        return this.children.indexOf(childNode) !== -1;
+    Taxonomy.prototype.hasSpecialization = function (spcialization) {
+        return this.specializations.indexOf(spcialization) !== -1;
     };
     // TODO: doc...
-    Taxonomy.prototype.addChild = function (childNode) {
+    // TODO: should be 'internal' to makeTaxonomy...
+    Taxonomy.prototype.addSpecialization = function (specialization) {
         // NB: If the child is already there, make this a no-op.
-        if (this.hasChild(childNode))
+        if (this.hasSpecialization(specialization))
             return;
-        this.children.push(childNode);
-        childNode.parents.push(this);
+        this.specializations.push(specialization);
+        specialization.generalizations.push(this);
     };
     // TODO: doc...
-    Taxonomy.prototype.removeChild = function (childNode) {
-        assert(this.hasChild(childNode));
-        this.children.splice(this.children.indexOf(childNode), 1);
-        childNode.parents.splice(childNode.parents.indexOf(this), 1);
+    // TODO: should be 'internal' to makeTaxonomy...
+    Taxonomy.prototype.removeSpecialization = function (specialization) {
+        assert(this.hasSpecialization(specialization));
+        this.specializations.splice(this.specializations.indexOf(specialization), 1);
+        specialization.generalizations.splice(specialization.generalizations.indexOf(this), 1);
     };
     return Taxonomy;
 }());

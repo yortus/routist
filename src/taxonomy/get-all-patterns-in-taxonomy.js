@@ -13,7 +13,7 @@ function collectAllNodes(node, allNodes) {
     // TODO: temp testing... rearranged...
     allNodes.add(node);
     // Get all as-yet-unvisited child nodes of the given node.
-    var childNodes = node.children.filter(function (childNode) { return !allNodes.has(childNode); });
+    var childNodes = node.specializations.filter(function (childNode) { return !allNodes.has(childNode); });
     // Visit each child recursively, adding all unvisited nodes to allNodes.
     childNodes.forEach(function (childNode) {
         // TODO: was... remove... allNodes.add(childNode);

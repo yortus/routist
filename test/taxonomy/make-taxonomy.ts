@@ -149,5 +149,5 @@ describe('Forming a taxonomy of patterns', () => {
 
 /** Helper function that converts a Taxonomy to a simple nested object with pattern sources for keys */
 function nodeToObj(node: Taxonomy): {} {
-    return node.children.reduce((obj, node) => (obj[node.pattern.toString()] = nodeToObj(node), obj), {});
+    return node.specializations.reduce((obj, node) => (obj[node.pattern.toString()] = nodeToObj(node), obj), {});
 }

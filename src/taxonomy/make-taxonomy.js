@@ -65,18 +65,18 @@ exports.default = makeTaxonomy;
 function insert(insertee, ancestor, nodeFor) {
     // Compute information about all the existing child patterns of the `ancestor` pattern.
     // NB: we only care about the ones that are non-disjoint with `insertee`.
-    var nonDisjointComparands = nodeFor(ancestor).children
+    var nonDisjointComparands = nodeFor(ancestor).specializations
         .map(function (node) { return node.pattern; })
         .map(function (pattern) { return ({ pattern: pattern, intersection: insertee.intersect(pattern) }); })
         .filter(function (cmp) { return cmp.intersection !== pattern_1.default.EMPTY; });
     // If the `ancestor` pattern has no existing child patterns that are non-disjoint
     // with `insertee`, then we simply add `insertee` as a direct child of `ancestor`.
     if (nonDisjointComparands.length === 0) {
-        nodeFor(ancestor).addChild(nodeFor(insertee));
+        nodeFor(ancestor).addSpecialization(nodeFor(insertee));
     }
     // If `insertee` already exists as a direct subset of `ancestor` at this point
     // (including if it was just added above), then we are done.
-    if (nodeFor(ancestor).hasChild(nodeFor(insertee)))
+    if (nodeFor(ancestor).hasSpecialization(nodeFor(insertee)))
         return;
     // `insertee` has subset/superset/overlapping relationships with one or more of
     // `ancestor`'s existing child patterns. Work out how and where to insert it.
@@ -86,11 +86,11 @@ function insert(insertee, ancestor, nodeFor) {
         var isOverlappingComparand = !isSubsetOfComparand && !isSupersetOfComparand;
         if (isSupersetOfComparand) {
             // Remove the comparand from `ancestor`. It will be re-inserted as a subset of `insertee` below.
-            nodeFor(ancestor).removeChild(nodeFor(comparand.pattern));
+            nodeFor(ancestor).removeSpecialization(nodeFor(comparand.pattern));
         }
         if (isSupersetOfComparand || isOverlappingComparand) {
             // Add `insertee` as a direct child of `ancestor`.
-            nodeFor(ancestor).addChild(nodeFor(insertee));
+            nodeFor(ancestor).addSpecialization(nodeFor(insertee));
             // Recursively re-insert the comparand (or insert the overlap) as a subset of `insertee`.
             insert(comparand.intersection, insertee, nodeFor);
         }

@@ -35,7 +35,7 @@ export default function walkTaxonomy(taxonomy: Taxonomy): Pattern[][] {
 function getAllWalksStartingFrom(node: Taxonomy): Pattern[][] {
 
     // Recursively get all possible walks starting from each child node.
-    let childPatterns = node.children;
+    let childPatterns = node.specializations;
     let childWalkLists = childPatterns.map(childPat => getAllWalksStartingFrom(childPat));
 
     // Flatten the list-of-lists produced by the previous map operation, also prepending an empty walk.

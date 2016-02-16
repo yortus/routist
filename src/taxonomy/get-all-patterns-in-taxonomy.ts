@@ -25,7 +25,7 @@ function collectAllNodes(node: Taxonomy, allNodes: Set<Taxonomy>) {
     allNodes.add(node);
 
     // Get all as-yet-unvisited child nodes of the given node.
-    let childNodes = node.children.filter(childNode => !allNodes.has(childNode));
+    let childNodes = node.specializations.filter(childNode => !allNodes.has(childNode));
 
     // Visit each child recursively, adding all unvisited nodes to allNodes.
     childNodes.forEach(childNode => {
