@@ -1,4 +1,5 @@
 'use strict';
+// TODO: review all docs below after data structure changes
 // TODO: review all docs in here... function signatures were changed (callback removed)
 /**
  * Enumerates every possible walk[1] in the `taxonomy` DAG that begins at the root Pattern

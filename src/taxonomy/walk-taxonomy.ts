@@ -1,6 +1,7 @@
 'use strict';
 import Pattern from '../patterns/pattern';
 import {Taxonomy} from './make-taxonomy';
+// TODO: review all docs below after data structure changes
 // TODO: review all docs in here... function signatures were changed (callback removed)
 
 

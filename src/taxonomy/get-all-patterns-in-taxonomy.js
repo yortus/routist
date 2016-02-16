@@ -1,4 +1,5 @@
 'use strict';
+// TODO: review all docs below after data structure changes
 /** Returns all the nodes that comprise the given graph. */
 function getAllPatternsInTaxonomy(taxonomy) {
     var allNodes = new Set();
