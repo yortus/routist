@@ -3,12 +3,12 @@
 
 ## To Do List
 
+- [ ] add Pattern#intersect, update all call sites (just make-taxonomy)
+- [ ] create Taxonomy class and/or add /src/taxonomy/index.ts
+- [ ] improve taxonomy test coverage
 - [ ] asyncify Handler#execute
 - [ ] still need `isPromise`? If not, remove it :( Otherwise find a use for it.
 - [ ] add npmignore
-- [x] change pathname to address throughout
-- [x] introduce 'Rule' interface wherever pattern/handler pairs occur
-- [x] add Route interface. Make one per rule
 
 
 ## The Pattern DSL
