@@ -1,8 +1,8 @@
 'use strict';
 var chai_1 = require('chai');
-var hierarchize_patterns_1 = require('../../src/patterns/hierarchize-patterns');
+var make_taxonomy_1 = require('../../src/taxonomy/make-taxonomy');
 var pattern_1 = require('../../src/patterns/pattern');
-describe('Hierarchizing a set of patterns', function () {
+describe('Forming a taxonomy of patterns', function () {
     var tests = [
         {
             // ======================================== 1. ========================================
@@ -13,7 +13,7 @@ describe('Hierarchizing a set of patterns', function () {
                 '/bar/*',
                 '/foo/bar'
             ],
-            hierarchy: {
+            taxonomy: {
                 "/…": {
                     "/foo/*": {
                         "/foo/bar": {}
@@ -30,7 +30,7 @@ describe('Hierarchizing a set of patterns', function () {
                 'a*',
                 '*a',
             ],
-            hierarchy: 'ERROR: Intersection of *a and a* cannot be expressed as a single pattern...'
+            taxonomy: 'ERROR: Intersection of *a and a* cannot be expressed as a single pattern...'
         },
         {
             // ======================================== 3. ========================================
@@ -52,7 +52,7 @@ describe('Hierarchizing a set of patterns', function () {
                 '/*/b',
                 '/*z/b',
             ],
-            hierarchy: {
+            taxonomy: {
                 "a*": {
                     "a*m*": {
                         "a*m*z": {}
@@ -125,10 +125,10 @@ describe('Hierarchizing a set of patterns', function () {
     tests.forEach(function (test) {
         it(test.name, function () {
             var patterns = test.patterns.map(function (ps) { return new pattern_1.default(ps); });
-            var expected = test.hierarchy;
+            var expected = test.taxonomy;
             var actual;
             try {
-                actual = nodeToObj(hierarchize_patterns_1.default(patterns));
+                actual = nodeToObj(make_taxonomy_1.default(patterns));
             }
             catch (ex) {
                 actual = 'ERROR: ' + ex.message;
@@ -140,8 +140,8 @@ describe('Hierarchizing a set of patterns', function () {
         });
     });
 });
-/** Helper function that converts a PatternNode to a simple nested object with pattern sources for keys */
+/** Helper function that converts a Taxonomy to a simple nested object with pattern sources for keys */
 function nodeToObj(node) {
     return node.children.reduce(function (obj, node) { return (obj[node.pattern.toString()] = nodeToObj(node), obj); }, {});
 }
-//# sourceMappingURL=hierarchize-patterns.js.map
+//# sourceMappingURL=make-taxonomy.js.map

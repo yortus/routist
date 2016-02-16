@@ -1,22 +1,23 @@
 'use strict';
 var assert = require('assert');
 var util_1 = require('util');
+var get_all_graph_nodes_1 = require('../taxonomy/get-all-graph-nodes');
 var util_2 = require('../util');
-var hierarchize_patterns_1 = require('../patterns/hierarchize-patterns');
+var make_taxonomy_1 = require('../taxonomy/make-taxonomy');
 var is_partial_handler_1 = require('./is-partial-handler');
 var make_dispatcher_1 = require('./make-dispatcher');
 var make_pathway_handler_1 = require('./make-pathway-handler');
 var normalize_handler_1 = require('./normalize-handler');
 var pattern_1 = require('../patterns/pattern');
-var walk_pattern_hierarchy_1 = require('./walk-pattern-hierarchy');
+var walk_taxonomy_1 = require('../taxonomy/walk-taxonomy');
 // TODO: doc...
 function makeRouteTableHandler(routeTable) {
     // TODO: ...
-    var patternHierarchy = hierarchize_patterns_1.default(Object.keys(routeTable).map(function (src) { return new pattern_1.default(src); }));
+    var taxonomy = make_taxonomy_1.default(Object.keys(routeTable).map(function (src) { return new pattern_1.default(src); }));
     // TODO: ...
-    var pathwayHandlers = makeAllPathwayHandlers(patternHierarchy, routeTable);
+    var pathwayHandlers = makeAllPathwayHandlers(taxonomy, routeTable);
     // TODO: ...
-    var selectPathwayHandler = make_dispatcher_1.default(patternHierarchy, pathwayHandlers);
+    var selectPathwayHandler = make_dispatcher_1.default(taxonomy, pathwayHandlers);
     // TODO: ...
     function __compiledRouteTable__(request) {
         var address = typeof request === 'string' ? request : request.address;
@@ -32,7 +33,7 @@ exports.default = makeRouteTableHandler;
 // TODO:  make jsdoc...
 // Associate each distinct pattern (ie unique by signature) with the set of rules from the route table that *exactly* match
 // it. Some patterns may have no such rules. Because:
-// > // patternHierarchy may include some patterns that are not in the route table, such as the always-present root pattern '…', as
+// > // `taxonomy` may include some patterns that are not in the route table, such as the always-present root pattern '…', as
 // > // well as patterns synthesized at the intersection of overlapping patterns in the route table.
 // TODO: this next bit may be actually uneccessary? I think... Work it out...
 // - definitely not needed at general end - universalRule is always added there.
@@ -59,14 +60,14 @@ function getAllRoutesToPattern(normalizedPattern, bestRulesByPattern) {
     throw 1;
 }
 // TODO: ...
-function makeAllPathwayHandlers(patternHierarchy, routeTable) {
-    // Get a list of all the distinct patterns that occur in the pattern hierarchy. This may include
+function makeAllPathwayHandlers(taxonomy, routeTable) {
+    // Get a list of all the distinct patterns that occur in the taxonomy. This may include
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
     // well as patterns synthesized at the intersection of overlapping patterns in the route table.
-    var distinctPatterns = util_2.getAllGraphNodes(patternHierarchy);
+    var distinctPatterns = get_all_graph_nodes_1.default(taxonomy);
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
     var bestRulesByPattern = distinctPatterns.reduce(function (map, node) { return map.set(node.pattern, getEqualBestRulesForPattern(node.pattern, routeTable)); }, new Map());
-    var ruleWalksByPattern = walk_pattern_hierarchy_1.default(patternHierarchy).reduce(function (ruleWalksSoFar, patternWalk) {
+    var ruleWalksByPattern = walk_taxonomy_1.default(taxonomy).reduce(function (ruleWalksSoFar, patternWalk) {
         // TODO: the key is the pattern of the last node in the walk
         var key = patternWalk[patternWalk.length - 1];
         // TODO: since we are walking a DAG, there may be multiple walks arriving at the same pattern.

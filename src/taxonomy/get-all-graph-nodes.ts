@@ -1,15 +1,15 @@
 'use strict';
-import {PatternNode} from '../patterns/hierarchize-patterns';
-// TODO: this don't belong in util since it calls out to ../patterns
+import {Taxonomy} from './make-taxonomy';
+// TODO: rename this - it's Taxonomy-specific
 
 
 
 
 
 /** Returns all the nodes that comprise the given graph. */
-export default function getAllGraphNodes(graph: PatternNode): PatternNode[] {
-    let allNodes = new Set<PatternNode>();
-    collectAllGraphNodes(graph, allNodes);
+export default function getAllPatternsInTaxonomy(taxonomy: Taxonomy): Taxonomy[] {
+    let allNodes = new Set<Taxonomy>();
+    collectAllNodes(taxonomy, allNodes);
     return Array.from(allNodes.values());
 }
 
@@ -18,7 +18,7 @@ export default function getAllGraphNodes(graph: PatternNode): PatternNode[] {
 
 
 /** Helper function that recurses over the graph without revisiting already-visited nodes. */
-function collectAllGraphNodes(node: PatternNode, allNodes: Set<PatternNode>) {
+function collectAllNodes(node: Taxonomy, allNodes: Set<Taxonomy>) {
 
     // TODO: temp testing... rearranged...
     allNodes.add(node);
@@ -29,6 +29,6 @@ function collectAllGraphNodes(node: PatternNode, allNodes: Set<PatternNode>) {
     // Visit each child recursively, adding all unvisited nodes to allNodes.
     childNodes.forEach(childNode => {
         // TODO: was... remove... allNodes.add(childNode);
-        collectAllGraphNodes(childNode, allNodes);
+        collectAllNodes(childNode, allNodes);
     });
 }

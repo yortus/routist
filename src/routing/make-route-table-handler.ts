@@ -1,16 +1,17 @@
 'use strict';
 import * as assert from 'assert';
 import {inspect} from 'util';
-import {getAllGraphNodes, getLongestCommonPrefix} from '../util';
+import getAllGraphNodes from '../taxonomy/get-all-graph-nodes';
+import {getLongestCommonPrefix} from '../util';
 import {Handler, Route, RouteTable, Rule} from './types';
-import hierarchizePatterns, {PatternNode} from '../patterns/hierarchize-patterns';
+import makeTaxonomy, {Taxonomy} from '../taxonomy/make-taxonomy';
 import isPartialHandler from './is-partial-handler';
 import makeDispatcher from './make-dispatcher';
 import makePathwayHandler from './make-pathway-handler';
 import normalizeHandler from './normalize-handler';
 import Pattern from '../patterns/pattern';
 import Request from '../request';
-import walkPatternHierarchy from './walk-pattern-hierarchy';
+import walkTaxonomy from '../taxonomy/walk-taxonomy';
 
 
 
@@ -20,13 +21,13 @@ import walkPatternHierarchy from './walk-pattern-hierarchy';
 export default function makeRouteTableHandler(routeTable: {[pattern: string]: Function}) {
 
     // TODO: ...
-    let patternHierarchy = hierarchizePatterns(Object.keys(routeTable).map(src => new Pattern(src)));
+    let taxonomy = makeTaxonomy(Object.keys(routeTable).map(src => new Pattern(src)));
 
     // TODO: ...
-    let pathwayHandlers = makeAllPathwayHandlers(patternHierarchy, routeTable);
+    let pathwayHandlers = makeAllPathwayHandlers(taxonomy, routeTable);
 
     // TODO: ...
-    let selectPathwayHandler = makeDispatcher(patternHierarchy, pathwayHandlers);
+    let selectPathwayHandler = makeDispatcher(taxonomy, pathwayHandlers);
 
     // TODO: ...
     function __compiledRouteTable__(request: Request) {
@@ -46,7 +47,7 @@ export default function makeRouteTableHandler(routeTable: {[pattern: string]: Fu
 // TODO:  make jsdoc...
 // Associate each distinct pattern (ie unique by signature) with the set of rules from the route table that *exactly* match
 // it. Some patterns may have no such rules. Because:
-// > // patternHierarchy may include some patterns that are not in the route table, such as the always-present root pattern '…', as
+// > // `taxonomy` may include some patterns that are not in the route table, such as the always-present root pattern '…', as
 // > // well as patterns synthesized at the intersection of overlapping patterns in the route table.
 
 // TODO: this next bit may be actually uneccessary? I think... Work it out...
@@ -89,12 +90,12 @@ function getAllRoutesToPattern(normalizedPattern: Pattern, bestRulesByPattern: M
 
 
 // TODO: ...
-function makeAllPathwayHandlers(patternHierarchy: PatternNode, routeTable: RouteTable): Map<Pattern, Handler> {
+function makeAllPathwayHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map<Pattern, Handler> {
 
-    // Get a list of all the distinct patterns that occur in the pattern hierarchy. This may include
+    // Get a list of all the distinct patterns that occur in the taxonomy. This may include
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
     // well as patterns synthesized at the intersection of overlapping patterns in the route table.
-    let distinctPatterns = getAllGraphNodes(patternHierarchy);
+    let distinctPatterns = getAllGraphNodes(taxonomy);
 
 
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
@@ -107,7 +108,7 @@ function makeAllPathwayHandlers(patternHierarchy: PatternNode, routeTable: Route
 
 
 
-    let ruleWalksByPattern = walkPatternHierarchy(patternHierarchy).reduce(
+    let ruleWalksByPattern = walkTaxonomy(taxonomy).reduce(
         (ruleWalksSoFar, patternWalk) => {
 
             // TODO: the key is the pattern of the last node in the walk

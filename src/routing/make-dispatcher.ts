@@ -1,8 +1,8 @@
 'use strict';
-import {getAllGraphNodes} from '../util';
+import getAllGraphNodes from '../taxonomy/get-all-graph-nodes';
 import makePatternIdentifier from './make-pattern-identifier';
 import Pattern from '../patterns/pattern';
-import {PatternNode} from '../patterns/hierarchize-patterns';
+import {Taxonomy} from '../taxonomy/make-taxonomy';
 // TODO: factor/reduce repeated makePatternIdentifier calls...
 
 
@@ -10,16 +10,16 @@ import {PatternNode} from '../patterns/hierarchize-patterns';
 
 
 // TODO: ...
-// TODO: construct patternHierarchy from targets? ie don't need it as parameter, can calc it
+// TODO: construct taxonomy from targets? ie don't need it as parameter, can calc it
 // TODO: shorten sig to < 120chars
-export default function makeDispatcher<T>(patternHierarchy: PatternNode, targetMap: Map<Pattern, T>): (address: string) => T {
+export default function makeDispatcher<T>(taxonomy: Taxonomy, targetMap: Map<Pattern, T>): (address: string) => T {
 
     // TODO: ...
-    let patterns = getAllGraphNodes(patternHierarchy).map(node => node.pattern);
+    let patterns = getAllGraphNodes(taxonomy).map(node => node.pattern);
     let targets = patterns.map(pat => targetMap.get(pat));
 
     // TODO: doc...
-    function getBody(specializations: PatternNode[], fallback: Pattern, nestDepth: number): string {
+    function getBody(specializations: Taxonomy[], fallback: Pattern, nestDepth: number): string {
         let indent = ' '.repeat(nestDepth * 4);
         let firstLines = specializations.map((spec, i) => {
             let nextLevel = spec.children;
@@ -39,7 +39,7 @@ export default function makeDispatcher<T>(patternHierarchy: PatternNode, targetM
         ...patterns.map((pat, i) => `let _${makePatternIdentifier(pat)} = targets[${i}];\n`),
         '',
         'return function dispatch(address) {',
-        getBody(patternHierarchy.children, Pattern.UNIVERSAL, 1),
+        getBody(taxonomy.children, Pattern.UNIVERSAL, 1),
         '};'
     ];
 // console.log(lines);

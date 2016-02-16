@@ -1,33 +1,33 @@
 'use strict';
 var assert = require('assert');
-var intersect_patterns_1 = require('./intersect-patterns');
-var pattern_1 = require('./pattern');
+var intersect_patterns_1 = require('../patterns/intersect-patterns');
+var pattern_1 = require('../patterns/pattern');
 // TODO: review all docs below after data structure changes
 // TODO: temp testing
-var PatternNode = (function () {
-    function PatternNode(pattern) {
+var Taxonomy = (function () {
+    function Taxonomy(pattern) {
         this.pattern = pattern;
         this.parents = [];
         this.children = [];
     }
-    PatternNode.prototype.hasChild = function (childNode) {
+    Taxonomy.prototype.hasChild = function (childNode) {
         return this.children.indexOf(childNode) !== -1;
     };
-    PatternNode.prototype.addChild = function (childNode) {
+    Taxonomy.prototype.addChild = function (childNode) {
         // NB: If the child is already there, make this a no-op.
         if (this.hasChild(childNode))
             return;
         this.children.push(childNode);
         childNode.parents.push(this);
     };
-    PatternNode.prototype.removeChild = function (childNode) {
+    Taxonomy.prototype.removeChild = function (childNode) {
         assert(this.hasChild(childNode));
         this.children.splice(this.children.indexOf(childNode), 1);
         childNode.parents.splice(childNode.parents.indexOf(this), 1);
     };
-    return PatternNode;
+    return Taxonomy;
 }());
-exports.PatternNode = PatternNode;
+exports.Taxonomy = Taxonomy;
 /**
  * Arranges the given list of patterns into a directed acyclic graph (DAG), according to their set
  * relationships (recall that each pattern represents a set of addresses). The arrangement is akin
@@ -35,7 +35,7 @@ exports.PatternNode = PatternNode;
  * whether `patterns` contains a '…'. For any two patterns P and Q, if Q is a proper subset of P,
  * then Q will be a descendent of P in the DAG. Overlapping patterns (i.e., patterns whose
  * intersection is non-empty and where neither is a subset of the other) are represented as
- * siblings in the hierarchy. For overlapping patterns, an additional pattern representing their
+ * siblings in the taxonomy. For overlapping patterns, an additional pattern representing their
  * intersection is synthesized and added as a descendent of both patterns.
  * NB: All patterns in the returned graph are guaranteed to be normalized. As such, some of the
  * input `patterns` may not appear in the output graph, but their normalized equivalents will.
@@ -55,7 +55,7 @@ exports.PatternNode = PatternNode;
  *        are more maps. The top-level map always contains the single key '…' All
  *        patterns in the returned graph are normalized.
  */
-function hierarchizePatterns(patterns) {
+function makeTaxonomy(patterns) {
     // The rest of the algorithm assumes only normalized patterns, which we obtain here.
     var normalizedPatterns = patterns.map(function (pat) { return pat.normalized; });
     // Create the nodeFor() function to return the graph node corresponding to a given
@@ -65,7 +65,7 @@ function hierarchizePatterns(patterns) {
     var nodeFor = function (pattern) {
         var node = allNodes.get(pattern);
         if (!node) {
-            node = new PatternNode(pattern);
+            node = new Taxonomy(pattern);
             allNodes.set(pattern, node);
         }
         return node;
@@ -78,7 +78,7 @@ function hierarchizePatterns(patterns) {
     return nodeFor(pattern_1.default.UNIVERSAL);
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = hierarchizePatterns;
+exports.default = makeTaxonomy;
 /**
  * Inserts `pattern` into the appropriate position in the DAG rooted at `superset`.
  * `pattern` must be a proper subset of `superset`, and must not be '∅'.
@@ -126,4 +126,4 @@ function insert(insertee, ancestor, nodeFor) {
         }
     });
 }
-//# sourceMappingURL=hierarchize-patterns.js.map
+//# sourceMappingURL=make-taxonomy.js.map

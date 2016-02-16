@@ -1,10 +1,10 @@
 'use strict';
 import {expect} from 'chai';
-import hierarchizePatterns, {PatternNode} from '../../src/patterns/hierarchize-patterns';
+import makeTaxonomy, {Taxonomy} from '../../src/taxonomy/make-taxonomy';
 import Pattern from '../../src/patterns/pattern';
 
 
-describe('Hierarchizing a set of patterns', () => {
+describe('Forming a taxonomy of patterns', () => {
 
     let tests = [
         {
@@ -16,7 +16,7 @@ describe('Hierarchizing a set of patterns', () => {
                 '/bar/*',
                 '/foo/bar'
             ],
-            hierarchy: {
+            taxonomy: {
                 "/…": {
                     "/foo/*": {
                         "/foo/bar": {}
@@ -33,7 +33,7 @@ describe('Hierarchizing a set of patterns', () => {
                 'a*',
                 '*a',
             ],
-            hierarchy: 'ERROR: Intersection of *a and a* cannot be expressed as a single pattern...'
+            taxonomy: 'ERROR: Intersection of *a and a* cannot be expressed as a single pattern...'
         },
         {
             // ======================================== 3. ========================================
@@ -55,7 +55,7 @@ describe('Hierarchizing a set of patterns', () => {
                 '/*/b',
                 '/*z/b',
             ],
-            hierarchy: {
+            taxonomy: {
                 "a*": {
                     "a*m*": {
                         "a*m*z": {}
@@ -129,10 +129,10 @@ describe('Hierarchizing a set of patterns', () => {
     tests.forEach(test => {
         it(test.name, () => {
             let patterns = test.patterns.map(ps => new Pattern(ps));
-            let expected: any = test.hierarchy;
+            let expected: any = test.taxonomy;
             let actual: any;
             try {
-                actual = nodeToObj(hierarchizePatterns(patterns));
+                actual = nodeToObj(makeTaxonomy(patterns));
             }
             catch (ex) {
                 actual = 'ERROR: ' + ex.message;
@@ -146,7 +146,7 @@ describe('Hierarchizing a set of patterns', () => {
 });
 
 
-/** Helper function that converts a PatternNode to a simple nested object with pattern sources for keys */
-function nodeToObj(node: PatternNode): {} {
+/** Helper function that converts a Taxonomy to a simple nested object with pattern sources for keys */
+function nodeToObj(node: Taxonomy): {} {
     return node.children.reduce((obj, node) => (obj[node.pattern.toString()] = nodeToObj(node), obj), {});
 }

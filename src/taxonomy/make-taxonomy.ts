@@ -1,7 +1,7 @@
 'use strict';
 import * as assert from 'assert';
-import intersectPatterns from './intersect-patterns';
-import Pattern from './pattern';
+import intersectPatterns from '../patterns/intersect-patterns';
+import Pattern from '../patterns/pattern';
 // TODO: review all docs below after data structure changes
 
 
@@ -9,24 +9,24 @@ import Pattern from './pattern';
 
 
 // TODO: temp testing
-export class PatternNode {
+export class Taxonomy {
 
 
     constructor(public pattern: Pattern) { }
 
 
-    parents: PatternNode[] = [];
+    parents: Taxonomy[] = [];
 
 
-    children: PatternNode[] = [];
+    children: Taxonomy[] = [];
 
 
-    hasChild(childNode: PatternNode): boolean {
+    hasChild(childNode: Taxonomy): boolean {
         return this.children.indexOf(childNode) !== -1;
     }
 
 
-    addChild(childNode: PatternNode) {
+    addChild(childNode: Taxonomy) {
         // NB: If the child is already there, make this a no-op.
         if (this.hasChild(childNode)) return;
         this.children.push(childNode);
@@ -34,7 +34,7 @@ export class PatternNode {
     }
 
 
-    removeChild(childNode: PatternNode) {
+    removeChild(childNode: Taxonomy) {
         assert(this.hasChild(childNode));
         this.children.splice(this.children.indexOf(childNode), 1);
         childNode.parents.splice(childNode.parents.indexOf(this), 1);
@@ -52,7 +52,7 @@ export class PatternNode {
  * whether `patterns` contains a '…'. For any two patterns P and Q, if Q is a proper subset of P,
  * then Q will be a descendent of P in the DAG. Overlapping patterns (i.e., patterns whose
  * intersection is non-empty and where neither is a subset of the other) are represented as
- * siblings in the hierarchy. For overlapping patterns, an additional pattern representing their
+ * siblings in the taxonomy. For overlapping patterns, an additional pattern representing their
  * intersection is synthesized and added as a descendent of both patterns.
  * NB: All patterns in the returned graph are guaranteed to be normalized. As such, some of the
  * input `patterns` may not appear in the output graph, but their normalized equivalents will.
@@ -72,7 +72,7 @@ export class PatternNode {
  *        are more maps. The top-level map always contains the single key '…' All
  *        patterns in the returned graph are normalized.
  */
-export default function hierarchizePatterns(patterns: Pattern[]): PatternNode {
+export default function makeTaxonomy(patterns: Pattern[]): Taxonomy {
 
     // The rest of the algorithm assumes only normalized patterns, which we obtain here.
     let normalizedPatterns = patterns.map(pat => pat.normalized);
@@ -80,11 +80,11 @@ export default function hierarchizePatterns(patterns: Pattern[]): PatternNode {
     // Create the nodeFor() function to return the graph node corresponding to a given
     // pattern, creating it on demand if it doesn't already exist. This function ensures
     // that every request for the same pattern gets the same singleton node.
-    let allNodes = new Map<Pattern, PatternNode>();
+    let allNodes = new Map<Pattern, Taxonomy>();
     let nodeFor = (pattern: Pattern) => {
         let node = allNodes.get(pattern);
         if (!node) {
-            node = new PatternNode(pattern);
+            node = new Taxonomy(pattern);
             allNodes.set(pattern, node);
         }
         return node;
@@ -112,7 +112,7 @@ export default function hierarchizePatterns(patterns: Pattern[]): PatternNode {
  * @param {(pattern: Pattern) => Graph<Pattern>} nodeFor - a callback used by the
  *        function to map patterns to their corresponding graph nodes on demand.
  */
-function insert(insertee: Pattern, ancestor: Pattern, nodeFor: (pattern: Pattern) => PatternNode) {
+function insert(insertee: Pattern, ancestor: Pattern, nodeFor: (pattern: Pattern) => Taxonomy) {
 
     // Compute information about all the existing child patterns of the `ancestor` pattern.
     // NB: we only care about the ones that are non-disjoint with `insertee`.

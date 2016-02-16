@@ -1,14 +1,14 @@
 'use strict';
-var util_1 = require('../util');
+var get_all_graph_nodes_1 = require('../taxonomy/get-all-graph-nodes');
 var make_pattern_identifier_1 = require('./make-pattern-identifier');
 var pattern_1 = require('../patterns/pattern');
 // TODO: factor/reduce repeated makePatternIdentifier calls...
 // TODO: ...
-// TODO: construct patternHierarchy from targets? ie don't need it as parameter, can calc it
+// TODO: construct taxonomy from targets? ie don't need it as parameter, can calc it
 // TODO: shorten sig to < 120chars
-function makeDispatcher(patternHierarchy, targetMap) {
+function makeDispatcher(taxonomy, targetMap) {
     // TODO: ...
-    var patterns = util_1.getAllGraphNodes(patternHierarchy).map(function (node) { return node.pattern; });
+    var patterns = get_all_graph_nodes_1.default(taxonomy).map(function (node) { return node.pattern; });
     var targets = patterns.map(function (pat) { return targetMap.get(pat); });
     // TODO: doc...
     function getBody(specializations, fallback, nestDepth) {
@@ -28,7 +28,7 @@ function makeDispatcher(patternHierarchy, targetMap) {
     var lines = patterns.map(function (pat, i) { return ("let matches_" + make_pattern_identifier_1.default(pat) + " = patterns[" + i + "].match;\n"); }).concat(patterns.map(function (pat, i) { return ("let _" + make_pattern_identifier_1.default(pat) + " = targets[" + i + "];\n"); }), [
         '',
         'return function dispatch(address) {',
-        getBody(patternHierarchy.children, pattern_1.default.UNIVERSAL, 1),
+        getBody(taxonomy.children, pattern_1.default.UNIVERSAL, 1),
         '};'
     ]);
     // console.log(lines);
