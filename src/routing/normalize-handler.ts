@@ -3,7 +3,7 @@ import * as assert from 'assert';
 import {getFunctionParameterNames} from '../util';
 import {Handler} from './types';
 import makePatternIdentifier from './make-pattern-identifier';
-import Pattern from '../patterns/pattern';
+import Pattern from '../pattern';
 // TODO: review jsdocs after pattern overhaul
 // TODO: make async...
 // TODO: review all comments given recent changes (Handler/Rule, $yield/$next, executeDownstreamHandlers/downstream)

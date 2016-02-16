@@ -1,5 +1,5 @@
 'use strict';
-import Pattern from '../patterns/pattern';
+import Pattern from '../pattern';
 import Request from '../request';
 import Response from '../response';
 

@@ -1,6 +1,6 @@
 'use strict';
 var assert = require('assert');
-var pattern_1 = require('../patterns/pattern');
+var pattern_1 = require('../pattern');
 // TODO: review all docs below after data structure changes
 // TODO: temp testing
 var Taxonomy = (function () {

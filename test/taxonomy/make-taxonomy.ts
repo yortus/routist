@@ -1,7 +1,7 @@
 'use strict';
 import {expect} from 'chai';
 import makeTaxonomy, {Taxonomy} from '../../src/taxonomy/make-taxonomy';
-import Pattern from '../../src/patterns/pattern';
+import Pattern from '../../src/pattern';
 
 
 describe('Forming a taxonomy of patterns', () => {

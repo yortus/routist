@@ -7,7 +7,7 @@
 // 'use strict';
 // import {expect} from 'chai';
 // import isDecorator from '../../src/routing/is-decorator'; // TODO: test sepatately...
-// import Pattern from '../../src/patterns/pattern';
+// import Pattern from '../../src/pattern';
 // import Rule from '../../src/routing/rule';
 // 
 // 

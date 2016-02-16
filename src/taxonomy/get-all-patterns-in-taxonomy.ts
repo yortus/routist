@@ -1,5 +1,5 @@
 'use strict';
-import Pattern from '../patterns/pattern';
+import Pattern from '../pattern';
 import {Taxonomy} from './make-taxonomy';
 // TODO: review all docs below after data structure changes
 

@@ -1,12 +1,9 @@
 'use strict';
-import {expect} from 'chai';
-import intersectPatterns from '../../src/patterns/intersect-patterns';
-import Pattern from '../../src/patterns/pattern';
-
-
-describe('Intersecting two patterns', () => {
-
-    let tests = [
+var chai_1 = require('chai');
+var intersect_patterns_1 = require('../../src/pattern/intersect-patterns');
+var pattern_1 = require('../../src/pattern');
+describe('Intersecting two patterns', function () {
+    var tests = [
         '… ∩ ∅ = ∅',
         ' ∩ ∅ = ∅',
         'a ∩ ∅ = ∅',
@@ -16,7 +13,6 @@ describe('Intersecting two patterns', () => {
         '∅ ∩ * = ∅',
         '∅ ∩ … = ∅',
         '* ∩ ∅∅ = ERROR',
-
         '/ab* ∩ /*b = ERROR',
         '/f*o*o*z ∩ /foo*baz = /foo*baz',
         '/*/f*o*o*baz ∩ /aaa/foo*z = /aaa/foo*baz',
@@ -32,13 +28,11 @@ describe('Intersecting two patterns', () => {
         '/* ∩ / = /',
         '/f ∩ / = ∅',
         '/ ∩ /f = ∅',
-
         '/a/b ∩ /* = ∅',
         '/a/b ∩ /*/*c* = ∅',
         '/a/*b ∩ /*/*c* = /a/*c*b',
         '/a/*b ∩ /*/*c*/* = ∅',
         '/foo/* ∩ /*/bar = /foo/bar',
-
         '/a/b ∩ /… = /a/b',
         '/a/b ∩ … = /a/b',
         '/ ∩ … = /',
@@ -47,7 +41,6 @@ describe('Intersecting two patterns', () => {
         '/foo/….html ∩ … = /foo/….html',
         '/foo/….html ∩ /foo/bar/*z/* = /foo/bar/*z/*.html',
         '/foo/….html ∩ /foo/bar/*z/… = /foo/bar/*z/….html',
-
         '/* ∩ /… = /*',
         '/*/* ∩ /… = /*/*',
         '/… ∩ /… = /…',
@@ -62,32 +55,31 @@ describe('Intersecting two patterns', () => {
         'a… ∩ …a = ERROR',
         '*a… ∩ …a* = ERROR',
         '…a* ∩ *a… = ERROR',
-        '…a* ∩ *z… = ERROR', // *a*z*, *z…a*
-        '*z… ∩ …a* = ERROR', // *a*z*, *z…a*
-        '*z* ∩ *a* = ERROR', // *a*z*, *z*a*
+        '…a* ∩ *z… = ERROR',
+        '*z… ∩ …a* = ERROR',
+        '*z* ∩ *a* = ERROR',
         'a*… ∩ …*a = ERROR',
         'a…* ∩ *…a = ERROR',
         'a* ∩ *a = ERROR',
         'a/… ∩ …/a = ERROR',
-
         '/o… ∩ /*z = /o*z',
         '/o…o… ∩ /*z = /o*o*z',
         '/o…o… ∩ /*z/b = /o*o*z/b',
         '/…o…o… ∩ /*z/b = /*o*o*z/b'
     ];
-
-    tests.forEach(test => {
-        it(test, () => {
-            let lhsA = test.split(' = ')[0].split(' ∩ ')[0];
-            let lhsB = test.split(' = ')[0].split(' ∩ ')[1];
-            let rhs = test.split(' = ')[1];
-            let actual: string, expected = rhs;
+    tests.forEach(function (test) {
+        it(test, function () {
+            var lhsA = test.split(' = ')[0].split(' ∩ ')[0];
+            var lhsB = test.split(' = ')[0].split(' ∩ ')[1];
+            var rhs = test.split(' = ')[1];
+            var actual, expected = rhs;
             try {
                 actual = 'ERROR';
-                actual = intersectPatterns(new Pattern(lhsA), new Pattern(lhsB)).toString();
+                actual = intersect_patterns_1.default(new pattern_1.default(lhsA), new pattern_1.default(lhsB)).toString();
             }
-            catch(ex) { }
-            expect(actual).equals(expected);
+            catch (ex) { }
+            chai_1.expect(actual).equals(expected);
         });
     });
 });
+//# sourceMappingURL=intersect-patterns.js.map

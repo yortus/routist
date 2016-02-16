@@ -9,7 +9,7 @@ import isPartialHandler from './is-partial-handler';
 import makeDispatcher from './make-dispatcher';
 import makePathwayHandler from './make-pathway-handler';
 import normalizeHandler from './normalize-handler';
-import Pattern from '../patterns/pattern';
+import Pattern from '../pattern';
 import Request from '../request';
 import walkTaxonomy from '../taxonomy/walk-taxonomy';
 

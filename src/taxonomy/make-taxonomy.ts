@@ -1,6 +1,6 @@
 'use strict';
 import * as assert from 'assert';
-import Pattern from '../patterns/pattern';
+import Pattern from '../pattern';
 // TODO: review all docs below after data structure changes
 
 

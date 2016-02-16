@@ -1,7 +1,7 @@
 'use strict';
 import getAllPatternsInTaxonomy from '../taxonomy/get-all-patterns-in-taxonomy';
 import makePatternIdentifier from './make-pattern-identifier';
-import Pattern from '../patterns/pattern';
+import Pattern from '../pattern';
 import {Taxonomy} from '../taxonomy/make-taxonomy';
 // TODO: factor/reduce repeated makePatternIdentifier calls...
 

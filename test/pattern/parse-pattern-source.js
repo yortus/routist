@@ -1,6 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
-var parse_pattern_source_1 = require('../../src/patterns/parse-pattern-source');
+var parse_pattern_source_1 = require('../../src/pattern/parse-pattern-source');
 describe('Parsing a pattern string', function () {
     var tests = [
         '/api/foo ==> {signature: "/api/foo", captures: []}',

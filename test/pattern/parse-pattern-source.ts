@@ -1,6 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import parsePatternSource from '../../src/patterns/parse-pattern-source';
+import parsePatternSource from '../../src/pattern/parse-pattern-source';
 
 
 describe('Parsing a pattern string', () => {

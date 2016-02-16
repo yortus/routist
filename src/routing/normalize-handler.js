@@ -2,7 +2,7 @@
 var assert = require('assert');
 var util_1 = require('../util');
 var make_pattern_identifier_1 = require('./make-pattern-identifier');
-var pattern_1 = require('../patterns/pattern');
+var pattern_1 = require('../pattern');
 // TODO: review jsdocs after pattern overhaul
 // TODO: make async...
 // TODO: review all comments given recent changes (Handler/Rule, $yield/$next, executeDownstreamHandlers/downstream)

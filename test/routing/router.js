@@ -1,11 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
 var make_route_table_handler_1 = require('../../src/routing/make-route-table-handler');
-// TODO: temp testing...
-//import test from '../../src/routing/router2';
-//import Pattern from '../../src/patterns/pattern';
-//import hierarchizePatterns from '../../src/patterns/hierarchize-patterns';
-//import makeDispatchFunction from '../../src/routing/make-dispatch-function';
 // TODO: More coverage:
 // - multiple non-decorator handlers for same pattern
 // - multiple decorator handlers for same pattern

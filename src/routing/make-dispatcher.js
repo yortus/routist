@@ -1,7 +1,7 @@
 'use strict';
 var get_all_patterns_in_taxonomy_1 = require('../taxonomy/get-all-patterns-in-taxonomy');
 var make_pattern_identifier_1 = require('./make-pattern-identifier');
-var pattern_1 = require('../patterns/pattern');
+var pattern_1 = require('../pattern');
 // TODO: factor/reduce repeated makePatternIdentifier calls...
 // TODO: ...
 // TODO: construct taxonomy from targets? ie don't need it as parameter, can calc it

@@ -8,7 +8,7 @@ var is_partial_handler_1 = require('./is-partial-handler');
 var make_dispatcher_1 = require('./make-dispatcher');
 var make_pathway_handler_1 = require('./make-pathway-handler');
 var normalize_handler_1 = require('./normalize-handler');
-var pattern_1 = require('../patterns/pattern');
+var pattern_1 = require('../pattern');
 var walk_taxonomy_1 = require('../taxonomy/walk-taxonomy');
 // TODO: doc...
 function makeRouteTableHandler(routeTable) {

@@ -1,12 +1,9 @@
 'use strict';
-import {expect} from 'chai';
-import makePatternMatcher from '../../src/patterns/make-pattern-matcher';
-import parsePatternSource from '../../src/patterns/parse-pattern-source';
-
-
-describe('Matching a pattern against an address', () => {
-
-    let tests = [
+var chai_1 = require('chai');
+var make_pattern_matcher_1 = require('../../src/pattern/make-pattern-matcher');
+var parse_pattern_source_1 = require('../../src/pattern/parse-pattern-source');
+describe('Matching a pattern against an address', function () {
+    var tests = [
         '* MATCHES abc',
         '* DOES NOT MATCH abc/def',
         '… MATCHES abc',
@@ -39,19 +36,19 @@ describe('Matching a pattern against an address', () => {
         '{lhs}/bbb/{...rhs} DOES NOT MATCH /aaa/bbb/ccc/ddd',
         '/f*o/bar/{baz}z/{...rest}.html MATCHES /foo/bar/baz/some/more/stuff.html WITH { baz: "ba", rest: "some/more/stuff" }'
     ];
-
-    tests.forEach(test => {
-        it(test, () => {
-            let isMatch = test.indexOf(' MATCHES ') !== -1;
-            let split = isMatch ? ' MATCHES ' : ' DOES NOT MATCH ';
-            let patternSource = test.split(split)[0];
-            let rhs = test.split(split)[1];
-            let address = rhs.split(' WITH ')[0];
-            let expectedCaptures = isMatch ? eval(`(${rhs.split(' WITH ')[1]})`) || {} : null;
-            let patternAST = parsePatternSource(patternSource);
-            let match = makePatternMatcher(patternSource, patternAST);
-            let actualCaptures = match(address);
-            expect(actualCaptures).to.deep.equal(expectedCaptures);
+    tests.forEach(function (test) {
+        it(test, function () {
+            var isMatch = test.indexOf(' MATCHES ') !== -1;
+            var split = isMatch ? ' MATCHES ' : ' DOES NOT MATCH ';
+            var patternSource = test.split(split)[0];
+            var rhs = test.split(split)[1];
+            var address = rhs.split(' WITH ')[0];
+            var expectedCaptures = isMatch ? eval("(" + rhs.split(' WITH ')[1] + ")") || {} : null;
+            var patternAST = parse_pattern_source_1.default(patternSource);
+            var match = make_pattern_matcher_1.default(patternSource, patternAST);
+            var actualCaptures = match(address);
+            chai_1.expect(actualCaptures).to.deep.equal(expectedCaptures);
         });
     });
 });
+//# sourceMappingURL=make-pattern-matcher.js.map
