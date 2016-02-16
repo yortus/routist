@@ -1,10 +1,9 @@
 'use strict';
-// TODO: rename this - it's Taxonomy-specific
 /** Returns all the nodes that comprise the given graph. */
 function getAllPatternsInTaxonomy(taxonomy) {
     var allNodes = new Set();
     collectAllNodes(taxonomy, allNodes);
-    return Array.from(allNodes.values());
+    return Array.from(allNodes.values()).map(function (node) { return node.pattern; });
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = getAllPatternsInTaxonomy;
@@ -20,4 +19,4 @@ function collectAllNodes(node, allNodes) {
         collectAllNodes(childNode, allNodes);
     });
 }
-//# sourceMappingURL=get-all-graph-nodes.js.map
+//# sourceMappingURL=get-all-patterns-in-taxonomy.js.map

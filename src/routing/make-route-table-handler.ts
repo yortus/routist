@@ -1,7 +1,7 @@
 'use strict';
 import * as assert from 'assert';
 import {inspect} from 'util';
-import getAllGraphNodes from '../taxonomy/get-all-graph-nodes';
+import getAllPatternsInTaxonomy from '../taxonomy/get-all-patterns-in-taxonomy';
 import {getLongestCommonPrefix} from '../util';
 import {Handler, Route, RouteTable, Rule} from './types';
 import makeTaxonomy, {Taxonomy} from '../taxonomy/make-taxonomy';
@@ -95,12 +95,12 @@ function makeAllPathwayHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map
     // Get a list of all the distinct patterns that occur in the taxonomy. This may include
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
     // well as patterns synthesized at the intersection of overlapping patterns in the route table.
-    let distinctPatterns = getAllGraphNodes(taxonomy);
+    let distinctPatterns = getAllPatternsInTaxonomy(taxonomy);
 
 
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
     let bestRulesByPattern = distinctPatterns.reduce(
-        (map, node) => map.set(node.pattern, getEqualBestRulesForPattern(node.pattern, routeTable)),
+        (map, pattern) => map.set(pattern, getEqualBestRulesForPattern(pattern, routeTable)),
         new Map<Pattern, Rule[]>()
     );
 
@@ -145,7 +145,7 @@ function makeAllPathwayHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map
     let compositeRuleWalkByPattern = distinctPatterns.reduce((map, npat) => {
 
         // TODO: ...
-        let candidates = ruleWalksByPattern.get(npat.pattern);
+        let candidates = ruleWalksByPattern.get(npat);
         //was...
         // TODO: inefficient! review this...
         // let candidates = ruleWalks.filter(ruleWalk => {
@@ -155,7 +155,7 @@ function makeAllPathwayHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map
 
         // TODO: ... simple case... explain...
         if (candidates.length === 1) {
-            map.set(npat.pattern, candidates[0]);
+            map.set(npat, candidates[0]);
             return map;
         }
 
@@ -176,7 +176,7 @@ function makeAllPathwayHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map
         // Synthesize a 'crasher' rule that throws an 'ambiguous' error.
         let ambiguousFallbacks = candidates.map(cand => cand[cand.length - suffix.length - 1]);
         let crasher: Rule = {
-            pattern: npat.pattern,
+            pattern: npat,
             handler: function crasher(request): any {
                 // TODO: improve error message/handling
                 throw new Error(`Multiple possible fallbacks from '${npat}: ${ambiguousFallbacks.map(fn => fn.toString())}`);
@@ -184,7 +184,7 @@ function makeAllPathwayHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map
         };
 
         // final composite rule: splice of common prefix + crasher + common suffix
-        map.set(npat.pattern, [].concat(prefix, crasher, suffix));
+        map.set(npat, [].concat(prefix, crasher, suffix));
         return map;
     }, new Map<Pattern, Rule[]>());
 //console.log(handlerWalkForPattern);
@@ -193,9 +193,9 @@ function makeAllPathwayHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map
     // reduce each signature's rule walk down to a simple handler function.
     const noMore: Handler = request => null;
     let routes = distinctPatterns.reduce((map, npat) => {
-        let ruleWalk = compositeRuleWalkByPattern.get(npat.pattern);
+        let ruleWalk = compositeRuleWalkByPattern.get(npat);
         let name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
-        return map.set(npat.pattern, makePathwayHandler(ruleWalk));
+        return map.set(npat, makePathwayHandler(ruleWalk));
     }, new Map<Pattern, Handler>());
 
     return routes;

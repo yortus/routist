@@ -1,5 +1,5 @@
 'use strict';
-import getAllGraphNodes from '../taxonomy/get-all-graph-nodes';
+import getAllPatternsInTaxonomy from '../taxonomy/get-all-patterns-in-taxonomy';
 import makePatternIdentifier from './make-pattern-identifier';
 import Pattern from '../patterns/pattern';
 import {Taxonomy} from '../taxonomy/make-taxonomy';
@@ -15,7 +15,7 @@ import {Taxonomy} from '../taxonomy/make-taxonomy';
 export default function makeDispatcher<T>(taxonomy: Taxonomy, targetMap: Map<Pattern, T>): (address: string) => T {
 
     // TODO: ...
-    let patterns = getAllGraphNodes(taxonomy).map(node => node.pattern);
+    let patterns = getAllPatternsInTaxonomy(taxonomy);
     let targets = patterns.map(pat => targetMap.get(pat));
 
     // TODO: doc...

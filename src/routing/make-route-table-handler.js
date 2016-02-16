@@ -1,7 +1,7 @@
 'use strict';
 var assert = require('assert');
 var util_1 = require('util');
-var get_all_graph_nodes_1 = require('../taxonomy/get-all-graph-nodes');
+var get_all_patterns_in_taxonomy_1 = require('../taxonomy/get-all-patterns-in-taxonomy');
 var util_2 = require('../util');
 var make_taxonomy_1 = require('../taxonomy/make-taxonomy');
 var is_partial_handler_1 = require('./is-partial-handler');
@@ -64,9 +64,9 @@ function makeAllPathwayHandlers(taxonomy, routeTable) {
     // Get a list of all the distinct patterns that occur in the taxonomy. This may include
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
     // well as patterns synthesized at the intersection of overlapping patterns in the route table.
-    var distinctPatterns = get_all_graph_nodes_1.default(taxonomy);
+    var distinctPatterns = get_all_patterns_in_taxonomy_1.default(taxonomy);
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
-    var bestRulesByPattern = distinctPatterns.reduce(function (map, node) { return map.set(node.pattern, getEqualBestRulesForPattern(node.pattern, routeTable)); }, new Map());
+    var bestRulesByPattern = distinctPatterns.reduce(function (map, pattern) { return map.set(pattern, getEqualBestRulesForPattern(pattern, routeTable)); }, new Map());
     var ruleWalksByPattern = walk_taxonomy_1.default(taxonomy).reduce(function (ruleWalksSoFar, patternWalk) {
         // TODO: the key is the pattern of the last node in the walk
         var key = patternWalk[patternWalk.length - 1];
@@ -85,7 +85,7 @@ function makeAllPathwayHandlers(taxonomy, routeTable) {
     // TODO: for each pattern signature, get the ONE path or fail trying...
     var compositeRuleWalkByPattern = distinctPatterns.reduce(function (map, npat) {
         // TODO: ...
-        var candidates = ruleWalksByPattern.get(npat.pattern);
+        var candidates = ruleWalksByPattern.get(npat);
         //was...
         // TODO: inefficient! review this...
         // let candidates = ruleWalks.filter(ruleWalk => {
@@ -94,7 +94,7 @@ function makeAllPathwayHandlers(taxonomy, routeTable) {
         // });
         // TODO: ... simple case... explain...
         if (candidates.length === 1) {
-            map.set(npat.pattern, candidates[0]);
+            map.set(npat, candidates[0]);
             return map;
         }
         // Find the longest common prefix and suffix of all the candidates.
@@ -112,23 +112,23 @@ function makeAllPathwayHandlers(taxonomy, routeTable) {
         // Synthesize a 'crasher' rule that throws an 'ambiguous' error.
         var ambiguousFallbacks = candidates.map(function (cand) { return cand[cand.length - suffix.length - 1]; });
         var crasher = {
-            pattern: npat.pattern,
+            pattern: npat,
             handler: function crasher(request) {
                 // TODO: improve error message/handling
                 throw new Error("Multiple possible fallbacks from '" + npat + ": " + ambiguousFallbacks.map(function (fn) { return fn.toString(); }));
             }
         };
         // final composite rule: splice of common prefix + crasher + common suffix
-        map.set(npat.pattern, [].concat(prefix, crasher, suffix));
+        map.set(npat, [].concat(prefix, crasher, suffix));
         return map;
     }, new Map());
     //console.log(handlerWalkForPattern);
     // reduce each signature's rule walk down to a simple handler function.
     var noMore = function (request) { return null; };
     var routes = distinctPatterns.reduce(function (map, npat) {
-        var ruleWalk = compositeRuleWalkByPattern.get(npat.pattern);
+        var ruleWalk = compositeRuleWalkByPattern.get(npat);
         var name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
-        return map.set(npat.pattern, make_pathway_handler_1.default(ruleWalk));
+        return map.set(npat, make_pathway_handler_1.default(ruleWalk));
     }, new Map());
     return routes;
 }

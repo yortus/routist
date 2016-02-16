@@ -1,16 +1,16 @@
 'use strict';
+import Pattern from '../patterns/pattern';
 import {Taxonomy} from './make-taxonomy';
-// TODO: rename this - it's Taxonomy-specific
 
 
 
 
 
 /** Returns all the nodes that comprise the given graph. */
-export default function getAllPatternsInTaxonomy(taxonomy: Taxonomy): Taxonomy[] {
+export default function getAllPatternsInTaxonomy(taxonomy: Taxonomy): Pattern[] {
     let allNodes = new Set<Taxonomy>();
     collectAllNodes(taxonomy, allNodes);
-    return Array.from(allNodes.values());
+    return Array.from(allNodes.values()).map(node => node.pattern);
 }
 
 

@@ -1,5 +1,5 @@
 'use strict';
-var get_all_graph_nodes_1 = require('../taxonomy/get-all-graph-nodes');
+var get_all_patterns_in_taxonomy_1 = require('../taxonomy/get-all-patterns-in-taxonomy');
 var make_pattern_identifier_1 = require('./make-pattern-identifier');
 var pattern_1 = require('../patterns/pattern');
 // TODO: factor/reduce repeated makePatternIdentifier calls...
@@ -8,7 +8,7 @@ var pattern_1 = require('../patterns/pattern');
 // TODO: shorten sig to < 120chars
 function makeDispatcher(taxonomy, targetMap) {
     // TODO: ...
-    var patterns = get_all_graph_nodes_1.default(taxonomy).map(function (node) { return node.pattern; });
+    var patterns = get_all_patterns_in_taxonomy_1.default(taxonomy);
     var targets = patterns.map(function (pat) { return targetMap.get(pat); });
     // TODO: doc...
     function getBody(specializations, fallback, nestDepth) {
