@@ -14,7 +14,7 @@ function makeDispatcher(taxonomy, targetMap) {
     function getBody(specializations, fallback, nestDepth) {
         var indent = ' '.repeat(nestDepth * 4);
         var firstLines = specializations.map(function (spec, i) {
-            var nextLevel = spec.children;
+            var nextLevel = spec.specializations;
             var isLeaf = nextLevel.length === 0;
             var id = make_pattern_identifier_1.default(spec.pattern);
             var condition = "" + indent + (i > 0 ? 'else ' : '') + "if (matches_" + id + "(address)) ";
@@ -28,7 +28,7 @@ function makeDispatcher(taxonomy, targetMap) {
     var lines = patterns.map(function (pat, i) { return ("let matches_" + make_pattern_identifier_1.default(pat) + " = patterns[" + i + "].match;\n"); }).concat(patterns.map(function (pat, i) { return ("let _" + make_pattern_identifier_1.default(pat) + " = targets[" + i + "];\n"); }), [
         '',
         'return function dispatch(address) {',
-        getBody(taxonomy.children, pattern_1.default.UNIVERSAL, 1),
+        getBody(taxonomy.specializations, pattern_1.default.UNIVERSAL, 1),
         '};'
     ]);
     // console.log(lines);

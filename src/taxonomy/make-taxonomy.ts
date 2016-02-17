@@ -1,44 +1,7 @@
 'use strict';
-import * as assert from 'assert';
 import Pattern from '../pattern';
+import Taxonomy from './taxonomy';
 // TODO: review all docs below after data structure changes
-
-
-
-
-
-// TODO: temp testing
-export class Taxonomy {
-
-
-    constructor(public pattern: Pattern) { }
-
-
-    parents: Taxonomy[] = [];
-
-
-    children: Taxonomy[] = [];
-
-
-    hasChild(childNode: Taxonomy): boolean {
-        return this.children.indexOf(childNode) !== -1;
-    }
-
-
-    addChild(childNode: Taxonomy) {
-        // NB: If the child is already there, make this a no-op.
-        if (this.hasChild(childNode)) return;
-        this.children.push(childNode);
-        childNode.parents.push(this);
-    }
-
-
-    removeChild(childNode: Taxonomy) {
-        assert(this.hasChild(childNode));
-        this.children.splice(this.children.indexOf(childNode), 1);
-        childNode.parents.splice(childNode.parents.indexOf(this), 1);
-    }
-}
 
 
 
@@ -115,7 +78,7 @@ function insert(insertee: Pattern, ancestor: Pattern, nodeFor: (pattern: Pattern
 
     // Compute information about all the existing child patterns of the `ancestor` pattern.
     // NB: we only care about the ones that are non-disjoint with `insertee`.
-    let nonDisjointComparands = nodeFor(ancestor).children
+    let nonDisjointComparands = nodeFor(ancestor).specializations
         .map(node => node.pattern)
         .map(pattern => ({ pattern, intersection: insertee.intersect(pattern) }))
         .filter(cmp => cmp.intersection !== Pattern.EMPTY);
@@ -123,12 +86,12 @@ function insert(insertee: Pattern, ancestor: Pattern, nodeFor: (pattern: Pattern
     // If the `ancestor` pattern has no existing child patterns that are non-disjoint
     // with `insertee`, then we simply add `insertee` as a direct child of `ancestor`.
     if (nonDisjointComparands.length === 0) {
-        nodeFor(ancestor).addChild(nodeFor(insertee));
+        nodeFor(ancestor).addSpecialization(nodeFor(insertee));
     }
 
     // If `insertee` already exists as a direct subset of `ancestor` at this point
     // (including if it was just added above), then we are done.
-    if (nodeFor(ancestor).hasChild(nodeFor(insertee))) return;
+    if (nodeFor(ancestor).hasSpecialization(nodeFor(insertee))) return;
 
     // `insertee` has subset/superset/overlapping relationships with one or more of
     // `ancestor`'s existing child patterns. Work out how and where to insert it.
@@ -139,12 +102,12 @@ function insert(insertee: Pattern, ancestor: Pattern, nodeFor: (pattern: Pattern
 
         if (isSupersetOfComparand) {
             // Remove the comparand from `ancestor`. It will be re-inserted as a subset of `insertee` below.
-            nodeFor(ancestor).removeChild(nodeFor(comparand.pattern));
+            nodeFor(ancestor).removeSpecialization(nodeFor(comparand.pattern));
         }
 
         if (isSupersetOfComparand || isOverlappingComparand) {
             // Add `insertee` as a direct child of `ancestor`.
-            nodeFor(ancestor).addChild(nodeFor(insertee));
+            nodeFor(ancestor).addSpecialization(nodeFor(insertee));
 
             // Recursively re-insert the comparand (or insert the overlap) as a subset of `insertee`.
             insert(comparand.intersection, insertee, nodeFor);

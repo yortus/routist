@@ -2,7 +2,7 @@
 import getAllPatternsInTaxonomy from '../taxonomy/get-all-patterns-in-taxonomy';
 import makePatternIdentifier from './make-pattern-identifier';
 import Pattern from '../pattern';
-import {Taxonomy} from '../taxonomy/make-taxonomy';
+import Taxonomy from '../taxonomy/taxonomy';
 // TODO: factor/reduce repeated makePatternIdentifier calls...
 
 
@@ -22,7 +22,7 @@ export default function makeDispatcher<T>(taxonomy: Taxonomy, targetMap: Map<Pat
     function getBody(specializations: Taxonomy[], fallback: Pattern, nestDepth: number): string {
         let indent = ' '.repeat(nestDepth * 4);
         let firstLines = specializations.map((spec, i) => {
-            let nextLevel = spec.children;
+            let nextLevel = spec.specializations;
             let isLeaf = nextLevel.length === 0;
             let id = makePatternIdentifier(spec.pattern);
             let condition = `${indent}${i > 0 ? 'else ' : ''}if (matches_${id}(address)) `;
@@ -39,7 +39,7 @@ export default function makeDispatcher<T>(taxonomy: Taxonomy, targetMap: Map<Pat
         ...patterns.map((pat, i) => `let _${makePatternIdentifier(pat)} = targets[${i}];\n`),
         '',
         'return function dispatch(address) {',
-        getBody(taxonomy.children, Pattern.UNIVERSAL, 1),
+        getBody(taxonomy.specializations, Pattern.UNIVERSAL, 1),
         '};'
     ];
 // console.log(lines);

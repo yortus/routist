@@ -1,6 +1,7 @@
 'use strict';
 import {expect} from 'chai';
-import makeTaxonomy, {Taxonomy} from '../../src/taxonomy/make-taxonomy';
+import makeTaxonomy from '../../src/taxonomy/make-taxonomy';
+import Taxonomy from '../../src/taxonomy/taxonomy';
 import Pattern from '../../src/pattern';
 
 
@@ -148,5 +149,5 @@ describe('Forming a taxonomy of patterns', () => {
 
 /** Helper function that converts a Taxonomy to a simple nested object with pattern sources for keys */
 function nodeToObj(node: Taxonomy): {} {
-    return node.children.reduce((obj, node) => (obj[node.pattern.toString()] = nodeToObj(node), obj), {});
+    return node.specializations.reduce((obj, node) => (obj[node.pattern.toString()] = nodeToObj(node), obj), {});
 }

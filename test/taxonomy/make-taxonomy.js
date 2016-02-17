@@ -142,6 +142,6 @@ describe('Forming a taxonomy of patterns', function () {
 });
 /** Helper function that converts a Taxonomy to a simple nested object with pattern sources for keys */
 function nodeToObj(node) {
-    return node.children.reduce(function (obj, node) { return (obj[node.pattern.toString()] = nodeToObj(node), obj); }, {});
+    return node.specializations.reduce(function (obj, node) { return (obj[node.pattern.toString()] = nodeToObj(node), obj); }, {});
 }
 //# sourceMappingURL=make-taxonomy.js.map

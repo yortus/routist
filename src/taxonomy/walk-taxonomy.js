@@ -24,7 +24,7 @@ exports.default = walkTaxonomy;
  */
 function getAllWalksStartingFrom(node) {
     // Recursively get all possible walks starting from each child node.
-    var childPatterns = node.children;
+    var childPatterns = node.specializations;
     var childWalkLists = childPatterns.map(function (childPat) { return getAllWalksStartingFrom(childPat); });
     // Flatten the list-of-lists produced by the previous map operation, also prepending an empty walk.
     var childWalks = (_a = []).concat.apply(_a, [[[]]].concat(childWalkLists));
