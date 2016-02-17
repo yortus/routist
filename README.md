@@ -9,6 +9,7 @@
 - [ ] asyncify Handler#execute
 - [ ] still need `isPromise`? If not, remove it :( Otherwise find a use for it.
 - [ ] add npmignore
+- [ ] for 'file' responses, harden againt rel paths in address eg '../../../sys/passwords.txt'
 
 
 ## The Pattern DSL
