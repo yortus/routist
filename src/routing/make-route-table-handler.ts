@@ -41,6 +41,47 @@ export default function makeRouteTableHandler(routeTable: {[pattern: string]: Fu
 
 
 
+// TODO: ...
+function makeAllRouteHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map<Pattern, Handler> {
+
+    // Get a list of all the distinct patterns that occur in the taxonomy. This may include
+    // some patterns that are not in the route table, such as the always-present root pattern '…', as
+    // well as patterns synthesized at the intersection of overlapping patterns in the route table.
+    let distinctPatterns = taxonomy.allPatterns;
+
+
+    // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
+    let bestRulesForEachPattern = distinctPatterns.reduce(
+        (map, pattern) => map.set(pattern, getEqualBestRulesForPattern(pattern, routeTable)),
+        new Map<Pattern, Rule[]>()
+    );
+
+
+    // TODO: doc...
+    let routesToEachPattern = getRoutesToEachPattern(taxonomy, bestRulesForEachPattern);
+
+
+    // TODO: for each pattern, make a single best route. Ensure no possibility of ambiguity.
+    let finalRouteForEachPattern = distinctPatterns.reduce((map, pattern) => {
+        let route = getFinalRouteForPattern(pattern, routesToEachPattern.get(pattern));
+        return map.set(pattern, route);
+    }, new Map<Pattern, Route>());
+
+
+    // reduce each signature's rule walk down to a simple handler function.
+    const noMore: Handler = request => null;
+    let routes = distinctPatterns.reduce((map, npat) => {
+        let ruleWalk = finalRouteForEachPattern.get(npat);
+        let name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
+        return map.set(npat, makeRouteHandler(ruleWalk));
+    }, new Map<Pattern, Handler>());
+
+    return routes;
+}
+
+
+
+
 
 // TODO:  make jsdoc...
 // Associate each distinct pattern (ie unique by signature) with the set of rules from the route table that *exactly* match
@@ -55,12 +96,12 @@ export default function makeRouteTableHandler(routeTable: {[pattern: string]: Fu
 // synthesize a single rule whose handler never handles the request. This makes subsequent logic
 // simpler because it can assume there are 1..M rules for each distinct pattern.
 // TODO: add comment about Rule order in result (using tiebreak function).
-function getEqualBestRulesForPattern(normalizedPattern: Pattern, routeTable: RouteTable): Rule[] {
+function getEqualBestRulesForPattern(pattern: Pattern, routeTable: RouteTable): Rule[] {
 
     // Compile the rule list for this pattern from the route table entries.
     let rules = Object.keys(routeTable)
         .map(key => new Pattern(key))
-        .filter(pattern => pattern.normalized === normalizedPattern)
+        .filter(pat => pat.normalized === pattern.normalized)
         .map<Rule>(pattern => ({ pattern, handler: normalizeHandler(pattern, routeTable[pattern.toString()]) }));
 
     // TODO: explain sort... all rules are equal by pattern signature, but we need specificity order.
@@ -76,127 +117,75 @@ function getEqualBestRulesForPattern(normalizedPattern: Pattern, routeTable: Rou
 
 
 // TODO: doc...
-function getAllRoutesToPattern(normalizedPattern: Pattern, bestRulesByPattern: Map<Pattern, Rule[]>): Route[] {
-    // TODO: ...
-    throw 1;
+function getRoutesToEachPattern(taxonomy: Taxonomy, bestRulesForEachPattern: Map<Pattern, Rule[]>): Map<Pattern, Route[]> {
 
+    let result = taxonomy.allPathsFromHere.reduce(
+        (routesToEachPattern, path) => {
 
-    
+            // TODO: the key is the pattern of the last node in the path. WTF? Clarify comment...
+            let key = path[path.length - 1];
+
+            // TODO: since we are walking a DAG, there may be multiple paths arriving at the same pattern.
+            let routesToThisPattern = routesToEachPattern.get(key);
+            if (!routesToThisPattern) {
+                routesToThisPattern = [];
+                routesToEachPattern.set(key, routesToThisPattern);
+            }
+
+            // TODO: create and add another route to this pattern
+            let anotherRoute = path.reduce(
+                (route, pattern) => route.concat(bestRulesForEachPattern.get(pattern)),
+                <Route>[universalRule]
+            );
+            routesToThisPattern.push(anotherRoute);
+
+            // TODO: keep accumulating
+            return routesToEachPattern;
+        },
+        new Map<Pattern, Route[]>()
+    );
+    return result;
 }
 
 
 
 
-// TODO: ...
-function makeAllRouteHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map<Pattern, Handler> {
 
-    // Get a list of all the distinct patterns that occur in the taxonomy. This may include
-    // some patterns that are not in the route table, such as the always-present root pattern '…', as
-    // well as patterns synthesized at the intersection of overlapping patterns in the route table.
-    let distinctPatterns = taxonomy.allPatterns;
+// TODO: doc...
+function getFinalRouteForPattern(pattern: Pattern, candidates: Route[]) {
 
+    // TODO: ... simple case... explain...
+    if (candidates.length === 1) {
+        return candidates[0];
+    }
 
-    // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
-    let bestRulesByPattern = distinctPatterns.reduce(
-        (map, pattern) => map.set(pattern, getEqualBestRulesForPattern(pattern, routeTable)),
-        new Map<Pattern, Rule[]>()
-    );
+    // Find the longest common prefix and suffix of all the candidates.
+    let prefix = getLongestCommonPrefix(candidates);
+    let suffix = getLongestCommonPrefix(candidates.map(cand => cand.slice().reverse())).reverse(); // TODO: revise... inefficient copies...
 
-        
+    // TODO: possible for prefix and suffix to overlap? What to do?
 
+    // Ensure the non-common parts contain NO decorators.
+    candidates.forEach(cand => {
+        let choppedRules = cand.slice(prefix.length, -suffix.length);
+        if (choppedRules.every(rule => isPartialHandler(rule.handler))) return;
+        // TODO: improve error message/handling
+        throw new Error(`Multiple routes to '${pattern}' with different decorators`);
+    });
 
-
-    let ruleWalksByPattern = taxonomy.allPathsFromHere.reduce(
-        (ruleWalksSoFar, patternWalk) => {
-
-            // TODO: the key is the pattern of the last node in the walk
-            let key = patternWalk[patternWalk.length - 1];
-
-            // TODO: since we are walking a DAG, there may be multiple walks arriving at the same pattern.
-            let ruleWalksForThisPattern = ruleWalksSoFar.get(key);
-            if (!ruleWalksForThisPattern) {
-                ruleWalksForThisPattern = [];
-                ruleWalksSoFar.set(key, ruleWalksForThisPattern);
-            }
-
-            // TODO: create and add another rule walk for this pattern
-            let value = patternWalk.reduce(
-                (ruleWalk, pattern) => ruleWalk.concat(bestRulesByPattern.get(pattern)),
-                [universalRule]
-            );
-            ruleWalksForThisPattern.push(value);
-
-            // TODO: keep accumulating
-            return ruleWalksSoFar;
-        },
-        new Map<Pattern, Rule[][]>()
-    );
-
-
-
-
-
-
-
-
-    // TODO: for each pattern signature, get the ONE path or fail trying...
-    let compositeRuleWalkByPattern = distinctPatterns.reduce((map, npat) => {
-
-        // TODO: ...
-        let candidates = ruleWalksByPattern.get(npat);
-        //was...
-        // TODO: inefficient! review this...
-        // let candidates = ruleWalks.filter(ruleWalk => {
-        //     let lastRule = ruleWalk[ruleWalk.length - 1];
-        //     return lastRule.pattern.normalized === npat.normalized;
-        // });
-
-        // TODO: ... simple case... explain...
-        if (candidates.length === 1) {
-            map.set(npat, candidates[0]);
-            return map;
-        }
-
-        // Find the longest common prefix and suffix of all the candidates.
-        let prefix = getLongestCommonPrefix(candidates);
-        let suffix = getLongestCommonPrefix(candidates.map(cand => cand.slice().reverse())).reverse(); // TODO: revise... inefficient copies...
-
-        // TODO: possible for prefix and suffix to overlap? What to do?
-
-        // Ensure the non-common parts contain NO decorators.
-        candidates.forEach(cand => {
-            let choppedRules = cand.slice(prefix.length, -suffix.length);
-            if (choppedRules.every(rule => isPartialHandler(rule.handler))) return;
+    // Synthesize a 'crasher' rule that throws an 'ambiguous' error.
+    let ambiguousFallbacks = candidates.map(cand => cand[cand.length - suffix.length - 1]);
+    let crasher: Rule = {
+        pattern,
+        handler: function crasher(request): any {
             // TODO: improve error message/handling
-            throw new Error(`Multiple routes to '${npat}' with different decorators`);
-        });
+            throw new Error(`Multiple possible fallbacks from '${pattern}: ${ambiguousFallbacks.map(fn => fn.toString())}`);
+        }
+    };
 
-        // Synthesize a 'crasher' rule that throws an 'ambiguous' error.
-        let ambiguousFallbacks = candidates.map(cand => cand[cand.length - suffix.length - 1]);
-        let crasher: Rule = {
-            pattern: npat,
-            handler: function crasher(request): any {
-                // TODO: improve error message/handling
-                throw new Error(`Multiple possible fallbacks from '${npat}: ${ambiguousFallbacks.map(fn => fn.toString())}`);
-            }
-        };
-
-        // final composite rule: splice of common prefix + crasher + common suffix
-        map.set(npat, [].concat(prefix, crasher, suffix));
-        return map;
-    }, new Map<Pattern, Rule[]>());
-//console.log(handlerWalkForPattern);
-
-
-    // reduce each signature's rule walk down to a simple handler function.
-    const noMore: Handler = request => null;
-    let routes = distinctPatterns.reduce((map, npat) => {
-        let ruleWalk = compositeRuleWalkByPattern.get(npat);
-        let name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
-        return map.set(npat, makeRouteHandler(ruleWalk));
-    }, new Map<Pattern, Handler>());
-
-    return routes;
+    // final composite rule: splice of common prefix + crasher + common suffix
+    let result = [].concat(prefix, crasher, suffix);
+    return result;
 }
 
 

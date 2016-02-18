@@ -3,6 +3,7 @@
 
 ## To Do List
 
+- [ ] decouple address from Request
 - [x] add Pattern#intersect, update all call sites (just make-taxonomy)
 - [ ] create Taxonomy class and/or add /src/taxonomy/index.ts
 - [ ] improve taxonomy test coverage
