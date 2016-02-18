@@ -2,7 +2,7 @@
 import getAllPatternsInTaxonomy from '../taxonomy/get-all-patterns-in-taxonomy';
 import makePatternIdentifier from './make-pattern-identifier';
 import Pattern from '../pattern';
-import Taxonomy from '../taxonomy/taxonomy';
+import Taxonomy from '../taxonomy';
 // TODO: factor/reduce repeated makePatternIdentifier calls...
 
 

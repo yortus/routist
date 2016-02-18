@@ -5,7 +5,7 @@ import getAllPatternsInTaxonomy from '../taxonomy/get-all-patterns-in-taxonomy';
 import {getLongestCommonPrefix} from '../util';
 import {Handler, Route, RouteTable, Rule} from './types';
 import makeTaxonomy from '../taxonomy/make-taxonomy';
-import Taxonomy from '../taxonomy/taxonomy';
+import Taxonomy from '../taxonomy';
 import isPartialHandler from './is-partial-handler';
 import makeDispatcher from './make-dispatcher';
 import makePathwayHandler from './make-pathway-handler';
