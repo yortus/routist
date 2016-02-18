@@ -128,7 +128,7 @@ describe('Forming a taxonomy of patterns', function () {
             var expected = test.taxonomy;
             var actual;
             try {
-                actual = nodeToObj(new taxonomy_1.default(patterns));
+                actual = nodeToObj(taxonomy_1.default.from(patterns));
             }
             catch (ex) {
                 actual = 'ERROR: ' + ex.message;

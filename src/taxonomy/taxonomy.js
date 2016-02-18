@@ -5,27 +5,32 @@ var pattern_1 = require('../pattern');
 // TODO: freeze after construction, make add/remove members private...
 // TODO: doc...
 var Taxonomy = (function () {
-    // TODO: doc...
-    function Taxonomy(patterns) {
+    /**
+     * Constructs a new Taxonomy instance. NB: This constructor is for internal use only.
+     * Use Taxonomy.from() to create a Taxonomy instance from a set of patterns.
+     */
+    function Taxonomy(pattern) {
         // TODO: doc...
         this.generalizations = [];
         // TODO: doc...
         this.specializations = [];
-        if (Array.isArray(patterns)) {
-            // TODO: but should return *this* instance!
-            return makeTaxonomy(patterns);
-        }
-        else {
-            this.pattern = patterns;
-        }
+        this.pattern = pattern;
     }
+    // TODO: doc better...
+    /**
+     * Generates a new Taxonomy instance based on the given set of patterns.
+     */
+    Taxonomy.from = function (patterns) {
+        var taxonomy = makeTaxonomy(patterns, function (pattern) { return new Taxonomy(pattern); });
+        Object.freeze(taxonomy.generalizations);
+        Object.freeze(taxonomy.specializations);
+        // TODO: others...?
+        return taxonomy;
+    };
     Object.defineProperty(Taxonomy.prototype, "allPatterns", {
         // TODO: doc...
         get: function () {
-            var allWithDups = (_a = [this.pattern]).concat.apply(_a, this.specializations.map(function (spec) { return spec.allPatterns; }));
-            var resultSet = allWithDups.reduce(function (set, pat) { return set.add(pat); }, new Set());
-            return Array.from(resultSet.values());
-            var _a;
+            return this._allPatterns || (this._allPatterns = getAllPatterns(this));
         },
         enumerable: true,
         configurable: true
@@ -42,40 +47,29 @@ var Taxonomy = (function () {
          * @returns
          */
         get: function () {
-            // TODO: test/review/cleanup...
-            var _this = this;
-            var allChildPaths = (_a = [[]]).concat.apply(_a, this.specializations.map(function (spec) { return spec.allPathsFromHere; }));
-            var x = allChildPaths.map(function (childPath) { return [_this.pattern].concat(childPath); });
-            return x;
-            var _a;
+            return this._allPathsFromHere || (this._allPathsFromHere = getAllPathsFromHere(this));
         },
         enumerable: true,
         configurable: true
     });
-    // TODO: doc...
-    Taxonomy.prototype.hasSpecialization = function (spcialization) {
-        return this.specializations.indexOf(spcialization) !== -1;
-    };
-    // TODO: doc...
-    // TODO: should be 'internal' to makeTaxonomy...
-    Taxonomy.prototype.addSpecialization = function (specialization) {
-        // NB: If the child is already there, make this a no-op.
-        if (this.hasSpecialization(specialization))
-            return;
-        this.specializations.push(specialization);
-        specialization.generalizations.push(this);
-    };
-    // TODO: doc...
-    // TODO: should be 'internal' to makeTaxonomy...
-    Taxonomy.prototype.removeSpecialization = function (specialization) {
-        assert(this.hasSpecialization(specialization));
-        this.specializations.splice(this.specializations.indexOf(specialization), 1);
-        specialization.generalizations.splice(specialization.generalizations.indexOf(this), 1);
-    };
     return Taxonomy;
 }());
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Taxonomy;
+// TODO: doc...
+function getAllPatterns(taxonomy) {
+    var allWithDups = (_a = [taxonomy.pattern]).concat.apply(_a, taxonomy.specializations.map(function (spec) { return spec.allPatterns; }));
+    var resultSet = allWithDups.reduce(function (set, pat) { return set.add(pat); }, new Set());
+    return Array.from(resultSet.values());
+    var _a;
+}
+// TODO: doc...
+function getAllPathsFromHere(taxonomy) {
+    // TODO: test/review/cleanup...
+    var allChildPaths = (_a = [[]]).concat.apply(_a, taxonomy.specializations.map(function (spec) { return spec.allPathsFromHere; }));
+    return allChildPaths.map(function (childPath) { return [taxonomy.pattern].concat(childPath); });
+    var _a;
+}
 /**
  * Arranges the given list of patterns into a directed acyclic graph (DAG), according to their set
  * relationships (recall that each pattern represents a set of addresses). The arrangement is akin
@@ -103,7 +97,7 @@ exports.default = Taxonomy;
  *        are more maps. The top-level map always contains the single key '…' All
  *        patterns in the returned graph are normalized.
  */
-function makeTaxonomy(patterns) {
+function makeTaxonomy(patterns, factory) {
     // The rest of the algorithm assumes only normalized patterns, which we obtain here.
     var normalizedPatterns = patterns.map(function (pat) { return pat.normalized; });
     // Create the nodeFor() function to return the graph node corresponding to a given
@@ -113,7 +107,7 @@ function makeTaxonomy(patterns) {
     var nodeFor = function (pattern) {
         var node = allNodes.get(pattern);
         if (!node) {
-            node = new Taxonomy(pattern);
+            node = factory(pattern);
             allNodes.set(pattern, node);
         }
         return node;
@@ -144,11 +138,11 @@ function insert(insertee, ancestor, nodeFor) {
     // If the `ancestor` pattern has no existing child patterns that are non-disjoint
     // with `insertee`, then we simply add `insertee` as a direct child of `ancestor`.
     if (nonDisjointComparands.length === 0) {
-        nodeFor(ancestor).addSpecialization(nodeFor(insertee));
+        addSpecialization(nodeFor(ancestor), nodeFor(insertee));
     }
     // If `insertee` already exists as a direct subset of `ancestor` at this point
     // (including if it was just added above), then we are done.
-    if (nodeFor(ancestor).hasSpecialization(nodeFor(insertee)))
+    if (hasSpecialization(nodeFor(ancestor), nodeFor(insertee)))
         return;
     // `insertee` has subset/superset/overlapping relationships with one or more of
     // `ancestor`'s existing child patterns. Work out how and where to insert it.
@@ -158,11 +152,11 @@ function insert(insertee, ancestor, nodeFor) {
         var isOverlappingComparand = !isSubsetOfComparand && !isSupersetOfComparand;
         if (isSupersetOfComparand) {
             // Remove the comparand from `ancestor`. It will be re-inserted as a subset of `insertee` below.
-            nodeFor(ancestor).removeSpecialization(nodeFor(comparand.pattern));
+            removeSpecialization(nodeFor(ancestor), nodeFor(comparand.pattern));
         }
         if (isSupersetOfComparand || isOverlappingComparand) {
             // Add `insertee` as a direct child of `ancestor`.
-            nodeFor(ancestor).addSpecialization(nodeFor(insertee));
+            addSpecialization(nodeFor(ancestor), nodeFor(insertee));
             // Recursively re-insert the comparand (or insert the overlap) as a subset of `insertee`.
             insert(comparand.intersection, insertee, nodeFor);
         }
@@ -171,5 +165,23 @@ function insert(insertee, ancestor, nodeFor) {
             insert(comparand.intersection, comparand.pattern, nodeFor);
         }
     });
+}
+// TODO: doc...
+function hasSpecialization(taxonomy, spcialization) {
+    return taxonomy.specializations.indexOf(spcialization) !== -1;
+}
+// TODO: doc...
+function addSpecialization(taxonomy, specialization) {
+    // NB: If the child is already there, make this a no-op.
+    if (hasSpecialization(taxonomy, specialization))
+        return;
+    taxonomy.specializations.push(specialization);
+    specialization.generalizations.push(taxonomy);
+}
+// TODO: doc...
+function removeSpecialization(taxonomy, specialization) {
+    assert(hasSpecialization(taxonomy, specialization));
+    taxonomy.specializations.splice(taxonomy.specializations.indexOf(specialization), 1);
+    specialization.generalizations.splice(specialization.generalizations.indexOf(taxonomy), 1);
 }
 //# sourceMappingURL=taxonomy.js.map

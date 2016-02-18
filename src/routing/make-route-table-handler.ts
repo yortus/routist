@@ -19,7 +19,7 @@ import Request from '../request';
 export default function makeRouteTableHandler(routeTable: {[pattern: string]: Function}) {
 
     // TODO: ...
-    let taxonomy = new Taxonomy(Object.keys(routeTable).map(src => new Pattern(src)));
+    let taxonomy = Taxonomy.from(Object.keys(routeTable).map(src => new Pattern(src)));
 
     // TODO: ...
     let pathwayHandlers = makeAllPathwayHandlers(taxonomy, routeTable);
