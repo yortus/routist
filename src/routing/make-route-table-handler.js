@@ -8,7 +8,6 @@ var make_dispatcher_1 = require('./make-dispatcher');
 var make_pathway_handler_1 = require('./make-pathway-handler');
 var normalize_handler_1 = require('./normalize-handler');
 var pattern_1 = require('../pattern');
-var walk_taxonomy_1 = require('../taxonomy/walk-taxonomy');
 // TODO: doc...
 function makeRouteTableHandler(routeTable) {
     // TODO: ...
@@ -66,7 +65,7 @@ function makeAllPathwayHandlers(taxonomy, routeTable) {
     var distinctPatterns = taxonomy.allPatterns;
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
     var bestRulesByPattern = distinctPatterns.reduce(function (map, pattern) { return map.set(pattern, getEqualBestRulesForPattern(pattern, routeTable)); }, new Map());
-    var ruleWalksByPattern = walk_taxonomy_1.default(taxonomy).reduce(function (ruleWalksSoFar, patternWalk) {
+    var ruleWalksByPattern = taxonomy.allPathsFromHere.reduce(function (ruleWalksSoFar, patternWalk) {
         // TODO: the key is the pattern of the last node in the walk
         var key = patternWalk[patternWalk.length - 1];
         // TODO: since we are walking a DAG, there may be multiple walks arriving at the same pattern.

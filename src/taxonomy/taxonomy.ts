@@ -2,6 +2,7 @@
 import * as assert from 'assert';
 import Pattern from '../pattern';
 // TODO: review all docs below after data structure changes
+// TODO: freeze after construction, make add/remove members private...
 
 
 
@@ -40,6 +41,29 @@ export default class Taxonomy {
         let allWithDups = [this.pattern].concat(...this.specializations.map(spec => spec.allPatterns));
         let resultSet = allWithDups.reduce((set, pat) => set.add(pat), new Set<Pattern>());
         return Array.from(resultSet.values());
+    }
+
+
+    // TODO: review doc...
+    /**
+     * Enumerates every possible walk[1] in the `taxonomy` DAG that begins at the this Pattern
+     * and ends at any Pattern reachable from the this one. Each walk is a Pattern array,
+     * whose elements are arranged in walk-order (i.e., from the root to the descendent).
+     * [1] See: https://en.wikipedia.org/wiki/Glossary_of_graph_theory#Walks
+     * @param {Taxonomy} taxonomy - the pattern DAG to be walked.
+     * TODO: fix below....
+     * @returns
+     */
+    get allPathsFromHere(): Pattern[][] {
+
+        // TODO: test/review/cleanup...
+
+        let allChildPaths: Pattern[][] = [[]].concat(...this.specializations.map(spec => spec.allPathsFromHere));
+        
+        let x = allChildPaths.map(childPath => [this.pattern].concat(childPath));
+
+        return x;
+
     }
 
 

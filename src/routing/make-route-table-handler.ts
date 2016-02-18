@@ -10,7 +10,6 @@ import makePathwayHandler from './make-pathway-handler';
 import normalizeHandler from './normalize-handler';
 import Pattern from '../pattern';
 import Request from '../request';
-import walkTaxonomy from '../taxonomy/walk-taxonomy';
 
 
 
@@ -107,7 +106,7 @@ function makeAllPathwayHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map
 
 
 
-    let ruleWalksByPattern = walkTaxonomy(taxonomy).reduce(
+    let ruleWalksByPattern = taxonomy.allPathsFromHere.reduce(
         (ruleWalksSoFar, patternWalk) => {
 
             // TODO: the key is the pattern of the last node in the walk
