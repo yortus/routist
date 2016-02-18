@@ -68,12 +68,11 @@ function makeAllRouteHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map<P
     }, new Map<Pattern, Route>());
 
 
-    // reduce each signature's rule walk down to a simple handler function.
-    const noMore: Handler = request => null;
-    let routes = distinctPatterns.reduce((map, npat) => {
-        let ruleWalk = finalRouteForEachPattern.get(npat);
-        let name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
-        return map.set(npat, makeRouteHandler(ruleWalk));
+    // TODO: make a route handler for each pattern.
+    let routes = distinctPatterns.reduce((map, pattern) => {
+        let route = finalRouteForEachPattern.get(pattern);
+        let routeHandler = makeRouteHandler(route);
+        return map.set(pattern, routeHandler);
     }, new Map<Pattern, Handler>());
 
     return routes;
