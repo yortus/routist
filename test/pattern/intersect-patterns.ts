@@ -1,6 +1,5 @@
 'use strict';
 import {expect} from 'chai';
-import intersectPatterns from '../../src/pattern/intersect-patterns';
 import Pattern from '../../src/pattern';
 
 
@@ -84,7 +83,7 @@ describe('Intersecting two patterns', () => {
             let actual: string, expected = rhs;
             try {
                 actual = 'ERROR';
-                actual = intersectPatterns(new Pattern(lhsA), new Pattern(lhsB)).toString();
+                actual = new Pattern(lhsA).intersect(new Pattern(lhsB)).toString();
             }
             catch(ex) { }
             expect(actual).equals(expected);

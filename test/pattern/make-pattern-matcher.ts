@@ -1,7 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import makePatternMatcher from '../../src/pattern/make-pattern-matcher';
-import parsePatternSource from '../../src/pattern/parse-pattern-source';
+import Pattern from '../../src/pattern';
 
 
 describe('Matching a pattern against an address', () => {
@@ -48,9 +47,8 @@ describe('Matching a pattern against an address', () => {
             let rhs = test.split(split)[1];
             let address = rhs.split(' WITH ')[0];
             let expectedCaptures = isMatch ? eval(`(${rhs.split(' WITH ')[1]})`) || {} : null;
-            let patternAST = parsePatternSource(patternSource);
-            let match = makePatternMatcher(patternSource, patternAST);
-            let actualCaptures = match(address);
+            let pattern = new Pattern(patternSource);
+            let actualCaptures = pattern.match(address);
             expect(actualCaptures).to.deep.equal(expectedCaptures);
         });
     });

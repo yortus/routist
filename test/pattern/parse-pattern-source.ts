@@ -1,6 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import parsePatternSource from '../../src/pattern/parse-pattern-source';
+import parsePatternSource, {PatternAST} from '../../src/pattern/parse-pattern-source';
 
 
 describe('Parsing a pattern string', () => {
@@ -46,8 +46,8 @@ describe('Parsing a pattern string', () => {
         it(test, () => {
             let patternSource = test.split(' ==> ')[0];
             let rhs = test.split(' ==> ')[1];
-            let expected = rhs === "ERROR" ? rhs : eval(`(${rhs})`);
-            let actual: any = 'ERROR';
+            let expected: PatternAST|string = rhs === "ERROR" ? rhs : eval(`(${rhs})`);
+            let actual: PatternAST|string = 'ERROR';
             try {
                 actual = parsePatternSource(patternSource);
             }

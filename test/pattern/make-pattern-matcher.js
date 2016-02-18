@@ -1,7 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
-var make_pattern_matcher_1 = require('../../src/pattern/make-pattern-matcher');
-var parse_pattern_source_1 = require('../../src/pattern/parse-pattern-source');
+var pattern_1 = require('../../src/pattern');
 describe('Matching a pattern against an address', function () {
     var tests = [
         '* MATCHES abc',
@@ -44,9 +43,8 @@ describe('Matching a pattern against an address', function () {
             var rhs = test.split(split)[1];
             var address = rhs.split(' WITH ')[0];
             var expectedCaptures = isMatch ? eval("(" + rhs.split(' WITH ')[1] + ")") || {} : null;
-            var patternAST = parse_pattern_source_1.default(patternSource);
-            var match = make_pattern_matcher_1.default(patternSource, patternAST);
-            var actualCaptures = match(address);
+            var pattern = new pattern_1.default(patternSource);
+            var actualCaptures = pattern.match(address);
             chai_1.expect(actualCaptures).to.deep.equal(expectedCaptures);
         });
     });
