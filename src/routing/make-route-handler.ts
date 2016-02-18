@@ -1,5 +1,5 @@
 'use strict';
-import {Handler, PartialHandler, GeneralHandler, Pathway} from './types';
+import {Handler, PartialHandler, GeneralHandler, Route} from './types';
 import isPartialHandler from './is-partial-handler';
 import makePatternIdentifier from './make-pattern-identifier';
 
@@ -8,16 +8,16 @@ import makePatternIdentifier from './make-pattern-identifier';
 
 
 // TODO: ...
-export default function makePathwayHandler(pathway: Pathway): Handler {
+export default function makeRouteHandler(route: Route): Handler {
 
-    let reversePathway = pathway.slice().reverse();
+    let reverseRoute = route.slice().reverse();
 
 
-    let name = '__' + makePatternIdentifier(reversePathway[0].pattern) + '__';
+    let name = '__' + makePatternIdentifier(reverseRoute[0].pattern) + '__';
 
 
     // TODO: ...
-    let execute = reversePathway.reduce<Handler>((downstream, rule) => {
+    let execute = reverseRoute.reduce<Handler>((downstream, rule) => {
         let handler: PartialHandler|GeneralHandler = rule.handler;
         if (isPartialHandler(handler)) {
             return request => {

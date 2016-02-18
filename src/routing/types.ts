@@ -49,14 +49,5 @@ export interface Rule {
 
 
 // TODO: doc...
-// doc... from most general rule to most specific rule
-// TODO: remove this type...
-export type Pathway = Rule[];
-
-
-
-
-
-// TODO: doc...
 // TODO: a list of rules ordered from most general to most specific, where for all N rule N is a superset of rule N+1
 export interface Route extends Array<Rule> { }

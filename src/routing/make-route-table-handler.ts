@@ -6,7 +6,7 @@ import {Handler, Route, RouteTable, Rule} from './types';
 import Taxonomy from '../taxonomy';
 import isPartialHandler from './is-partial-handler';
 import makeDispatcher from './make-dispatcher';
-import makePathwayHandler from './make-pathway-handler';
+import makeRouteHandler from './make-route-handler';
 import normalizeHandler from './normalize-handler';
 import Pattern from '../pattern';
 import Request from '../request';
@@ -16,22 +16,22 @@ import Request from '../request';
 
 
 // TODO: doc...
-export default function makeRouteTableHandler(routeTable: {[pattern: string]: Function}) {
+export default function makeRouteTableHandler(routeTable: {[pattern: string]: Function}): Handler {
 
     // TODO: ...
     let taxonomy = Taxonomy.from(Object.keys(routeTable).map(src => new Pattern(src)));
 
     // TODO: ...
-    let pathwayHandlers = makeAllPathwayHandlers(taxonomy, routeTable);
+    let routeHandlers = makeAllRouteHandlers(taxonomy, routeTable);
 
     // TODO: ...
-    let selectPathwayHandler = makeDispatcher(taxonomy, pathwayHandlers);
+    let selectRouteHandler = makeDispatcher(taxonomy, routeHandlers);
 
     // TODO: ...
     function __compiledRouteTable__(request: Request) {
         let address = typeof request === 'string' ? request : request.address;
-        let handlePathway = selectPathwayHandler(address);
-        let response = handlePathway(request);
+        let handleRoute = selectRouteHandler(address);
+        let response = handleRoute(request);
         return response;
     };
 
@@ -88,7 +88,7 @@ function getAllRoutesToPattern(normalizedPattern: Pattern, bestRulesByPattern: M
 
 
 // TODO: ...
-function makeAllPathwayHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map<Pattern, Handler> {
+function makeAllRouteHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map<Pattern, Handler> {
 
     // Get a list of all the distinct patterns that occur in the taxonomy. This may include
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
@@ -193,7 +193,7 @@ function makeAllPathwayHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map
     let routes = distinctPatterns.reduce((map, npat) => {
         let ruleWalk = compositeRuleWalkByPattern.get(npat);
         let name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
-        return map.set(npat, makePathwayHandler(ruleWalk));
+        return map.set(npat, makeRouteHandler(ruleWalk));
     }, new Map<Pattern, Handler>());
 
     return routes;

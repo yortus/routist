@@ -5,7 +5,7 @@ var util_2 = require('../util');
 var taxonomy_1 = require('../taxonomy');
 var is_partial_handler_1 = require('./is-partial-handler');
 var make_dispatcher_1 = require('./make-dispatcher');
-var make_pathway_handler_1 = require('./make-pathway-handler');
+var make_route_handler_1 = require('./make-route-handler');
 var normalize_handler_1 = require('./normalize-handler');
 var pattern_1 = require('../pattern');
 // TODO: doc...
@@ -13,14 +13,14 @@ function makeRouteTableHandler(routeTable) {
     // TODO: ...
     var taxonomy = taxonomy_1.default.from(Object.keys(routeTable).map(function (src) { return new pattern_1.default(src); }));
     // TODO: ...
-    var pathwayHandlers = makeAllPathwayHandlers(taxonomy, routeTable);
+    var routeHandlers = makeAllRouteHandlers(taxonomy, routeTable);
     // TODO: ...
-    var selectPathwayHandler = make_dispatcher_1.default(taxonomy, pathwayHandlers);
+    var selectRouteHandler = make_dispatcher_1.default(taxonomy, routeHandlers);
     // TODO: ...
     function __compiledRouteTable__(request) {
         var address = typeof request === 'string' ? request : request.address;
-        var handlePathway = selectPathwayHandler(address);
-        var response = handlePathway(request);
+        var handleRoute = selectRouteHandler(address);
+        var response = handleRoute(request);
         return response;
     }
     ;
@@ -58,7 +58,7 @@ function getAllRoutesToPattern(normalizedPattern, bestRulesByPattern) {
     throw 1;
 }
 // TODO: ...
-function makeAllPathwayHandlers(taxonomy, routeTable) {
+function makeAllRouteHandlers(taxonomy, routeTable) {
     // Get a list of all the distinct patterns that occur in the taxonomy. This may include
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
     // well as patterns synthesized at the intersection of overlapping patterns in the route table.
@@ -126,7 +126,7 @@ function makeAllPathwayHandlers(taxonomy, routeTable) {
     var routes = distinctPatterns.reduce(function (map, npat) {
         var ruleWalk = compositeRuleWalkByPattern.get(npat);
         var name = ruleWalk[ruleWalk.length - 1].pattern.toString(); // TODO: convoluted and inefficient. Fix this.
-        return map.set(npat, make_pathway_handler_1.default(ruleWalk));
+        return map.set(npat, make_route_handler_1.default(ruleWalk));
     }, new Map());
     return routes;
 }
