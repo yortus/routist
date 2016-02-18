@@ -1,7 +1,6 @@
 'use strict';
 import * as assert from 'assert';
 import {inspect} from 'util';
-import getAllPatternsInTaxonomy from '../taxonomy/get-all-patterns-in-taxonomy';
 import {getLongestCommonPrefix} from '../util';
 import {Handler, Route, RouteTable, Rule} from './types';
 import makeTaxonomy from '../taxonomy/make-taxonomy';
@@ -96,7 +95,7 @@ function makeAllPathwayHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map
     // Get a list of all the distinct patterns that occur in the taxonomy. This may include
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
     // well as patterns synthesized at the intersection of overlapping patterns in the route table.
-    let distinctPatterns = getAllPatternsInTaxonomy(taxonomy);
+    let distinctPatterns = taxonomy.allPatterns;
 
 
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)

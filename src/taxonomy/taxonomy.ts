@@ -24,6 +24,14 @@ export default class Taxonomy {
 
 
     // TODO: doc...
+    get allPatterns(): Pattern[] {
+        let allWithDups = [this.pattern].concat(...this.specializations.map(spec => spec.allPatterns));
+        let resultSet = allWithDups.reduce((set, pat) => set.add(pat), new Set<Pattern>());
+        return Array.from(resultSet.values());
+    }
+
+
+    // TODO: doc...
     hasSpecialization(spcialization: Taxonomy): boolean {
         return this.specializations.indexOf(spcialization) !== -1;
     }

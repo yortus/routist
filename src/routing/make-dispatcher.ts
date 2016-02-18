@@ -1,5 +1,4 @@
 'use strict';
-import getAllPatternsInTaxonomy from '../taxonomy/get-all-patterns-in-taxonomy';
 import makePatternIdentifier from './make-pattern-identifier';
 import Pattern from '../pattern';
 import Taxonomy from '../taxonomy';
@@ -15,7 +14,7 @@ import Taxonomy from '../taxonomy';
 export default function makeDispatcher<T>(taxonomy: Taxonomy, targetMap: Map<Pattern, T>): (address: string) => T {
 
     // TODO: ...
-    let patterns = getAllPatternsInTaxonomy(taxonomy);
+    let patterns = taxonomy.allPatterns;
     let targets = patterns.map(pat => targetMap.get(pat));
 
     // TODO: doc...

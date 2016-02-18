@@ -11,6 +11,17 @@ var Taxonomy = (function () {
         // TODO: doc...
         this.specializations = [];
     }
+    Object.defineProperty(Taxonomy.prototype, "allPatterns", {
+        // TODO: doc...
+        get: function () {
+            var allWithDups = (_a = [this.pattern]).concat.apply(_a, this.specializations.map(function (spec) { return spec.allPatterns; }));
+            var resultSet = allWithDups.reduce(function (set, pat) { return set.add(pat); }, new Set());
+            return Array.from(resultSet.values());
+            var _a;
+        },
+        enumerable: true,
+        configurable: true
+    });
     // TODO: doc...
     Taxonomy.prototype.hasSpecialization = function (spcialization) {
         return this.specializations.indexOf(spcialization) !== -1;

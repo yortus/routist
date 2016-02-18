@@ -1,5 +1,4 @@
 'use strict';
-var get_all_patterns_in_taxonomy_1 = require('../taxonomy/get-all-patterns-in-taxonomy');
 var make_pattern_identifier_1 = require('./make-pattern-identifier');
 var pattern_1 = require('../pattern');
 // TODO: factor/reduce repeated makePatternIdentifier calls...
@@ -8,7 +7,7 @@ var pattern_1 = require('../pattern');
 // TODO: shorten sig to < 120chars
 function makeDispatcher(taxonomy, targetMap) {
     // TODO: ...
-    var patterns = get_all_patterns_in_taxonomy_1.default(taxonomy);
+    var patterns = taxonomy.allPatterns;
     var targets = patterns.map(function (pat) { return targetMap.get(pat); });
     // TODO: doc...
     function getBody(specializations, fallback, nestDepth) {

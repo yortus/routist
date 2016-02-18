@@ -1,7 +1,6 @@
 'use strict';
 var assert = require('assert');
 var util_1 = require('util');
-var get_all_patterns_in_taxonomy_1 = require('../taxonomy/get-all-patterns-in-taxonomy');
 var util_2 = require('../util');
 var make_taxonomy_1 = require('../taxonomy/make-taxonomy');
 var is_partial_handler_1 = require('./is-partial-handler');
@@ -64,7 +63,7 @@ function makeAllPathwayHandlers(taxonomy, routeTable) {
     // Get a list of all the distinct patterns that occur in the taxonomy. This may include
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
     // well as patterns synthesized at the intersection of overlapping patterns in the route table.
-    var distinctPatterns = get_all_patterns_in_taxonomy_1.default(taxonomy);
+    var distinctPatterns = taxonomy.allPatterns;
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
     var bestRulesByPattern = distinctPatterns.reduce(function (map, pattern) { return map.set(pattern, getEqualBestRulesForPattern(pattern, routeTable)); }, new Map());
     var ruleWalksByPattern = walk_taxonomy_1.default(taxonomy).reduce(function (ruleWalksSoFar, patternWalk) {
