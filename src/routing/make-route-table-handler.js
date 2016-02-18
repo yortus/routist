@@ -34,22 +34,30 @@ function makeAllRouteHandlers(taxonomy, routeTable) {
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
     // well as patterns synthesized at the intersection of overlapping patterns in the route table.
     var distinctPatterns = taxonomy.allPatterns;
+    var patternIndices = distinctPatterns.reduce(function (map, pat, i) { return map.set(pat, i); }, new Map());
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
-    var bestRulesForEachPattern = distinctPatterns.reduce(function (map, pattern) { return map.set(pattern, getEqualBestRulesForPattern(pattern, routeTable)); }, new Map());
+    var equalBestRules = distinctPatterns.map(function (pattern) { return getEqualBestRulesForPattern(pattern, routeTable); });
     // TODO: doc...
-    var routesToEachPattern = getRoutesToEachPattern(taxonomy, bestRulesForEachPattern);
+    var alternateRoutes = distinctPatterns.map(function (pattern) { return taxonomy.allPathsFromHere
+        .filter(function (path) { return path[path.length - 1] === pattern; })
+        .map(function (path) { return path
+        .map(function (pattern) { return equalBestRules[patternIndices.get(pattern)]; })
+        .reduce(function (route, rules) { return route.concat(rules); }, [universalRule]); }); });
     // TODO: for each pattern, make a single best route. Ensure no possibility of ambiguity.
-    var finalRouteForEachPattern = distinctPatterns.reduce(function (map, pattern) {
-        var route = getFinalRouteForPattern(pattern, routesToEachPattern.get(pattern));
-        return map.set(pattern, route);
-    }, new Map());
+    var finalRoutes = distinctPatterns.map(function (pattern, i) { return getFinalRouteForPattern(pattern, alternateRoutes[i]); });
+    // let finalRouteForEachPattern = distinctPatterns.reduce((map, pattern) => {
+    //     let route = getFinalRouteForPattern(pattern, routesToEachPattern.get(pattern));
+    //     return map.set(pattern, route);
+    // }, new Map<Pattern, Route>());
     // TODO: make a route handler for each pattern.
-    var routes = distinctPatterns.reduce(function (map, pattern) {
-        var route = finalRouteForEachPattern.get(pattern);
-        var routeHandler = make_route_handler_1.default(route);
-        return map.set(pattern, routeHandler);
-    }, new Map());
-    return routes;
+    var routeHandlers = finalRoutes.map(make_route_handler_1.default);
+    // let routes = distinctPatterns.reduce((map, pattern) => {
+    //     let route = finalRouteForEachPattern.get(pattern);
+    //     let routeHandler = makeRouteHandler(route);
+    //     return map.set(pattern, routeHandler);
+    // }, new Map<Pattern, Handler>());
+    return routeHandlers.reduce(function (map, handler, i) { return map.set(distinctPatterns[i], handler); }, new Map());
+    //return routes;
 }
 // TODO:  make jsdoc...
 // Associate each distinct pattern (ie unique by signature) with the set of rules from the route table that *exactly* match
@@ -74,25 +82,6 @@ function getEqualBestRulesForPattern(pattern, routeTable) {
     rules.sort(ruleComparator); // NB: may throw
     // TODO: ...
     return rules;
-}
-// TODO: doc...
-function getRoutesToEachPattern(taxonomy, bestRulesForEachPattern) {
-    var result = taxonomy.allPathsFromHere.reduce(function (routesToEachPattern, path) {
-        // TODO: the key is the pattern of the last node in the path. WTF? Clarify comment...
-        var key = path[path.length - 1];
-        // TODO: since we are walking a DAG, there may be multiple paths arriving at the same pattern.
-        var routesToThisPattern = routesToEachPattern.get(key);
-        if (!routesToThisPattern) {
-            routesToThisPattern = [];
-            routesToEachPattern.set(key, routesToThisPattern);
-        }
-        // TODO: create and add another route to this pattern
-        var anotherRoute = path.reduce(function (route, pattern) { return route.concat(bestRulesForEachPattern.get(pattern)); }, [universalRule]);
-        routesToThisPattern.push(anotherRoute);
-        // TODO: keep accumulating
-        return routesToEachPattern;
-    }, new Map());
-    return result;
 }
 // TODO: doc...
 function getFinalRouteForPattern(pattern, candidates) {

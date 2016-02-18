@@ -48,34 +48,41 @@ function makeAllRouteHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map<P
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
     // well as patterns synthesized at the intersection of overlapping patterns in the route table.
     let distinctPatterns = taxonomy.allPatterns;
+    let patternIndices = distinctPatterns.reduce((map, pat, i) => map.set(pat, i), new Map<Pattern, number>());
 
 
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
-    let bestRulesForEachPattern = distinctPatterns.reduce(
-        (map, pattern) => map.set(pattern, getEqualBestRulesForPattern(pattern, routeTable)),
-        new Map<Pattern, Rule[]>()
-    );
+    let equalBestRules = distinctPatterns.map(pattern => getEqualBestRulesForPattern(pattern, routeTable));
 
 
     // TODO: doc...
-    let routesToEachPattern = getRoutesToEachPattern(taxonomy, bestRulesForEachPattern);
+    let alternateRoutes: Route[][] = distinctPatterns.map(pattern => taxonomy.allPathsFromHere
+        .filter(path => path[path.length - 1] === pattern)
+        .map(path => path
+            .map(pattern => equalBestRules[patternIndices.get(pattern)])
+            .reduce((route, rules) => route.concat(rules), [universalRule])
+        )
+    );
 
 
     // TODO: for each pattern, make a single best route. Ensure no possibility of ambiguity.
-    let finalRouteForEachPattern = distinctPatterns.reduce((map, pattern) => {
-        let route = getFinalRouteForPattern(pattern, routesToEachPattern.get(pattern));
-        return map.set(pattern, route);
-    }, new Map<Pattern, Route>());
+    let finalRoutes = distinctPatterns.map((pattern, i) => getFinalRouteForPattern(pattern, alternateRoutes[i]));
+    // let finalRouteForEachPattern = distinctPatterns.reduce((map, pattern) => {
+    //     let route = getFinalRouteForPattern(pattern, routesToEachPattern.get(pattern));
+    //     return map.set(pattern, route);
+    // }, new Map<Pattern, Route>());
 
 
     // TODO: make a route handler for each pattern.
-    let routes = distinctPatterns.reduce((map, pattern) => {
-        let route = finalRouteForEachPattern.get(pattern);
-        let routeHandler = makeRouteHandler(route);
-        return map.set(pattern, routeHandler);
-    }, new Map<Pattern, Handler>());
+    let routeHandlers = finalRoutes.map(makeRouteHandler);
+    // let routes = distinctPatterns.reduce((map, pattern) => {
+    //     let route = finalRouteForEachPattern.get(pattern);
+    //     let routeHandler = makeRouteHandler(route);
+    //     return map.set(pattern, routeHandler);
+    // }, new Map<Pattern, Handler>());
 
-    return routes;
+    return routeHandlers.reduce((map, handler, i) => map.set(distinctPatterns[i], handler), new Map<Pattern, Handler>());
+    //return routes;
 }
 
 
@@ -109,41 +116,6 @@ function getEqualBestRulesForPattern(pattern: Pattern, routeTable: RouteTable): 
 
     // TODO: ...
     return rules;
-}
-
-
-
-
-
-// TODO: doc...
-function getRoutesToEachPattern(taxonomy: Taxonomy, bestRulesForEachPattern: Map<Pattern, Rule[]>): Map<Pattern, Route[]> {
-
-    let result = taxonomy.allPathsFromHere.reduce(
-        (routesToEachPattern, path) => {
-
-            // TODO: the key is the pattern of the last node in the path. WTF? Clarify comment...
-            let key = path[path.length - 1];
-
-            // TODO: since we are walking a DAG, there may be multiple paths arriving at the same pattern.
-            let routesToThisPattern = routesToEachPattern.get(key);
-            if (!routesToThisPattern) {
-                routesToThisPattern = [];
-                routesToEachPattern.set(key, routesToThisPattern);
-            }
-
-            // TODO: create and add another route to this pattern
-            let anotherRoute = path.reduce(
-                (route, pattern) => route.concat(bestRulesForEachPattern.get(pattern)),
-                <Route>[universalRule]
-            );
-            routesToThisPattern.push(anotherRoute);
-
-            // TODO: keep accumulating
-            return routesToEachPattern;
-        },
-        new Map<Pattern, Route[]>()
-    );
-    return result;
 }
 
 
