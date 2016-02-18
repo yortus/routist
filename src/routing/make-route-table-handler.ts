@@ -3,7 +3,6 @@ import * as assert from 'assert';
 import {inspect} from 'util';
 import {getLongestCommonPrefix} from '../util';
 import {Handler, Route, RouteTable, Rule} from './types';
-import makeTaxonomy from '../taxonomy/make-taxonomy';
 import Taxonomy from '../taxonomy';
 import isPartialHandler from './is-partial-handler';
 import makeDispatcher from './make-dispatcher';
@@ -21,7 +20,7 @@ import walkTaxonomy from '../taxonomy/walk-taxonomy';
 export default function makeRouteTableHandler(routeTable: {[pattern: string]: Function}) {
 
     // TODO: ...
-    let taxonomy = makeTaxonomy(Object.keys(routeTable).map(src => new Pattern(src)));
+    let taxonomy = new Taxonomy(Object.keys(routeTable).map(src => new Pattern(src)));
 
     // TODO: ...
     let pathwayHandlers = makeAllPathwayHandlers(taxonomy, routeTable);

@@ -2,7 +2,7 @@
 var assert = require('assert');
 var util_1 = require('util');
 var util_2 = require('../util');
-var make_taxonomy_1 = require('../taxonomy/make-taxonomy');
+var taxonomy_1 = require('../taxonomy');
 var is_partial_handler_1 = require('./is-partial-handler');
 var make_dispatcher_1 = require('./make-dispatcher');
 var make_pathway_handler_1 = require('./make-pathway-handler');
@@ -12,7 +12,7 @@ var walk_taxonomy_1 = require('../taxonomy/walk-taxonomy');
 // TODO: doc...
 function makeRouteTableHandler(routeTable) {
     // TODO: ...
-    var taxonomy = make_taxonomy_1.default(Object.keys(routeTable).map(function (src) { return new pattern_1.default(src); }));
+    var taxonomy = new taxonomy_1.default(Object.keys(routeTable).map(function (src) { return new pattern_1.default(src); }));
     // TODO: ...
     var pathwayHandlers = makeAllPathwayHandlers(taxonomy, routeTable);
     // TODO: ...

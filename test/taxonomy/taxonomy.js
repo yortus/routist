@@ -1,6 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
-var make_taxonomy_1 = require('../../src/taxonomy/make-taxonomy');
+var taxonomy_1 = require('../../src/taxonomy/taxonomy');
 var pattern_1 = require('../../src/pattern');
 describe('Forming a taxonomy of patterns', function () {
     var tests = [
@@ -128,7 +128,7 @@ describe('Forming a taxonomy of patterns', function () {
             var expected = test.taxonomy;
             var actual;
             try {
-                actual = nodeToObj(make_taxonomy_1.default(patterns));
+                actual = nodeToObj(new taxonomy_1.default(patterns));
             }
             catch (ex) {
                 actual = 'ERROR: ' + ex.message;
@@ -144,4 +144,4 @@ describe('Forming a taxonomy of patterns', function () {
 function nodeToObj(node) {
     return node.specializations.reduce(function (obj, node) { return (obj[node.pattern.toString()] = nodeToObj(node), obj); }, {});
 }
-//# sourceMappingURL=make-taxonomy.js.map
+//# sourceMappingURL=taxonomy.js.map

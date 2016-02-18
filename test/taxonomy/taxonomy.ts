@@ -1,6 +1,5 @@
 'use strict';
 import {expect} from 'chai';
-import makeTaxonomy from '../../src/taxonomy/make-taxonomy';
 import Taxonomy from '../../src/taxonomy/taxonomy';
 import Pattern from '../../src/pattern';
 
@@ -133,7 +132,7 @@ describe('Forming a taxonomy of patterns', () => {
             let expected: any = test.taxonomy;
             let actual: any;
             try {
-                actual = nodeToObj(makeTaxonomy(patterns));
+                actual = nodeToObj(new Taxonomy(patterns));
             }
             catch (ex) {
                 actual = 'ERROR: ' + ex.message;
