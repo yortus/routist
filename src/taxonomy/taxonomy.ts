@@ -1,14 +1,18 @@
 'use strict';
-import * as assert from 'assert';
+import insertAsDescendent from './insert-as-descendent';
 import Pattern from '../pattern';
 // TODO: review all docs below after data structure changes
-// TODO: freeze after construction, make add/remove members private...
 
 
 
 
 
-// TODO: doc...
+/**
+ * A taxonomy is a directed acyclic graph whose nodes are patterns. The graph is arranged such that
+ * for any two nodes P and Q, P is an ancestor of Q iff if the addresses matched by P are a proper
+ * superset of the addresses matched by Q.
+ * TODO: more...
+ */
 export default class Taxonomy {
 
 
@@ -27,9 +31,11 @@ export default class Taxonomy {
      */
     static from(patterns: Pattern[]) {
         let taxonomy = makeTaxonomy(patterns, pattern => new Taxonomy(pattern));
+
+        // TODO: should freeze whole graph, not just root node...
         Object.freeze(taxonomy.generalizations);
         Object.freeze(taxonomy.specializations);
-        // TODO: others...?
+
         return taxonomy;
     }
 
@@ -46,6 +52,7 @@ export default class Taxonomy {
     specializations: Taxonomy[] = [];
 
 
+    // TODO: ========================== WIP below... All API below here is not fully baked... ===========================
     // TODO: doc...
     get allPatterns(): Pattern[] {
         return this._allPatterns || (this._allPatterns = getAllPatterns(this));
@@ -53,6 +60,7 @@ export default class Taxonomy {
 
 
     // TODO: review doc...
+    // TODO: badly named...
     /**
      * Enumerates every possible walk[1] in the `taxonomy` DAG that begins at the this Pattern
      * and ends at any Pattern reachable from the this one. Each walk is a Pattern array,
@@ -67,11 +75,11 @@ export default class Taxonomy {
     }
 
 
-    // TODO: doc...
+    /** Holds the memoized value return by the Taxonomy#allPatterns getter. */
     private _allPatterns: Pattern[];
 
 
-    // TODO: doc...
+    /** Holds the memoized value return by the Taxonomy#allPathsFromHere getter. */
     private _allPathsFromHere: Pattern[][];
 }
 
@@ -164,93 +172,9 @@ function makeTaxonomy(patterns: Pattern[], factory: (pattern: Pattern) => Taxono
     // Insert each of the given patterns (except '…' and '∅') into a DAG rooted at '…'.
     normalizedPatterns
         .filter(p => p !== Pattern.UNIVERSAL && p !== Pattern.EMPTY)
-        .forEach(p => insert(p, Pattern.UNIVERSAL, nodeFor));
+        .forEach(p => insertAsDescendent(p, Pattern.UNIVERSAL, nodeFor));
 
     // Return a new top-level node with the single key '…'.
-    return nodeFor(Pattern.UNIVERSAL);
-}
-
-
-
-
-
-/**
- * Inserts `pattern` into the appropriate position in the DAG rooted at `superset`.
- * `pattern` must be a proper subset of `superset`, and must not be '∅'.
- * @param {Pattern} insertee - the new pattern to be inserted into the DAG.
- * @param {Pattern} ancestor - the root pattern of the subgraph of the DAG in which
- *        `insertee` belongs.
- * @param {(pattern: Pattern) => Graph<Pattern>} nodeFor - a callback used by the
- *        function to map patterns to their corresponding graph nodes on demand.
- */
-function insert(insertee: Pattern, ancestor: Pattern, nodeFor: (pattern: Pattern) => Taxonomy) {
-
-    // Compute information about all the existing child patterns of the `ancestor` pattern.
-    // NB: we only care about the ones that are non-disjoint with `insertee`.
-    let nonDisjointComparands = nodeFor(ancestor).specializations
-        .map(node => node.pattern)
-        .map(pattern => ({ pattern, intersection: insertee.intersect(pattern) }))
-        .filter(cmp => cmp.intersection !== Pattern.EMPTY);
-
-    // If the `ancestor` pattern has no existing child patterns that are non-disjoint
-    // with `insertee`, then we simply add `insertee` as a direct child of `ancestor`.
-    if (nonDisjointComparands.length === 0) {
-        addSpecialization(nodeFor(ancestor), nodeFor(insertee));
-    }
-
-    // If `insertee` already exists as a direct subset of `ancestor` at this point
-    // (including if it was just added above), then we are done.
-    if (hasSpecialization(nodeFor(ancestor), nodeFor(insertee))) return;
-
-    // `insertee` has subset/superset/overlapping relationships with one or more of
-    // `ancestor`'s existing child patterns. Work out how and where to insert it.
-    nonDisjointComparands.forEach(comparand => {
-        let isSubsetOfComparand = comparand.intersection === insertee;
-        let isSupersetOfComparand = comparand.intersection === comparand.pattern;
-        let isOverlappingComparand = !isSubsetOfComparand && !isSupersetOfComparand;
-
-        if (isSupersetOfComparand) {
-            // Remove the comparand from `ancestor`. It will be re-inserted as a subset of `insertee` below.
-            removeSpecialization(nodeFor(ancestor), nodeFor(comparand.pattern));
-        }
-
-        if (isSupersetOfComparand || isOverlappingComparand) {
-            // Add `insertee` as a direct child of `ancestor`.
-            addSpecialization(nodeFor(ancestor), nodeFor(insertee));
-
-            // Recursively re-insert the comparand (or insert the overlap) as a subset of `insertee`.
-            insert(comparand.intersection, insertee, nodeFor);
-        }
-
-        if (isSubsetOfComparand || isOverlappingComparand) {
-            // Recursively insert `insertee` (or insert the overlap) as a subset of the comparand.
-            insert(comparand.intersection, comparand.pattern, nodeFor);
-        }
-    });
-}
-
-
-
-
-
-// TODO: doc...
-function hasSpecialization(taxonomy: Taxonomy, spcialization: Taxonomy): boolean {
-    return taxonomy.specializations.indexOf(spcialization) !== -1;
-}
-
-
-// TODO: doc...
-function addSpecialization(taxonomy: Taxonomy, specialization: Taxonomy) {
-    // NB: If the child is already there, make this a no-op.
-    if (hasSpecialization(taxonomy, specialization)) return;
-    taxonomy.specializations.push(specialization);
-    specialization.generalizations.push(taxonomy);
-}
-
-
-// TODO: doc...
-function removeSpecialization(taxonomy: Taxonomy, specialization: Taxonomy) {
-    assert(hasSpecialization(taxonomy, specialization));
-    taxonomy.specializations.splice(taxonomy.specializations.indexOf(specialization), 1);
-    specialization.generalizations.splice(specialization.generalizations.indexOf(taxonomy), 1);
+    let taxonomy = nodeFor(Pattern.UNIVERSAL);
+    return taxonomy;
 }
