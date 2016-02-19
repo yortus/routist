@@ -1,6 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
-var make_route_table_handler_1 = require('../../src/routing/make-route-table-handler');
+var compile_route_table_1 = require('../../src/routing/compile-route-table');
 // TODO: More coverage:
 // - multiple non-decorator handlers for same pattern
 // - multiple decorator handlers for same pattern
@@ -59,7 +59,7 @@ describe('Constructing a Router instance', function () {
         "api/foo ==> FOO",
         "api/bar ==> fallback",
     ];
-    var routeTableHandler = make_route_table_handler_1.default(routeTable);
+    var routeTableHandler = compile_route_table_1.default(routeTable);
     tests.forEach(function (test) { return it(test, function () {
         var request = test.split(' ==> ')[0];
         var expected = test.split(' ==> ')[1];

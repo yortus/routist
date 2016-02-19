@@ -16,39 +16,38 @@ import Request from '../request';
 
 
 // TODO: doc...
-export default function makeRouteTableHandler(routeTable: {[pattern: string]: Function}): Handler {
+export default function compileRouteTable(routeTable: {[pattern: string]: Function}): Handler {
 
-    // TODO: ...
+    // Generate a taxonomic arrangement of all the patterns that occur in the route table.
     let taxonomy = new Taxonomy(Object.keys(routeTable).map(src => new Pattern(src)));
 
-    // TODO: ...
-    let routeHandlers = makeAllRouteHandlers(taxonomy, routeTable);
+    // Find all functionally-distinct routes that an address can take through the route table.
+    let routes = findAllRoutesThroughTable(taxonomy, routeTable);
 
-    // TODO: ...
+    // Create a handler for each distinct route.
+    let routeHandlers = Array.from(routes.keys()).reduce(
+        (map, pattern) => map.set(pattern, makeRouteHandler(routes.get(pattern))),
+        new Map<Pattern, Handler>()
+    );
+
+    // Generate a function that, given an address, returns the handler for the best-matching route.
     let selectRouteHandler = makeDispatcher(taxonomy, routeHandlers);
 
     // TODO: ...
-    function __compiledRouteTable__(request: Request) {
+    return function __compiledRouteTable__(request: Request) {
         let address = typeof request === 'string' ? request : request.address;
         let handleRoute = selectRouteHandler(address);
         let response = handleRoute(request);
         return response;
     };
-
-    return __compiledRouteTable__;
 }
 
 
 
 
+
 // TODO: ...
-function makeAllRouteHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map<Pattern, Handler> {
-
-    // Get a list of all the distinct patterns that occur in the taxonomy. This may include
-    // some patterns that are not in the route table, such as the always-present root pattern '…', as
-    // well as patterns synthesized at the intersection of overlapping patterns in the route table.
-    //let distinctPatterns = taxonomy.allPatterns;
-
+function findAllRoutesThroughTable(taxonomy: Taxonomy, routeTable: RouteTable): Map<Pattern, Route> {
 
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
     let equalBestRules = taxonomy.allNodes.reduce(
@@ -58,27 +57,22 @@ function makeAllRouteHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map<P
 
 
     // TODO: doc...
-    let result = new Map<Pattern, Handler>();
-    taxonomy.allNodes.forEach(node => {
+    return taxonomy.allNodes.reduce(
+        (map, node) => {
 
-        // TODO: doc...
-        let alternateRoutes = getAllPathsFromRootToHere(node)
-            .map(path => path
-                .map(pattern => equalBestRules.get(pattern))
-                .reduce((route, rules) => route.concat(rules), [universalRule])
-            );
+            // TODO: doc...
+            let alternateRoutes = getAllPathsFromRootToHere(node)
+                .map(path => path
+                    .map(pattern => equalBestRules.get(pattern))
+                    .reduce((route, rules) => route.concat(rules), [universalRule])
+                );
 
-        // TODO: make a single best route. Ensure no possibility of ambiguity.
-        let finalRoute = getFinalRouteForPattern(node.pattern, alternateRoutes);
-
-        // TODO: make a route handler...
-        let handler = makeRouteHandler(finalRoute);
-
-        // TODO: ...
-        result.set(node.pattern, handler);
-    });
-
-    return result;
+            // TODO: make a single best route. Ensure no possibility of ambiguity.
+            let singleRoute = reduceToSingleRoute(node.pattern, alternateRoutes);
+            return map.set(node.pattern, singleRoute);
+        },
+        new Map<Pattern, Route>()
+    );
 }
 
 
@@ -91,12 +85,6 @@ function makeAllRouteHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map<P
 // > // `taxonomy` may include some patterns that are not in the route table, such as the always-present root pattern '…', as
 // > // well as patterns synthesized at the intersection of overlapping patterns in the route table.
 
-// TODO: this next bit may be actually uneccessary? I think... Work it out...
-// - definitely not needed at general end - universalRule is always added there.
-// - at most specialized end? 
-// In such cases we
-// synthesize a single rule whose handler never handles the request. This makes subsequent logic
-// simpler because it can assume there are 1..M rules for each distinct pattern.
 // TODO: add comment about Rule order in result (using tiebreak function).
 function getEqualBestRulesForPattern(pattern: Pattern, routeTable: RouteTable): Rule[] {
 
@@ -106,7 +94,7 @@ function getEqualBestRulesForPattern(pattern: Pattern, routeTable: RouteTable): 
         .filter(pat => pat.normalized === pattern.normalized)
         .map<Rule>(pat => ({ pattern: pat, handler: normalizeHandler(pat, routeTable[pat.toString()]) }));
 
-    // TODO: explain sort... all rules are equal by pattern signature, but we need specificity order.
+    // TODO: explain sort... all rules are equal by pattern signature, but we need an unambiguous ordering.
     // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
     rules.sort(ruleComparator); // NB: may throw
 
@@ -141,7 +129,7 @@ function getAllPathsFromRootToHere(node: TaxonomyNode): Pattern[][] {
 
 
 // TODO: doc...
-function getFinalRouteForPattern(pattern: Pattern, candidates: Route[]) {
+function reduceToSingleRoute(pattern: Pattern, candidates: Route[]) {
 
     // TODO: ... simple case... explain...
     if (candidates.length === 1) {

@@ -1,6 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import makeRouteTableHandler from '../../src/routing/make-route-table-handler';
+import compileRouteTable from '../../src/routing/compile-route-table';
 
 
 // TODO: More coverage:
@@ -77,7 +77,7 @@ describe('Constructing a Router instance', () => {
         `api/bar ==> fallback`,
     ];
 
-    let routeTableHandler = makeRouteTableHandler(routeTable);
+    let routeTableHandler = compileRouteTable(routeTable);
 
     tests.forEach(test => it(test, () => {
         let request = test.split(' ==> ')[0];
