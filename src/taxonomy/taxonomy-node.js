@@ -1,14 +1,11 @@
 'use strict';
-// TODO: review all docs below after data structure changes
-// TODO: doc...
+/** Represents a single node in a Taxonomy graph. */
 var TaxonomyNode = (function () {
-    /**
-     * Constructs a new TaxonomyNode instance.
-     */
+    /** Constructs a new TaxonomyNode instance that holds the given pattern. */
     function TaxonomyNode(pattern) {
-        // TODO: doc...
+        /** Links to this node's direct parents (i.e., incoming edges). */
         this.generalizations = [];
-        // TODO: doc...
+        /** Links to this node's direct children (i.e., outgoing edges). */
         this.specializations = [];
         this.pattern = pattern;
     }

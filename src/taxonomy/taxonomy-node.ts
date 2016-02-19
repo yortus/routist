@@ -1,31 +1,28 @@
 'use strict';
 import Pattern from '../pattern';
-// TODO: review all docs below after data structure changes
 
 
 
 
 
-// TODO: doc...
+/** Represents a single node in a Taxonomy graph. */
 export default class TaxonomyNode {
 
 
-    /**
-     * Constructs a new TaxonomyNode instance.
-     */
+    /** Constructs a new TaxonomyNode instance that holds the given pattern. */
     constructor(pattern: Pattern) {
         this.pattern = pattern;
     }
 
 
-    // TODO: doc...
+    /** The pattern associated with this node. */
     pattern: Pattern;
 
 
-    // TODO: doc...
+    /** Links to this node's direct parents (i.e., incoming edges). */
     generalizations: TaxonomyNode[] = [];
 
 
-    // TODO: doc...
+    /** Links to this node's direct children (i.e., outgoing edges). */
     specializations: TaxonomyNode[] = [];
 }

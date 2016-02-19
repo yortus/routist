@@ -2,7 +2,6 @@
 import insertAsDescendent from './insert-as-descendent';
 import Pattern from '../pattern';
 import TaxonomyNode from './taxonomy-node';
-// TODO: review all docs below after data structure changes
 
 
 

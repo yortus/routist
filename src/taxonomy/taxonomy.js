@@ -2,7 +2,6 @@
 var insert_as_descendent_1 = require('./insert-as-descendent');
 var pattern_1 = require('../pattern');
 var taxonomy_node_1 = require('./taxonomy-node');
-// TODO: review all docs below after data structure changes
 /**
  * A taxonomy is an arrangement of patterns into a directed acyclic graph (DAG), according to their
  * set relationships. Recall that a pattern represents a set of addresses, so two patterns may have
