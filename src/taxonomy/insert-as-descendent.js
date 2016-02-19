@@ -11,6 +11,7 @@ var pattern_1 = require('../pattern');
  *        function to map patterns to their corresponding graph nodes on demand.
  */
 function insertAsDescendent(insertee, ancestor, nodeFor) {
+    // TODO: clarify this comment...
     // Compute information about all the existing child patterns of the `ancestor` pattern.
     // NB: we only care about the ones that are non-disjoint with `insertee`.
     var nonDisjointComparands = ancestor.specializations.reduce(function (comparands, node) {
