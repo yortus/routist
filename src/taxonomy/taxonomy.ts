@@ -104,8 +104,8 @@ export default class Taxonomy {
 
     // TODO: ========================== WIP below... All API below here is not fully baked... ===========================
     // TODO: doc...
-    get allPatterns(): Pattern[] {
-        return this._allPatterns || (this._allPatterns = getAllPatterns(this));
+    get allNodes(): Taxonomy[] {
+        return this._allNodes || (this._allNodes = getAllNodes(this));
     }
 
 
@@ -120,17 +120,24 @@ export default class Taxonomy {
      * TODO: fix below....
      * @returns
      */
-    get allPathsFromHere(): Pattern[][] {
-        return this._allPathsFromHere || (this._allPathsFromHere = getAllPathsFromHere(this));
-    }
+    // get allPathsFromHere(): Pattern[][] {
+    //     return this._allPathsFromHere || (this._allPathsFromHere = getAllPathsFromHere(this));
+    // }
+
+
+    // TODO: doc... temp testing...
+    // get allPathsFromRootToHere(): Pattern[][] {
+    //     return this._allPathsFromRootToHere || (this._allPathsFromRootToHere = getAllPathsFromRootToHere(this));
+    // }
 
 
     /** Holds the memoized value return by the Taxonomy#allPatterns getter. */
-    private _allPatterns: Pattern[];
+    private _allNodes: Taxonomy[];
+    //TODO: was...private _allPatterns: Pattern[];
 
 
-    /** Holds the memoized value return by the Taxonomy#allPathsFromHere getter. */
-    private _allPathsFromHere: Pattern[][];
+    // TODO: temp testing...
+    // private _allPathsFromRootToHere: Pattern[][];
 }
 
 
@@ -157,9 +164,9 @@ function makeTaxonomy(patterns: Pattern[], nodeFor: (pattern: Pattern) => Taxono
 
 
 // TODO: doc...
-function getAllPatterns(taxonomy: Taxonomy): Pattern[] {
-    let allWithDups = [taxonomy.pattern].concat(...taxonomy.specializations.map(spec => spec.allPatterns));
-    let resultSet = allWithDups.reduce((set, pat) => set.add(pat), new Set<Pattern>());
+function getAllNodes(taxonomy: Taxonomy): Taxonomy[] {
+    let allWithDups = [taxonomy].concat(...taxonomy.specializations.map(getAllNodes));
+    let resultSet = allWithDups.reduce((set, node) => set.add(node), new Set<Taxonomy>());
     return Array.from(resultSet.values());
 }
 
@@ -167,9 +174,10 @@ function getAllPatterns(taxonomy: Taxonomy): Pattern[] {
 
 
 
-// TODO: doc...
-function getAllPathsFromHere(taxonomy: Taxonomy): Pattern[][] {
-    // TODO: test/review/cleanup...
-    let allChildPaths: Pattern[][] = [[]].concat(...taxonomy.specializations.map(spec => spec.allPathsFromHere));
-    return allChildPaths.map(childPath => [taxonomy.pattern].concat(childPath));
-}
+// TODO: temp testing...
+// function getAllPathsFromRootToHere(taxonomy: Taxonomy): Pattern[][] {
+//     // TODO: test/review/cleanup...
+//     let allPaths = [].concat(...taxonomy.generalizations.map(gen => gen.allPathsFromRootToHere));
+//     if (allPaths.length === 0) allPaths = [[]]; // no parent paths - this must be the root
+//     return allPaths.map(path => path.concat([taxonomy.pattern]));
+// }

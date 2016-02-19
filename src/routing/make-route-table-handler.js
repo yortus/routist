@@ -33,31 +33,25 @@ function makeAllRouteHandlers(taxonomy, routeTable) {
     // Get a list of all the distinct patterns that occur in the taxonomy. This may include
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
     // well as patterns synthesized at the intersection of overlapping patterns in the route table.
-    var distinctPatterns = taxonomy.allPatterns;
-    var patternIndices = distinctPatterns.reduce(function (map, pat, i) { return map.set(pat, i); }, new Map());
+    //let distinctPatterns = taxonomy.allPatterns;
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
-    var equalBestRules = distinctPatterns.map(function (pattern) { return getEqualBestRulesForPattern(pattern, routeTable); });
+    var equalBestRules = taxonomy.allNodes.reduce(function (map, node) { return map.set(node.pattern, getEqualBestRulesForPattern(node.pattern, routeTable)); }, new Map());
     // TODO: doc...
-    var alternateRoutes = distinctPatterns.map(function (pattern) { return taxonomy.allPathsFromHere
-        .filter(function (path) { return path[path.length - 1] === pattern; })
-        .map(function (path) { return path
-        .map(function (pattern) { return equalBestRules[patternIndices.get(pattern)]; })
-        .reduce(function (route, rules) { return route.concat(rules); }, [universalRule]); }); });
-    // TODO: for each pattern, make a single best route. Ensure no possibility of ambiguity.
-    var finalRoutes = distinctPatterns.map(function (pattern, i) { return getFinalRouteForPattern(pattern, alternateRoutes[i]); });
-    // let finalRouteForEachPattern = distinctPatterns.reduce((map, pattern) => {
-    //     let route = getFinalRouteForPattern(pattern, routesToEachPattern.get(pattern));
-    //     return map.set(pattern, route);
-    // }, new Map<Pattern, Route>());
-    // TODO: make a route handler for each pattern.
-    var routeHandlers = finalRoutes.map(make_route_handler_1.default);
-    // let routes = distinctPatterns.reduce((map, pattern) => {
-    //     let route = finalRouteForEachPattern.get(pattern);
-    //     let routeHandler = makeRouteHandler(route);
-    //     return map.set(pattern, routeHandler);
-    // }, new Map<Pattern, Handler>());
-    return routeHandlers.reduce(function (map, handler, i) { return map.set(distinctPatterns[i], handler); }, new Map());
-    //return routes;
+    var result = new Map();
+    taxonomy.allNodes.forEach(function (t) {
+        // TODO: doc...
+        var alternateRoutes = getAllPathsFromRootToHere(t)
+            .map(function (path) { return path
+            .map(function (pattern) { return equalBestRules.get(pattern); })
+            .reduce(function (route, rules) { return route.concat(rules); }, [universalRule]); });
+        // TODO: make a single best route. Ensure no possibility of ambiguity.
+        var finalRoute = getFinalRouteForPattern(t.pattern, alternateRoutes);
+        // TODO: make a route handler...
+        var handler = make_route_handler_1.default(finalRoute);
+        // TODO: ...
+        result.set(t.pattern, handler);
+    });
+    return result;
 }
 // TODO:  make jsdoc...
 // Associate each distinct pattern (ie unique by signature) with the set of rules from the route table that *exactly* match
@@ -82,6 +76,15 @@ function getEqualBestRulesForPattern(pattern, routeTable) {
     rules.sort(ruleComparator); // NB: may throw
     // TODO: ...
     return rules;
+}
+// TODO: doc...
+function getAllPathsFromRootToHere(taxonomy) {
+    // TODO: test/review/cleanup...
+    var allPaths = (_a = []).concat.apply(_a, taxonomy.generalizations.map(getAllPathsFromRootToHere));
+    if (allPaths.length === 0)
+        allPaths = [[]]; // no parent paths - this must be the root
+    return allPaths.map(function (path) { return path.concat([taxonomy.pattern]); });
+    var _a;
 }
 // TODO: doc...
 function getFinalRouteForPattern(pattern, candidates) {

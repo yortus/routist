@@ -15,6 +15,15 @@ import Request from '../request';
 
 
 
+// TODO: doc... extend each taxonomy node with additional info
+interface TaxonomyEx extends Taxonomy {
+    equalBestRules?: Rule[];
+}
+
+
+
+
+
 // TODO: doc...
 export default function makeRouteTableHandler(routeTable: {[pattern: string]: Function}): Handler {
 
@@ -42,47 +51,43 @@ export default function makeRouteTableHandler(routeTable: {[pattern: string]: Fu
 
 
 // TODO: ...
-function makeAllRouteHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map<Pattern, Handler> {
+function makeAllRouteHandlers(taxonomy: TaxonomyEx, routeTable: RouteTable): Map<Pattern, Handler> {
 
     // Get a list of all the distinct patterns that occur in the taxonomy. This may include
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
     // well as patterns synthesized at the intersection of overlapping patterns in the route table.
-    let distinctPatterns = taxonomy.allPatterns;
-    let patternIndices = distinctPatterns.reduce((map, pat, i) => map.set(pat, i), new Map<Pattern, number>());
+    //let distinctPatterns = taxonomy.allPatterns;
 
 
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
-    let equalBestRules = distinctPatterns.map(pattern => getEqualBestRulesForPattern(pattern, routeTable));
-
-
-    // TODO: doc...
-    let alternateRoutes: Route[][] = distinctPatterns.map(pattern => taxonomy.allPathsFromHere
-        .filter(path => path[path.length - 1] === pattern)
-        .map(path => path
-            .map(pattern => equalBestRules[patternIndices.get(pattern)])
-            .reduce((route, rules) => route.concat(rules), [universalRule])
-        )
+    let equalBestRules = taxonomy.allNodes.reduce(
+        (map, node) => map.set(node.pattern, getEqualBestRulesForPattern(node.pattern, routeTable)),
+        new Map<Pattern, Rule[]>()
     );
 
 
-    // TODO: for each pattern, make a single best route. Ensure no possibility of ambiguity.
-    let finalRoutes = distinctPatterns.map((pattern, i) => getFinalRouteForPattern(pattern, alternateRoutes[i]));
-    // let finalRouteForEachPattern = distinctPatterns.reduce((map, pattern) => {
-    //     let route = getFinalRouteForPattern(pattern, routesToEachPattern.get(pattern));
-    //     return map.set(pattern, route);
-    // }, new Map<Pattern, Route>());
+    // TODO: doc...
+    let result = new Map<Pattern, Handler>();
+    taxonomy.allNodes.forEach((t: TaxonomyEx) => {
 
+        // TODO: doc...
+        let alternateRoutes = getAllPathsFromRootToHere(t)
+            .map(path => path
+                .map(pattern => equalBestRules.get(pattern))
+                .reduce((route, rules) => route.concat(rules), [universalRule])
+            );
 
-    // TODO: make a route handler for each pattern.
-    let routeHandlers = finalRoutes.map(makeRouteHandler);
-    // let routes = distinctPatterns.reduce((map, pattern) => {
-    //     let route = finalRouteForEachPattern.get(pattern);
-    //     let routeHandler = makeRouteHandler(route);
-    //     return map.set(pattern, routeHandler);
-    // }, new Map<Pattern, Handler>());
+        // TODO: make a single best route. Ensure no possibility of ambiguity.
+        let finalRoute = getFinalRouteForPattern(t.pattern, alternateRoutes);
 
-    return routeHandlers.reduce((map, handler, i) => map.set(distinctPatterns[i], handler), new Map<Pattern, Handler>());
-    //return routes;
+        // TODO: make a route handler...
+        let handler = makeRouteHandler(finalRoute);
+
+        // TODO: ...
+        result.set(t.pattern, handler);
+    });
+
+    return result;
 }
 
 
@@ -116,6 +121,18 @@ function getEqualBestRulesForPattern(pattern: Pattern, routeTable: RouteTable): 
 
     // TODO: ...
     return rules;
+}
+
+
+
+
+
+// TODO: doc...
+function getAllPathsFromRootToHere(taxonomy: Taxonomy): Pattern[][] {
+    // TODO: test/review/cleanup...
+    let allPaths = [].concat(...taxonomy.generalizations.map(getAllPathsFromRootToHere));
+    if (allPaths.length === 0) allPaths = [[]]; // no parent paths - this must be the root
+    return allPaths.map(path => path.concat([taxonomy.pattern]));
 }
 
 

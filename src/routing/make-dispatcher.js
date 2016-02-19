@@ -7,7 +7,7 @@ var pattern_1 = require('../pattern');
 // TODO: shorten sig to < 120chars
 function makeDispatcher(taxonomy, targetMap) {
     // TODO: ...
-    var patterns = taxonomy.allPatterns;
+    var patterns = taxonomy.allNodes.map(function (node) { return node.pattern; });
     var targets = patterns.map(function (pat) { return targetMap.get(pat); });
     // TODO: doc...
     function getBody(specializations, fallback, nestDepth) {

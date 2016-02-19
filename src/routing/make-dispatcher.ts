@@ -14,7 +14,7 @@ import Taxonomy from '../taxonomy';
 export default function makeDispatcher<T>(taxonomy: Taxonomy, targetMap: Map<Pattern, T>): (address: string) => T {
 
     // TODO: ...
-    let patterns = taxonomy.allPatterns;
+    let patterns = taxonomy.allNodes.map(node => node.pattern);
     let targets = patterns.map(pat => targetMap.get(pat));
 
     // TODO: doc...

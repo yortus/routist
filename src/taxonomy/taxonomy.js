@@ -75,29 +75,11 @@ var Taxonomy = (function () {
         Object.freeze(taxonomy.specializations);
         return taxonomy;
     };
-    Object.defineProperty(Taxonomy.prototype, "allPatterns", {
+    Object.defineProperty(Taxonomy.prototype, "allNodes", {
         // TODO: ========================== WIP below... All API below here is not fully baked... ===========================
         // TODO: doc...
         get: function () {
-            return this._allPatterns || (this._allPatterns = getAllPatterns(this));
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Taxonomy.prototype, "allPathsFromHere", {
-        // TODO: review doc...
-        // TODO: badly named...
-        /**
-         * Enumerates every possible walk[1] in the `taxonomy` DAG that begins at the this Pattern
-         * and ends at any Pattern reachable from the this one. Each walk is a Pattern array,
-         * whose elements are arranged in walk-order (i.e., from the root to the descendent).
-         * [1] See: https://en.wikipedia.org/wiki/Glossary_of_graph_theory#Walks
-         * @param {Taxonomy} taxonomy - the pattern DAG to be walked.
-         * TODO: fix below....
-         * @returns
-         */
-        get: function () {
-            return this._allPathsFromHere || (this._allPathsFromHere = getAllPathsFromHere(this));
+            return this._allNodes || (this._allNodes = getAllNodes(this));
         },
         enumerable: true,
         configurable: true
@@ -119,17 +101,17 @@ function makeTaxonomy(patterns, nodeFor) {
     return taxonomy;
 }
 // TODO: doc...
-function getAllPatterns(taxonomy) {
-    var allWithDups = (_a = [taxonomy.pattern]).concat.apply(_a, taxonomy.specializations.map(function (spec) { return spec.allPatterns; }));
-    var resultSet = allWithDups.reduce(function (set, pat) { return set.add(pat); }, new Set());
+function getAllNodes(taxonomy) {
+    var allWithDups = (_a = [taxonomy]).concat.apply(_a, taxonomy.specializations.map(getAllNodes));
+    var resultSet = allWithDups.reduce(function (set, node) { return set.add(node); }, new Set());
     return Array.from(resultSet.values());
     var _a;
 }
-// TODO: doc...
-function getAllPathsFromHere(taxonomy) {
-    // TODO: test/review/cleanup...
-    var allChildPaths = (_a = [[]]).concat.apply(_a, taxonomy.specializations.map(function (spec) { return spec.allPathsFromHere; }));
-    return allChildPaths.map(function (childPath) { return [taxonomy.pattern].concat(childPath); });
-    var _a;
-}
+// TODO: temp testing...
+// function getAllPathsFromRootToHere(taxonomy: Taxonomy): Pattern[][] {
+//     // TODO: test/review/cleanup...
+//     let allPaths = [].concat(...taxonomy.generalizations.map(gen => gen.allPathsFromRootToHere));
+//     if (allPaths.length === 0) allPaths = [[]]; // no parent paths - this must be the root
+//     return allPaths.map(path => path.concat([taxonomy.pattern]));
+// }
 //# sourceMappingURL=taxonomy.js.map
