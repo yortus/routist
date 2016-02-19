@@ -16,40 +16,45 @@ import TaxonomyNode from './taxonomy-node';
  * @param {(pattern: Pattern) => Graph<Pattern>} nodeFor - a callback used by the
  *        function to map patterns to their corresponding graph nodes on demand.
  */
-export default function insertAsDescendent(insertee: Pattern, ancestor: Pattern, nodeFor: (pattern: Pattern) => TaxonomyNode) {
+export default function insertAsDescendent(insertee: TaxonomyNode, ancestor: TaxonomyNode, nodeFor: (pattern: Pattern) => TaxonomyNode) {
 
+    // TODO: clarify this comment...
     // Compute information about all the existing child patterns of the `ancestor` pattern.
     // NB: we only care about the ones that are non-disjoint with `insertee`.
-    let nonDisjointComparands = nodeFor(ancestor).specializations
-        .map(node => node.pattern)
-        .map(pattern => ({ pattern, intersection: insertee.intersect(pattern) }))
-        .filter(cmp => cmp.intersection !== Pattern.EMPTY);
+    let nonDisjointComparands = ancestor.specializations.reduce(
+        (comparands, node) => {
+            let intersection = insertee.pattern.intersect(node.pattern);
+            if (intersection !== Pattern.EMPTY) comparands.push({node, intersection: nodeFor(intersection)});
+            return comparands;
+        },
+        <{node: TaxonomyNode; intersection: TaxonomyNode}[]> []
+    );
 
     // If the `ancestor` pattern has no existing child patterns that are non-disjoint
     // with `insertee`, then we simply add `insertee` as a direct child of `ancestor`.
     if (nonDisjointComparands.length === 0) {
-        insertChild(nodeFor(ancestor), nodeFor(insertee));
+        insertChild(ancestor, insertee);
     }
 
     // If `insertee` already exists as a direct subset of `ancestor` at this point
     // (including if it was just added above), then we are done.
-    if (hasChild(nodeFor(ancestor), nodeFor(insertee))) return;
+    if (hasChild(ancestor, insertee)) return;
 
     // `insertee` has subset/superset/overlapping relationships with one or more of
     // `ancestor`'s existing child patterns. Work out how and where to insert it.
     nonDisjointComparands.forEach(comparand => {
         let isSubsetOfComparand = comparand.intersection === insertee;
-        let isSupersetOfComparand = comparand.intersection === comparand.pattern;
+        let isSupersetOfComparand = comparand.intersection === comparand.node;
         let isOverlappingComparand = !isSubsetOfComparand && !isSupersetOfComparand;
 
         if (isSupersetOfComparand) {
             // Remove the comparand from `ancestor`. It will be re-inserted as a subset of `insertee` below.
-            removeChild(nodeFor(ancestor), nodeFor(comparand.pattern));
+            removeChild(ancestor, comparand.node);
         }
 
         if (isSupersetOfComparand || isOverlappingComparand) {
             // Add `insertee` as a direct child of `ancestor`.
-            insertChild(nodeFor(ancestor), nodeFor(insertee));
+            insertChild(ancestor, insertee);
 
             // Recursively re-insert the comparand (or insert the overlap) as a subset of `insertee`.
             insertAsDescendent(comparand.intersection, insertee, nodeFor);
@@ -57,7 +62,7 @@ export default function insertAsDescendent(insertee: Pattern, ancestor: Pattern,
 
         if (isSubsetOfComparand || isOverlappingComparand) {
             // Recursively insert `insertee` (or insert the overlap) as a subset of the comparand.
-            insertAsDescendent(comparand.intersection, comparand.pattern, nodeFor);
+            insertAsDescendent(comparand.intersection, comparand.node, nodeFor);
         }
     });
 }

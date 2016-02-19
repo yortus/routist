@@ -92,14 +92,16 @@ export default class Taxonomy {
 // TODO: doc...
 function makeTaxonomy(patterns: Pattern[], nodeFor: (pattern: Pattern) => TaxonomyNode): TaxonomyNode {
 
+    // TODO: ...
+    let rootNode = nodeFor(Pattern.UNIVERSAL);
+
     // Insert each of the given patterns (except '…' and '∅') into a DAG rooted at '…'.
     // The rest of the algorithm assumes only normalized patterns, which we obtain here.
     patterns
         .map(pat => pat.normalized)
         .filter(pat => pat !== Pattern.UNIVERSAL && pat !== Pattern.EMPTY)
-        .forEach(pat => insertAsDescendent(pat, Pattern.UNIVERSAL, nodeFor));
+        .forEach(pat => insertAsDescendent(nodeFor(pat), rootNode, nodeFor));
 
     // Return a new top-level node with the single key '…'.
-    let rootNode = nodeFor(Pattern.UNIVERSAL);
     return rootNode;
 }

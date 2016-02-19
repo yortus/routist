@@ -68,14 +68,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Taxonomy;
 // TODO: doc...
 function makeTaxonomy(patterns, nodeFor) {
+    // TODO: ...
+    var rootNode = nodeFor(pattern_1.default.UNIVERSAL);
     // Insert each of the given patterns (except '…' and '∅') into a DAG rooted at '…'.
     // The rest of the algorithm assumes only normalized patterns, which we obtain here.
     patterns
         .map(function (pat) { return pat.normalized; })
         .filter(function (pat) { return pat !== pattern_1.default.UNIVERSAL && pat !== pattern_1.default.EMPTY; })
-        .forEach(function (pat) { return insert_as_descendent_1.default(pat, pattern_1.default.UNIVERSAL, nodeFor); });
+        .forEach(function (pat) { return insert_as_descendent_1.default(nodeFor(pat), rootNode, nodeFor); });
     // Return a new top-level node with the single key '…'.
-    var rootNode = nodeFor(pattern_1.default.UNIVERSAL);
     return rootNode;
 }
 //# sourceMappingURL=taxonomy.js.map

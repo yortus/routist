@@ -13,38 +13,40 @@ var pattern_1 = require('../pattern');
 function insertAsDescendent(insertee, ancestor, nodeFor) {
     // Compute information about all the existing child patterns of the `ancestor` pattern.
     // NB: we only care about the ones that are non-disjoint with `insertee`.
-    var nonDisjointComparands = nodeFor(ancestor).specializations
-        .map(function (node) { return node.pattern; })
-        .map(function (pattern) { return ({ pattern: pattern, intersection: insertee.intersect(pattern) }); })
-        .filter(function (cmp) { return cmp.intersection !== pattern_1.default.EMPTY; });
+    var nonDisjointComparands = ancestor.specializations.reduce(function (comparands, node) {
+        var intersection = insertee.pattern.intersect(node.pattern);
+        if (intersection !== pattern_1.default.EMPTY)
+            comparands.push({ node: node, intersection: nodeFor(intersection) });
+        return comparands;
+    }, []);
     // If the `ancestor` pattern has no existing child patterns that are non-disjoint
     // with `insertee`, then we simply add `insertee` as a direct child of `ancestor`.
     if (nonDisjointComparands.length === 0) {
-        insertChild(nodeFor(ancestor), nodeFor(insertee));
+        insertChild(ancestor, insertee);
     }
     // If `insertee` already exists as a direct subset of `ancestor` at this point
     // (including if it was just added above), then we are done.
-    if (hasChild(nodeFor(ancestor), nodeFor(insertee)))
+    if (hasChild(ancestor, insertee))
         return;
     // `insertee` has subset/superset/overlapping relationships with one or more of
     // `ancestor`'s existing child patterns. Work out how and where to insert it.
     nonDisjointComparands.forEach(function (comparand) {
         var isSubsetOfComparand = comparand.intersection === insertee;
-        var isSupersetOfComparand = comparand.intersection === comparand.pattern;
+        var isSupersetOfComparand = comparand.intersection === comparand.node;
         var isOverlappingComparand = !isSubsetOfComparand && !isSupersetOfComparand;
         if (isSupersetOfComparand) {
             // Remove the comparand from `ancestor`. It will be re-inserted as a subset of `insertee` below.
-            removeChild(nodeFor(ancestor), nodeFor(comparand.pattern));
+            removeChild(ancestor, comparand.node);
         }
         if (isSupersetOfComparand || isOverlappingComparand) {
             // Add `insertee` as a direct child of `ancestor`.
-            insertChild(nodeFor(ancestor), nodeFor(insertee));
+            insertChild(ancestor, insertee);
             // Recursively re-insert the comparand (or insert the overlap) as a subset of `insertee`.
             insertAsDescendent(comparand.intersection, insertee, nodeFor);
         }
         if (isSubsetOfComparand || isOverlappingComparand) {
             // Recursively insert `insertee` (or insert the overlap) as a subset of the comparand.
-            insertAsDescendent(comparand.intersection, comparand.pattern, nodeFor);
+            insertAsDescendent(comparand.intersection, comparand.node, nodeFor);
         }
     });
 }
