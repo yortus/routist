@@ -81,4 +81,4 @@ describe('Intersecting two patterns', function () {
         });
     });
 });
-//# sourceMappingURL=intersect-patterns.js.map
+//# sourceMappingURL=intersecting-two-patterns.js.map

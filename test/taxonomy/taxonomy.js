@@ -1,6 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
-var taxonomy_1 = require('../../src/taxonomy/taxonomy');
+var taxonomy_1 = require('../../src/taxonomy');
 var pattern_1 = require('../../src/pattern');
 describe('Forming a taxonomy of patterns', function () {
     var tests = [

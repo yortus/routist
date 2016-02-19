@@ -51,4 +51,4 @@ describe('Parsing a pattern string', function () {
         });
     });
 });
-//# sourceMappingURL=parse-pattern-source.js.map
+//# sourceMappingURL=parsing-a-pattern-string.js.map

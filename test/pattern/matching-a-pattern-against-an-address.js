@@ -49,4 +49,4 @@ describe('Matching a pattern against an address', function () {
         });
     });
 });
-//# sourceMappingURL=make-pattern-matcher.js.map
+//# sourceMappingURL=matching-a-pattern-against-an-address.js.map

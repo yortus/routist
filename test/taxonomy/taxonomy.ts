@@ -1,7 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import Taxonomy from '../../src/taxonomy/taxonomy';
-import TaxonomyNode from '../../src/taxonomy/taxonomy-node'; // TODO: need separate import???
+import Taxonomy, {TaxonomyNode} from '../../src/taxonomy';
 import Pattern from '../../src/pattern';
 
 
