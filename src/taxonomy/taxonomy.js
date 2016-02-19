@@ -70,14 +70,18 @@ var Taxonomy = (function () {
         };
         // TODO: delegate...
         var taxonomy = makeTaxonomy(patterns, nodeFor);
-        // TODO: should freeze whole graph, not just root node...
-        Object.freeze(taxonomy.generalizations);
-        Object.freeze(taxonomy.specializations);
+        // TODO: freeze whole graph...
+        taxonomy.allNodes.forEach(function (node) {
+            Object.freeze(node.generalizations);
+            Object.freeze(node.specializations);
+        });
         return taxonomy;
     };
     Object.defineProperty(Taxonomy.prototype, "allNodes", {
         // TODO: ========================== WIP below... All API below here is not fully baked... ===========================
         // TODO: doc...
+        // TODO: this is called in Pattern.from, so there's no point in having this lazy getter...
+        // TODO: badly named - does not include generalizations... Should it (ie every node has list of all graph nodes?)
         get: function () {
             return this._allNodes || (this._allNodes = getAllNodes(this));
         },
@@ -107,11 +111,4 @@ function getAllNodes(taxonomy) {
     return Array.from(resultSet.values());
     var _a;
 }
-// TODO: temp testing...
-// function getAllPathsFromRootToHere(taxonomy: Taxonomy): Pattern[][] {
-//     // TODO: test/review/cleanup...
-//     let allPaths = [].concat(...taxonomy.generalizations.map(gen => gen.allPathsFromRootToHere));
-//     if (allPaths.length === 0) allPaths = [[]]; // no parent paths - this must be the root
-//     return allPaths.map(path => path.concat([taxonomy.pattern]));
-// }
 //# sourceMappingURL=taxonomy.js.map

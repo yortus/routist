@@ -82,9 +82,11 @@ export default class Taxonomy {
         // TODO: delegate...
         let taxonomy = makeTaxonomy(patterns, nodeFor);
 
-        // TODO: should freeze whole graph, not just root node...
-        Object.freeze(taxonomy.generalizations);
-        Object.freeze(taxonomy.specializations);
+        // TODO: freeze whole graph...
+        taxonomy.allNodes.forEach(node => {
+            Object.freeze(node.generalizations);
+            Object.freeze(node.specializations);
+        });
 
         return taxonomy;
     }
@@ -104,40 +106,15 @@ export default class Taxonomy {
 
     // TODO: ========================== WIP below... All API below here is not fully baked... ===========================
     // TODO: doc...
+    // TODO: this is called in Pattern.from, so there's no point in having this lazy getter...
+    // TODO: badly named - does not include generalizations... Should it (ie every node has list of all graph nodes?)
     get allNodes(): Taxonomy[] {
         return this._allNodes || (this._allNodes = getAllNodes(this));
     }
 
 
-    // TODO: review doc...
-    // TODO: badly named...
-    /**
-     * Enumerates every possible walk[1] in the `taxonomy` DAG that begins at the this Pattern
-     * and ends at any Pattern reachable from the this one. Each walk is a Pattern array,
-     * whose elements are arranged in walk-order (i.e., from the root to the descendent).
-     * [1] See: https://en.wikipedia.org/wiki/Glossary_of_graph_theory#Walks
-     * @param {Taxonomy} taxonomy - the pattern DAG to be walked.
-     * TODO: fix below....
-     * @returns
-     */
-    // get allPathsFromHere(): Pattern[][] {
-    //     return this._allPathsFromHere || (this._allPathsFromHere = getAllPathsFromHere(this));
-    // }
-
-
-    // TODO: doc... temp testing...
-    // get allPathsFromRootToHere(): Pattern[][] {
-    //     return this._allPathsFromRootToHere || (this._allPathsFromRootToHere = getAllPathsFromRootToHere(this));
-    // }
-
-
-    /** Holds the memoized value return by the Taxonomy#allPatterns getter. */
+    /** Holds the memoized value return by the Taxonomy#allNodes getter. */
     private _allNodes: Taxonomy[];
-    //TODO: was...private _allPatterns: Pattern[];
-
-
-    // TODO: temp testing...
-    // private _allPathsFromRootToHere: Pattern[][];
 }
 
 
@@ -169,15 +146,3 @@ function getAllNodes(taxonomy: Taxonomy): Taxonomy[] {
     let resultSet = allWithDups.reduce((set, node) => set.add(node), new Set<Taxonomy>());
     return Array.from(resultSet.values());
 }
-
-
-
-
-
-// TODO: temp testing...
-// function getAllPathsFromRootToHere(taxonomy: Taxonomy): Pattern[][] {
-//     // TODO: test/review/cleanup...
-//     let allPaths = [].concat(...taxonomy.generalizations.map(gen => gen.allPathsFromRootToHere));
-//     if (allPaths.length === 0) allPaths = [[]]; // no parent paths - this must be the root
-//     return allPaths.map(path => path.concat([taxonomy.pattern]));
-// }

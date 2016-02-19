@@ -127,7 +127,17 @@ function getEqualBestRulesForPattern(pattern: Pattern, routeTable: RouteTable): 
 
 
 
-// TODO: doc...
+// TODO: review doc...
+// TODO: badly named...
+/**
+ * Enumerates every possible walk[1] in the `taxonomy` DAG that begins at the this Pattern
+ * and ends at any Pattern reachable from the this one. Each walk is a Pattern array,
+ * whose elements are arranged in walk-order (i.e., from the root to the descendent).
+ * [1] See: https://en.wikipedia.org/wiki/Glossary_of_graph_theory#Walks
+ * @param {Taxonomy} taxonomy - the pattern DAG to be walked.
+ * TODO: fix below....
+ * @returns
+ */
 function getAllPathsFromRootToHere(taxonomy: Taxonomy): Pattern[][] {
     // TODO: test/review/cleanup...
     let allPaths = [].concat(...taxonomy.generalizations.map(getAllPathsFromRootToHere));
