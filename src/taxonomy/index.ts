@@ -1,2 +1,2 @@
-import Taxonomy from './taxonomy';
-export default Taxonomy;
+export {default} from './taxonomy';
+export {default as TaxonomyNode} from './taxonomy-node';

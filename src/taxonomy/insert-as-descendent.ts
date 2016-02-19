@@ -1,7 +1,6 @@
 'use strict';
-import * as assert from 'assert';
 import Pattern from '../pattern';
-import Taxonomy from './taxonomy'; // NB: circular ref is elided from output (only used for type info)
+import TaxonomyNode from './taxonomy-node';
 // TODO: review all docs/comments/names
 
 
@@ -17,7 +16,7 @@ import Taxonomy from './taxonomy'; // NB: circular ref is elided from output (on
  * @param {(pattern: Pattern) => Graph<Pattern>} nodeFor - a callback used by the
  *        function to map patterns to their corresponding graph nodes on demand.
  */
-export default function insertAsDescendent(insertee: Pattern, ancestor: Pattern, nodeFor: (pattern: Pattern) => Taxonomy) {
+export default function insertAsDescendent(insertee: Pattern, ancestor: Pattern, nodeFor: (pattern: Pattern) => TaxonomyNode) {
 
     // Compute information about all the existing child patterns of the `ancestor` pattern.
     // NB: we only care about the ones that are non-disjoint with `insertee`.
@@ -68,8 +67,8 @@ export default function insertAsDescendent(insertee: Pattern, ancestor: Pattern,
 
 
 // TODO: doc...
-function hasChild(parent: Taxonomy, child: Taxonomy): boolean {
-    return parent.specializations.indexOf(child) !== -1;
+function hasChild(node: TaxonomyNode, child: TaxonomyNode): boolean {
+    return node.specializations.indexOf(child) !== -1;
 }
 
 
@@ -77,11 +76,11 @@ function hasChild(parent: Taxonomy, child: Taxonomy): boolean {
 
 
 // TODO: doc...
-function insertChild(parent: Taxonomy, child: Taxonomy) {
+function insertChild(node: TaxonomyNode, child: TaxonomyNode) {
     // NB: If the child is already there, make this a no-op.
-    if (hasChild(parent, child)) return;
-    parent.specializations.push(child);
-    child.generalizations.push(parent);
+    if (hasChild(node, child)) return;
+    node.specializations.push(child);
+    child.generalizations.push(node);
 }
 
 
@@ -89,8 +88,7 @@ function insertChild(parent: Taxonomy, child: Taxonomy) {
 
 
 // TODO: doc...
-function removeChild(parent: Taxonomy, child: Taxonomy) {
-    assert(hasChild(parent, child));
-    parent.specializations.splice(parent.specializations.indexOf(child), 1);
-    child.generalizations.splice(child.generalizations.indexOf(parent), 1);
+function removeChild(node: TaxonomyNode, child: TaxonomyNode) {
+    node.specializations.splice(node.specializations.indexOf(child), 1);
+    child.generalizations.splice(child.generalizations.indexOf(node), 1);
 }

@@ -1,6 +1,7 @@
 'use strict';
 var insert_as_descendent_1 = require('./insert-as-descendent');
 var pattern_1 = require('../pattern');
+var taxonomy_node_1 = require('./taxonomy-node');
 // TODO: review all docs below after data structure changes
 /**
  * A taxonomy is a directed acyclic graph
@@ -39,55 +40,28 @@ var pattern_1 = require('../pattern');
  *         |-- /foo
  */
 var Taxonomy = (function () {
-    /**
-     * Constructs a new Taxonomy instance. NB: This constructor is for internal use only.
-     * Use Taxonomy.from() to create a Taxonomy instance from a set of patterns.
-     */
-    function Taxonomy(pattern) {
-        // TODO: doc...
-        this.generalizations = [];
-        // TODO: doc...
-        this.specializations = [];
-        this.pattern = pattern;
-    }
     // TODO: doc better...
     /**
-     * Generates a new Taxonomy instance based on the given set of patterns.
+     * Constructs a new Taxonomy instance based on the given set of patterns.
      * @param {Pattern[]} patterns - the list of patterns that make up nodes in the DAG.
      * @returns {Graph<Pattern>} A map object, whose keys are patterns and whose values
      *        are more maps. The top-level map always contains the single key '…' All
      *        patterns in the returned graph are normalized.
      */
-    Taxonomy.from = function (patterns) {
+    function Taxonomy(patterns) {
         // Create the nodeFor() function to return the graph node corresponding to a given
         // pattern, creating it on demand if it doesn't already exist. This function ensures
         // that every request for the same pattern gets the same singleton node.
-        var allNodes = new Map();
+        var nodeMap = new Map();
         var nodeFor = function (pattern) {
-            if (!allNodes.has(pattern))
-                allNodes.set(pattern, new Taxonomy(pattern));
-            return allNodes.get(pattern);
+            if (!nodeMap.has(pattern))
+                nodeMap.set(pattern, new taxonomy_node_1.default(pattern));
+            return nodeMap.get(pattern);
         };
         // TODO: delegate...
-        var taxonomy = makeTaxonomy(patterns, nodeFor);
-        // TODO: freeze whole graph...
-        taxonomy.allNodes.forEach(function (node) {
-            Object.freeze(node.generalizations);
-            Object.freeze(node.specializations);
-        });
-        return taxonomy;
-    };
-    Object.defineProperty(Taxonomy.prototype, "allNodes", {
-        // TODO: ========================== WIP below... All API below here is not fully baked... ===========================
-        // TODO: doc...
-        // TODO: this is called in Pattern.from, so there's no point in having this lazy getter...
-        // TODO: badly named - does not include generalizations... Should it (ie every node has list of all graph nodes?)
-        get: function () {
-            return this._allNodes || (this._allNodes = getAllNodes(this));
-        },
-        enumerable: true,
-        configurable: true
-    });
+        this.rootNode = makeTaxonomy(patterns, nodeFor);
+        this.allNodes = Array.from(nodeMap.values());
+    }
     return Taxonomy;
 }());
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -98,17 +72,10 @@ function makeTaxonomy(patterns, nodeFor) {
     // The rest of the algorithm assumes only normalized patterns, which we obtain here.
     patterns
         .map(function (pat) { return pat.normalized; })
-        .filter(function (p) { return p !== pattern_1.default.UNIVERSAL && p !== pattern_1.default.EMPTY; })
-        .forEach(function (p) { return insert_as_descendent_1.default(p, pattern_1.default.UNIVERSAL, nodeFor); });
+        .filter(function (pat) { return pat !== pattern_1.default.UNIVERSAL && pat !== pattern_1.default.EMPTY; })
+        .forEach(function (pat) { return insert_as_descendent_1.default(pat, pattern_1.default.UNIVERSAL, nodeFor); });
     // Return a new top-level node with the single key '…'.
-    var taxonomy = nodeFor(pattern_1.default.UNIVERSAL);
-    return taxonomy;
-}
-// TODO: doc...
-function getAllNodes(taxonomy) {
-    var allWithDups = (_a = [taxonomy]).concat.apply(_a, taxonomy.specializations.map(getAllNodes));
-    var resultSet = allWithDups.reduce(function (set, node) { return set.add(node); }, new Set());
-    return Array.from(resultSet.values());
-    var _a;
+    var rootNode = nodeFor(pattern_1.default.UNIVERSAL);
+    return rootNode;
 }
 //# sourceMappingURL=taxonomy.js.map

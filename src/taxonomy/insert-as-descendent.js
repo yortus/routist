@@ -1,5 +1,4 @@
 'use strict';
-var assert = require('assert');
 var pattern_1 = require('../pattern');
 // TODO: review all docs/comments/names
 /**
@@ -52,21 +51,20 @@ function insertAsDescendent(insertee, ancestor, nodeFor) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = insertAsDescendent;
 // TODO: doc...
-function hasChild(parent, child) {
-    return parent.specializations.indexOf(child) !== -1;
+function hasChild(node, child) {
+    return node.specializations.indexOf(child) !== -1;
 }
 // TODO: doc...
-function insertChild(parent, child) {
+function insertChild(node, child) {
     // NB: If the child is already there, make this a no-op.
-    if (hasChild(parent, child))
+    if (hasChild(node, child))
         return;
-    parent.specializations.push(child);
-    child.generalizations.push(parent);
+    node.specializations.push(child);
+    child.generalizations.push(node);
 }
 // TODO: doc...
-function removeChild(parent, child) {
-    assert(hasChild(parent, child));
-    parent.specializations.splice(parent.specializations.indexOf(child), 1);
-    child.generalizations.splice(child.generalizations.indexOf(parent), 1);
+function removeChild(node, child) {
+    node.specializations.splice(node.specializations.indexOf(child), 1);
+    child.generalizations.splice(child.generalizations.indexOf(node), 1);
 }
 //# sourceMappingURL=insert-as-descendent.js.map

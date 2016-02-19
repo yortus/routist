@@ -1,6 +1,7 @@
 'use strict';
 import {expect} from 'chai';
 import Taxonomy from '../../src/taxonomy/taxonomy';
+import TaxonomyNode from '../../src/taxonomy/taxonomy-node'; // TODO: need separate import???
 import Pattern from '../../src/pattern';
 
 
@@ -132,7 +133,7 @@ describe('Forming a taxonomy of patterns', () => {
             let expected: any = test.taxonomy;
             let actual: any;
             try {
-                actual = nodeToObj(Taxonomy.from(patterns));
+                actual = nodeToObj(new Taxonomy(patterns).rootNode);
             }
             catch (ex) {
                 actual = 'ERROR: ' + ex.message;
@@ -147,6 +148,6 @@ describe('Forming a taxonomy of patterns', () => {
 
 
 /** Helper function that converts a Taxonomy to a simple nested object with pattern sources for keys */
-function nodeToObj(node: Taxonomy): {} {
+function nodeToObj(node: TaxonomyNode): {} {
     return node.specializations.reduce((obj, node) => (obj[node.pattern.toString()] = nodeToObj(node), obj), {});
 }

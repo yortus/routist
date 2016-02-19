@@ -3,7 +3,7 @@ import * as assert from 'assert';
 import {inspect} from 'util';
 import {getLongestCommonPrefix} from '../util';
 import {Handler, Route, RouteTable, Rule} from './types';
-import Taxonomy from '../taxonomy';
+import Taxonomy, {TaxonomyNode} from '../taxonomy';
 import isPartialHandler from './is-partial-handler';
 import makeDispatcher from './make-dispatcher';
 import makeRouteHandler from './make-route-handler';
@@ -15,20 +15,11 @@ import Request from '../request';
 
 
 
-// TODO: doc... extend each taxonomy node with additional info
-interface TaxonomyEx extends Taxonomy {
-    equalBestRules?: Rule[];
-}
-
-
-
-
-
 // TODO: doc...
 export default function makeRouteTableHandler(routeTable: {[pattern: string]: Function}): Handler {
 
     // TODO: ...
-    let taxonomy = Taxonomy.from(Object.keys(routeTable).map(src => new Pattern(src)));
+    let taxonomy = new Taxonomy(Object.keys(routeTable).map(src => new Pattern(src)));
 
     // TODO: ...
     let routeHandlers = makeAllRouteHandlers(taxonomy, routeTable);
@@ -51,7 +42,7 @@ export default function makeRouteTableHandler(routeTable: {[pattern: string]: Fu
 
 
 // TODO: ...
-function makeAllRouteHandlers(taxonomy: TaxonomyEx, routeTable: RouteTable): Map<Pattern, Handler> {
+function makeAllRouteHandlers(taxonomy: Taxonomy, routeTable: RouteTable): Map<Pattern, Handler> {
 
     // Get a list of all the distinct patterns that occur in the taxonomy. This may include
     // some patterns that are not in the route table, such as the always-present root pattern '…', as
@@ -68,23 +59,23 @@ function makeAllRouteHandlers(taxonomy: TaxonomyEx, routeTable: RouteTable): Map
 
     // TODO: doc...
     let result = new Map<Pattern, Handler>();
-    taxonomy.allNodes.forEach((t: TaxonomyEx) => {
+    taxonomy.allNodes.forEach(node => {
 
         // TODO: doc...
-        let alternateRoutes = getAllPathsFromRootToHere(t)
+        let alternateRoutes = getAllPathsFromRootToHere(node)
             .map(path => path
                 .map(pattern => equalBestRules.get(pattern))
                 .reduce((route, rules) => route.concat(rules), [universalRule])
             );
 
         // TODO: make a single best route. Ensure no possibility of ambiguity.
-        let finalRoute = getFinalRouteForPattern(t.pattern, alternateRoutes);
+        let finalRoute = getFinalRouteForPattern(node.pattern, alternateRoutes);
 
         // TODO: make a route handler...
         let handler = makeRouteHandler(finalRoute);
 
         // TODO: ...
-        result.set(t.pattern, handler);
+        result.set(node.pattern, handler);
     });
 
     return result;
@@ -113,7 +104,7 @@ function getEqualBestRulesForPattern(pattern: Pattern, routeTable: RouteTable): 
     let rules = Object.keys(routeTable)
         .map(key => new Pattern(key))
         .filter(pat => pat.normalized === pattern.normalized)
-        .map<Rule>(pattern => ({ pattern, handler: normalizeHandler(pattern, routeTable[pattern.toString()]) }));
+        .map<Rule>(pat => ({ pattern: pat, handler: normalizeHandler(pat, routeTable[pat.toString()]) }));
 
     // TODO: explain sort... all rules are equal by pattern signature, but we need specificity order.
     // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
@@ -138,11 +129,11 @@ function getEqualBestRulesForPattern(pattern: Pattern, routeTable: RouteTable): 
  * TODO: fix below....
  * @returns
  */
-function getAllPathsFromRootToHere(taxonomy: Taxonomy): Pattern[][] {
+function getAllPathsFromRootToHere(node: TaxonomyNode): Pattern[][] {
     // TODO: test/review/cleanup...
-    let allPaths = [].concat(...taxonomy.generalizations.map(getAllPathsFromRootToHere));
+    let allPaths = [].concat(...node.generalizations.map(getAllPathsFromRootToHere));
     if (allPaths.length === 0) allPaths = [[]]; // no parent paths - this must be the root
-    return allPaths.map(path => path.concat([taxonomy.pattern]));
+    return allPaths.map(path => path.concat([node.pattern]));
 }
 
 

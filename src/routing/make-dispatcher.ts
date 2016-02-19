@@ -1,7 +1,7 @@
 'use strict';
 import makePatternIdentifier from './make-pattern-identifier';
 import Pattern from '../pattern';
-import Taxonomy from '../taxonomy';
+import Taxonomy, {TaxonomyNode} from '../taxonomy';
 // TODO: factor/reduce repeated makePatternIdentifier calls...
 
 
@@ -18,7 +18,7 @@ export default function makeDispatcher<T>(taxonomy: Taxonomy, targetMap: Map<Pat
     let targets = patterns.map(pat => targetMap.get(pat));
 
     // TODO: doc...
-    function getBody(specializations: Taxonomy[], fallback: Pattern, nestDepth: number): string {
+    function getBody(specializations: TaxonomyNode[], fallback: Pattern, nestDepth: number): string {
         let indent = ' '.repeat(nestDepth * 4);
         let firstLines = specializations.map((spec, i) => {
             let nextLevel = spec.specializations;
@@ -38,7 +38,7 @@ export default function makeDispatcher<T>(taxonomy: Taxonomy, targetMap: Map<Pat
         ...patterns.map((pat, i) => `let _${makePatternIdentifier(pat)} = targets[${i}];\n`),
         '',
         'return function dispatch(address) {',
-        getBody(taxonomy.specializations, Pattern.UNIVERSAL, 1),
+        getBody(taxonomy.rootNode.specializations, Pattern.UNIVERSAL, 1),
         '};'
     ];
 // console.log(lines);

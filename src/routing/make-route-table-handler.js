@@ -11,7 +11,7 @@ var pattern_1 = require('../pattern');
 // TODO: doc...
 function makeRouteTableHandler(routeTable) {
     // TODO: ...
-    var taxonomy = taxonomy_1.default.from(Object.keys(routeTable).map(function (src) { return new pattern_1.default(src); }));
+    var taxonomy = new taxonomy_1.default(Object.keys(routeTable).map(function (src) { return new pattern_1.default(src); }));
     // TODO: ...
     var routeHandlers = makeAllRouteHandlers(taxonomy, routeTable);
     // TODO: ...
@@ -38,18 +38,18 @@ function makeAllRouteHandlers(taxonomy, routeTable) {
     var equalBestRules = taxonomy.allNodes.reduce(function (map, node) { return map.set(node.pattern, getEqualBestRulesForPattern(node.pattern, routeTable)); }, new Map());
     // TODO: doc...
     var result = new Map();
-    taxonomy.allNodes.forEach(function (t) {
+    taxonomy.allNodes.forEach(function (node) {
         // TODO: doc...
-        var alternateRoutes = getAllPathsFromRootToHere(t)
+        var alternateRoutes = getAllPathsFromRootToHere(node)
             .map(function (path) { return path
             .map(function (pattern) { return equalBestRules.get(pattern); })
             .reduce(function (route, rules) { return route.concat(rules); }, [universalRule]); });
         // TODO: make a single best route. Ensure no possibility of ambiguity.
-        var finalRoute = getFinalRouteForPattern(t.pattern, alternateRoutes);
+        var finalRoute = getFinalRouteForPattern(node.pattern, alternateRoutes);
         // TODO: make a route handler...
         var handler = make_route_handler_1.default(finalRoute);
         // TODO: ...
-        result.set(t.pattern, handler);
+        result.set(node.pattern, handler);
     });
     return result;
 }
@@ -70,7 +70,7 @@ function getEqualBestRulesForPattern(pattern, routeTable) {
     var rules = Object.keys(routeTable)
         .map(function (key) { return new pattern_1.default(key); })
         .filter(function (pat) { return pat.normalized === pattern.normalized; })
-        .map(function (pattern) { return ({ pattern: pattern, handler: normalize_handler_1.default(pattern, routeTable[pattern.toString()]) }); });
+        .map(function (pat) { return ({ pattern: pat, handler: normalize_handler_1.default(pat, routeTable[pat.toString()]) }); });
     // TODO: explain sort... all rules are equal by pattern signature, but we need specificity order.
     // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
     rules.sort(ruleComparator); // NB: may throw
@@ -88,12 +88,12 @@ function getEqualBestRulesForPattern(pattern, routeTable) {
  * TODO: fix below....
  * @returns
  */
-function getAllPathsFromRootToHere(taxonomy) {
+function getAllPathsFromRootToHere(node) {
     // TODO: test/review/cleanup...
-    var allPaths = (_a = []).concat.apply(_a, taxonomy.generalizations.map(getAllPathsFromRootToHere));
+    var allPaths = (_a = []).concat.apply(_a, node.generalizations.map(getAllPathsFromRootToHere));
     if (allPaths.length === 0)
         allPaths = [[]]; // no parent paths - this must be the root
-    return allPaths.map(function (path) { return path.concat([taxonomy.pattern]); });
+    return allPaths.map(function (path) { return path.concat([node.pattern]); });
     var _a;
 }
 // TODO: doc...

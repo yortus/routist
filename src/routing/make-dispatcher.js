@@ -27,7 +27,7 @@ function makeDispatcher(taxonomy, targetMap) {
     var lines = patterns.map(function (pat, i) { return ("let matches_" + make_pattern_identifier_1.default(pat) + " = patterns[" + i + "].match;\n"); }).concat(patterns.map(function (pat, i) { return ("let _" + make_pattern_identifier_1.default(pat) + " = targets[" + i + "];\n"); }), [
         '',
         'return function dispatch(address) {',
-        getBody(taxonomy.specializations, pattern_1.default.UNIVERSAL, 1),
+        getBody(taxonomy.rootNode.specializations, pattern_1.default.UNIVERSAL, 1),
         '};'
     ]);
     // console.log(lines);

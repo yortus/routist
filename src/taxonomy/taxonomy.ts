@@ -1,6 +1,7 @@
 'use strict';
 import insertAsDescendent from './insert-as-descendent';
 import Pattern from '../pattern';
+import TaxonomyNode from './taxonomy-node';
 // TODO: review all docs below after data structure changes
 
 
@@ -51,70 +52,37 @@ import Pattern from '../pattern';
 export default class Taxonomy {
 
 
-    /**
-     * Constructs a new Taxonomy instance. NB: This constructor is for internal use only.
-     * Use Taxonomy.from() to create a Taxonomy instance from a set of patterns.
-     */
-    private constructor(pattern: Pattern) {
-        this.pattern = pattern;
-    }
-
-
     // TODO: doc better...
     /**
-     * Generates a new Taxonomy instance based on the given set of patterns.
+     * Constructs a new Taxonomy instance based on the given set of patterns.
      * @param {Pattern[]} patterns - the list of patterns that make up nodes in the DAG.
      * @returns {Graph<Pattern>} A map object, whose keys are patterns and whose values
      *        are more maps. The top-level map always contains the single key '…' All
      *        patterns in the returned graph are normalized.
      */
-    static from(patterns: Pattern[]) {
+    constructor(patterns: Pattern[]) {
 
         // Create the nodeFor() function to return the graph node corresponding to a given
         // pattern, creating it on demand if it doesn't already exist. This function ensures
         // that every request for the same pattern gets the same singleton node.
-        let allNodes = new Map<Pattern, Taxonomy>();
+        let nodeMap = new Map<Pattern, TaxonomyNode>();
         let nodeFor = (pattern: Pattern) => {
-            if (!allNodes.has(pattern)) allNodes.set(pattern, new Taxonomy(pattern));
-            return allNodes.get(pattern);
+            if (!nodeMap.has(pattern)) nodeMap.set(pattern, new TaxonomyNode(pattern));
+            return nodeMap.get(pattern);
         }
 
         // TODO: delegate...
-        let taxonomy = makeTaxonomy(patterns, nodeFor);
-
-        // TODO: freeze whole graph...
-        taxonomy.allNodes.forEach(node => {
-            Object.freeze(node.generalizations);
-            Object.freeze(node.specializations);
-        });
-
-        return taxonomy;
+        this.rootNode = makeTaxonomy(patterns, nodeFor);
+        this.allNodes = Array.from(nodeMap.values());
     }
 
 
     // TODO: doc...
-    pattern: Pattern;
+    rootNode: TaxonomyNode;
 
 
     // TODO: doc...
-    generalizations: Taxonomy[] = [];
-
-
-    // TODO: doc...
-    specializations: Taxonomy[] = [];
-
-
-    // TODO: ========================== WIP below... All API below here is not fully baked... ===========================
-    // TODO: doc...
-    // TODO: this is called in Pattern.from, so there's no point in having this lazy getter...
-    // TODO: badly named - does not include generalizations... Should it (ie every node has list of all graph nodes?)
-    get allNodes(): Taxonomy[] {
-        return this._allNodes || (this._allNodes = getAllNodes(this));
-    }
-
-
-    /** Holds the memoized value return by the Taxonomy#allNodes getter. */
-    private _allNodes: Taxonomy[];
+    allNodes: TaxonomyNode[];
 }
 
 
@@ -122,27 +90,16 @@ export default class Taxonomy {
 
 
 // TODO: doc...
-function makeTaxonomy(patterns: Pattern[], nodeFor: (pattern: Pattern) => Taxonomy): Taxonomy {
+function makeTaxonomy(patterns: Pattern[], nodeFor: (pattern: Pattern) => TaxonomyNode): TaxonomyNode {
 
     // Insert each of the given patterns (except '…' and '∅') into a DAG rooted at '…'.
     // The rest of the algorithm assumes only normalized patterns, which we obtain here.
     patterns
         .map(pat => pat.normalized)
-        .filter(p => p !== Pattern.UNIVERSAL && p !== Pattern.EMPTY)
-        .forEach(p => insertAsDescendent(p, Pattern.UNIVERSAL, nodeFor));
+        .filter(pat => pat !== Pattern.UNIVERSAL && pat !== Pattern.EMPTY)
+        .forEach(pat => insertAsDescendent(pat, Pattern.UNIVERSAL, nodeFor));
 
     // Return a new top-level node with the single key '…'.
-    let taxonomy = nodeFor(Pattern.UNIVERSAL);
-    return taxonomy;
-}
-
-
-
-
-
-// TODO: doc...
-function getAllNodes(taxonomy: Taxonomy): Taxonomy[] {
-    let allWithDups = [taxonomy].concat(...taxonomy.specializations.map(getAllNodes));
-    let resultSet = allWithDups.reduce((set, node) => set.add(node), new Set<Taxonomy>());
-    return Array.from(resultSet.values());
+    let rootNode = nodeFor(Pattern.UNIVERSAL);
+    return rootNode;
 }
