@@ -1,10 +1,10 @@
 'use strict';
 import {expect} from 'chai';
-import Taxonomy, {TaxonomyNode} from '../../src/taxonomy';
 import Pattern from '../../src/pattern';
+import Taxonomy, {TaxonomyNode} from '../../src/taxonomy';
 
 
-describe('Forming a taxonomy of patterns', () => {
+describe('Constructing a Taxonomy instance', () => {
 
     let tests = [
         {

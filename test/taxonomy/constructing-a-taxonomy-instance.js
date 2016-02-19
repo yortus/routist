@@ -1,8 +1,8 @@
 'use strict';
 var chai_1 = require('chai');
-var taxonomy_1 = require('../../src/taxonomy');
 var pattern_1 = require('../../src/pattern');
-describe('Forming a taxonomy of patterns', function () {
+var taxonomy_1 = require('../../src/taxonomy');
+describe('Constructing a Taxonomy instance', function () {
     var tests = [
         {
             // ======================================== 1. ========================================
@@ -144,4 +144,4 @@ describe('Forming a taxonomy of patterns', function () {
 function nodeToObj(node) {
     return node.specializations.reduce(function (obj, node) { return (obj[node.pattern.toString()] = nodeToObj(node), obj); }, {});
 }
-//# sourceMappingURL=taxonomy.js.map
+//# sourceMappingURL=constructing-a-taxonomy-instance.js.map
