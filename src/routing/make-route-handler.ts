@@ -20,18 +20,19 @@ export default function makeRouteHandler(route: Route): Handler {
     let execute = reverseRoute.reduce<Handler>((downstream, rule) => {
         let handler: PartialHandler|GeneralHandler = rule.handler;
         if (isPartialHandler(handler)) {
-            return request => {
-                let response = downstream(request);
+            return (address, request) => {
+                let response = downstream(address, request);
                 if (response !== null) return response;
-                return handler(request);
+                return handler(address, request);
             };
         }
         else {
-            return request => handler(request, downstream);
+            return (address, request) => handler(address, request, downstream);
         }
     }, nullHandler);
 
-    let source = `function ${name}(request) { return execute(request); }`;
+    // TODO: needless wrapping of func-in-func?
+    let source = `function ${name}(address, request) { return execute(address, request); }`;
     let result: Handler = eval(`(${source})`);
     return result;
 }
@@ -41,4 +42,4 @@ export default function makeRouteHandler(route: Route): Handler {
 
 
 // TODO: ...
-const nullHandler: Handler = request => null;
+const nullHandler: Handler = (address, request) => null;

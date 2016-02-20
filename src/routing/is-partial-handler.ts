@@ -13,5 +13,5 @@ import {GeneralHandler, PartialHandler} from './types';
  * and non-decorators.
  */
 export default function isPartialHandler(handler: PartialHandler | GeneralHandler): handler is PartialHandler {
-    return handler.length === 1;
+    return handler.length === 2;
 }

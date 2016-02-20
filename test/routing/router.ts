@@ -18,7 +18,7 @@ describe('Constructing a Router instance', () => {
         '/foo': () => 'foo',
         '/bar': () => 'bar',
         '/baz': () => 'baz',
-        '/*a*': ($req, $next) => `---${$next($req) || 'NONE'}---`,
+        '/*a*': ($addr, $req, $next) => `---${$next($addr, $req) || 'NONE'}---`,
 
         'a/*': () => `starts with 'a'`,
         '*/b': () => `ends with 'b'`,
@@ -80,12 +80,13 @@ describe('Constructing a Router instance', () => {
     let ruleSetHandler = compileRuleSet(ruleSet);
 
     tests.forEach(test => it(test, () => {
-        let request = test.split(' ==> ')[0];
+        let address = test.split(' ==> ')[0];
+        let request = {address};
         let expected = test.split(' ==> ')[1];
         if (expected === 'UNHANDLED') expected = null;
         let actual: string;
         try {
-            actual = <string> ruleSetHandler(request);
+            actual = <string> ruleSetHandler(address, request);
         }
         catch (ex) {
             actual = 'ERROR: ' + ex.message;

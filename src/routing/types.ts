@@ -22,15 +22,15 @@ export type RuleSet = { [pattern: string]: Function };
 
 
 // TODO: doc...
-export type Handler = (request: Request) => Response;
+export type Handler = (address: string, request: Request) => Response;
 
 
 // TODO: doc...
-export type PartialHandler = (request: Request) => Response;
+export type PartialHandler = (address: string, request: Request) => Response;
 
 
 // TODO: doc...
-export type GeneralHandler = (request: Request, downstream: Handler) => Response;
+export type GeneralHandler = (address: string, request: Request, downstream: Handler) => Response;
 
 
 

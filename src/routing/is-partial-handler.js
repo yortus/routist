@@ -7,7 +7,7 @@
  * and non-decorators.
  */
 function isPartialHandler(handler) {
-    return handler.length === 1;
+    return handler.length === 2;
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = isPartialHandler;

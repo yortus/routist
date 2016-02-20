@@ -19,10 +19,9 @@ function compileRuleSet(ruleSet) {
     // Generate a function that, given an address, returns the handler for the best-matching route.
     var selectRouteHandler = make_dispatcher_1.default(taxonomy, routeHandlers);
     // TODO: ...
-    return function __compiledRuleSet__(request) {
-        var address = typeof request === 'string' ? request : request.address;
+    return function __compiledRuleSet__(address, request) {
         var handleRoute = selectRouteHandler(address);
-        var response = handleRoute(request);
+        var response = handleRoute(address, request);
         return response;
     };
 }
@@ -103,7 +102,7 @@ function reduceToSingleRoute(pattern, candidates) {
     var ambiguousFallbacks = candidates.map(function (cand) { return cand[cand.length - suffix.length - 1]; });
     var crasher = {
         pattern: pattern,
-        handler: function crasher(request) {
+        handler: function crasher(address, request) {
             // TODO: improve error message/handling
             throw new Error("Multiple possible fallbacks from '" + pattern + ": " + ambiguousFallbacks.map(function (fn) { return fn.toString(); }));
         }
@@ -113,7 +112,7 @@ function reduceToSingleRoute(pattern, candidates) {
     return result;
 }
 // TODO: doc...
-var nullHandler = function __nullHandler__(request) { return null; };
+var nullHandler = function __nullHandler__(address, request) { return null; };
 // TODO: doc...
 var universalRule = { pattern: pattern_1.default.UNIVERSAL, handler: nullHandler };
 // TODO: doc...

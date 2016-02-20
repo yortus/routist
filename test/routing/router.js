@@ -13,7 +13,7 @@ describe('Constructing a Router instance', function () {
         '/foo': function () { return 'foo'; },
         '/bar': function () { return 'bar'; },
         '/baz': function () { return 'baz'; },
-        '/*a*': function ($req, $next) { return ("---" + ($next($req) || 'NONE') + "---"); },
+        '/*a*': function ($addr, $req, $next) { return ("---" + ($next($addr, $req) || 'NONE') + "---"); },
         'a/*': function () { return "starts with 'a'"; },
         '*/b': function () { return "ends with 'b'"; },
         'a/b': function () { return "starts with 'a' AND ends with 'b'"; },
@@ -64,13 +64,14 @@ describe('Constructing a Router instance', function () {
     ];
     var ruleSetHandler = compile_rule_set_1.default(ruleSet);
     tests.forEach(function (test) { return it(test, function () {
-        var request = test.split(' ==> ')[0];
+        var address = test.split(' ==> ')[0];
+        var request = { address: address };
         var expected = test.split(' ==> ')[1];
         if (expected === 'UNHANDLED')
             expected = null;
         var actual;
         try {
-            actual = ruleSetHandler(request);
+            actual = ruleSetHandler(address, request);
         }
         catch (ex) {
             actual = 'ERROR: ' + ex.message;

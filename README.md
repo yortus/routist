@@ -3,11 +3,11 @@
 
 ## To Do List
 
-- [ ] rename Taxonomy --> TxonomyNode? Need to make clear each instance fundamentally represents a node, and a bunch of them form a graph
-- [ ] decouple address from Request
+- [x] rename Taxonomy --> TxonomyNode? Need to make clear each instance fundamentally represents a node, and a bunch of them form a graph
+- [x] decouple address from Request
 - [x] add Pattern#intersect, update all call sites (just make-taxonomy)
-- [ ] create Taxonomy class and/or add /src/taxonomy/index.ts
-- [ ] improve taxonomy test coverage
+- [x] create Taxonomy class and/or add /src/taxonomy/index.ts
+- [x] improve taxonomy test coverage
 - [ ] asyncify Handler#execute
 - [ ] still need `isPromise`? If not, remove it :( Otherwise find a use for it.
 - [ ] add npmignore

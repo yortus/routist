@@ -34,10 +34,9 @@ export default function compileRuleSet(ruleSet: RuleSet): Handler {
     let selectRouteHandler = makeDispatcher(taxonomy, routeHandlers);
 
     // TODO: ...
-    return function __compiledRuleSet__(request: Request) {
-        let address = typeof request === 'string' ? request : request.address;
+    return function __compiledRuleSet__(address: string, request: Request) {
         let handleRoute = selectRouteHandler(address);
-        let response = handleRoute(request);
+        let response = handleRoute(address, request);
         return response;
     };
 }
@@ -154,7 +153,7 @@ function reduceToSingleRoute(pattern: Pattern, candidates: Route[]) {
     let ambiguousFallbacks = candidates.map(cand => cand[cand.length - suffix.length - 1]);
     let crasher: Rule = {
         pattern,
-        handler: function crasher(request): any {
+        handler: function crasher(address, request): any {
             // TODO: improve error message/handling
             throw new Error(`Multiple possible fallbacks from '${pattern}: ${ambiguousFallbacks.map(fn => fn.toString())}`);
         }
@@ -170,7 +169,7 @@ function reduceToSingleRoute(pattern: Pattern, candidates: Route[]) {
 
 
 // TODO: doc...
-const nullHandler: Handler = function __nullHandler__(request) { return null; };
+const nullHandler: Handler = function __nullHandler__(address, request) { return null; };
 
 
 

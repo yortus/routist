@@ -83,6 +83,7 @@ export default function normalizeHandler(pattern: Pattern, rawHandler: Function)
     // Precompute a map with keys that match all of the the `action` function's formal parameter names. The value
     // for each key holds the source code to supply the actual parameter for the corresponding formal parameter.
     let paramMappings = captureNames.reduce((map, name) => (map[name] = `paramBindings.${name}`, map), {});
+    paramMappings['$addr'] = 'address'; // TODO: temp testing remove!!!
     paramMappings['$req'] = 'request';
     paramMappings['$next'] = 'downstream';
     assert(builtinNames.every(bname => !!paramMappings[bname])); // sanity check: ensure all builtins are mapped
@@ -94,8 +95,10 @@ export default function normalizeHandler(pattern: Pattern, rawHandler: Function)
     //   `executeDownstreamHandlers` callback.
     // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
     //   Otherwise, execute the handler function and return its response.
-    let source = `(function __${makePatternIdentifier(pattern)}__(request${isDecorator ? ', downstream' : ''}) {
-        var paramBindings = match(typeof request === 'string' ? request : request.address);
+
+    //TODO: remove 'if (!paramBindings)...' line (or change to debug assertion) - normalized handler will never be called with a non-matching address
+    let source = `(function __${makePatternIdentifier(pattern)}__(address, request${isDecorator ? ', downstream' : ''}) {
+        var paramBindings = match(address);
         if (!paramBindings) return null; // pattern didn't match address
         return rawHandler(${paramNames.map(name => paramMappings[name])});
     })`;
@@ -118,7 +121,7 @@ export default function normalizeHandler(pattern: Pattern, rawHandler: Function)
  * '$yield': marks the action function as a decorator. Injects the
  *           standard `executeDownstreamHandlers` callback into it.
  */
-const builtinNames = ['$req', '$next'];
+const builtinNames = ['$addr', '$req', '$next']; // TODO: temp testing remove $addr!
 
 
 

@@ -61,6 +61,7 @@ function normalizeHandler(pattern, rawHandler) {
     // Precompute a map with keys that match all of the the `action` function's formal parameter names. The value
     // for each key holds the source code to supply the actual parameter for the corresponding formal parameter.
     var paramMappings = captureNames.reduce(function (map, name) { return (map[name] = "paramBindings." + name, map); }, {});
+    paramMappings['$addr'] = 'address'; // TODO: temp testing remove!!!
     paramMappings['$req'] = 'request';
     paramMappings['$next'] = 'downstream';
     assert(builtinNames.every(function (bname) { return !!paramMappings[bname]; })); // sanity check: ensure all builtins are mapped
@@ -71,7 +72,8 @@ function normalizeHandler(pattern, rawHandler) {
     //   `executeDownstreamHandlers` callback.
     // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
     //   Otherwise, execute the handler function and return its response.
-    var source = "(function __" + make_pattern_identifier_1.default(pattern) + "__(request" + (isDecorator ? ', downstream' : '') + ") {\n        var paramBindings = match(typeof request === 'string' ? request : request.address);\n        if (!paramBindings) return null; // pattern didn't match address\n        return rawHandler(" + paramNames.map(function (name) { return paramMappings[name]; }) + ");\n    })";
+    //TODO: remove 'if (!paramBindings)...' line (or change to debug assertion) - normalized handler will never be called with a non-matching address
+    var source = "(function __" + make_pattern_identifier_1.default(pattern) + "__(address, request" + (isDecorator ? ', downstream' : '') + ") {\n        var paramBindings = match(address);\n        if (!paramBindings) return null; // pattern didn't match address\n        return rawHandler(" + paramNames.map(function (name) { return paramMappings[name]; }) + ");\n    })";
     // Evaluate the source code into a function, and return it. This use of eval here is safe. In particular, the
     // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
     // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
@@ -87,7 +89,7 @@ exports.default = normalizeHandler;
  * '$yield': marks the action function as a decorator. Injects the
  *           standard `executeDownstreamHandlers` callback into it.
  */
-var builtinNames = ['$req', '$next'];
+var builtinNames = ['$addr', '$req', '$next']; // TODO: temp testing remove $addr!
 /**
  * Asserts the mutual validity of a pattern's capture names with an action's parameter names:
  * - Every parameter name must match either a capture name or a builtin name.
