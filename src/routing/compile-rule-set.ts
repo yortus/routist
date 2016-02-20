@@ -2,7 +2,7 @@
 import * as assert from 'assert';
 import {inspect} from 'util';
 import {getLongestCommonPrefix} from '../util';
-import {Handler, Route, RouteTable, Rule} from './types';
+import {Handler, Route, Rule, RuleSet} from './types';
 import Taxonomy, {TaxonomyNode} from '../taxonomy';
 import isPartialHandler from './is-partial-handler';
 import makeDispatcher from './make-dispatcher';
@@ -16,15 +16,15 @@ import Request from '../request';
 
 
 // TODO: doc...
-export default function compileRouteTable(routeTable: {[pattern: string]: Function}): Handler {
+export default function compileRuleSet(ruleSet: RuleSet): Handler {
 
-    // Generate a taxonomic arrangement of all the patterns that occur in the route table.
-    let taxonomy = new Taxonomy(Object.keys(routeTable).map(src => new Pattern(src)));
+    // Generate a taxonomic arrangement of all the patterns that occur in the ruleset.
+    let taxonomy = new Taxonomy(Object.keys(ruleSet).map(src => new Pattern(src)));
 
-    // Find all functionally-distinct routes that an address can take through the route table.
-    let routes = findAllRoutesThroughTable(taxonomy, routeTable);
+    // Find all functionally-distinct routes that an address can take through the ruleset.
+    let routes = findAllRoutesThroughRuleSet(taxonomy, ruleSet);
 
-    // Create a handler for each distinct route.
+    // Create a handler for each distinct route through the ruleset.
     let routeHandlers = Array.from(routes.keys()).reduce(
         (map, pattern) => map.set(pattern, makeRouteHandler(routes.get(pattern))),
         new Map<Pattern, Handler>()
@@ -34,7 +34,7 @@ export default function compileRouteTable(routeTable: {[pattern: string]: Functi
     let selectRouteHandler = makeDispatcher(taxonomy, routeHandlers);
 
     // TODO: ...
-    return function __compiledRouteTable__(request: Request) {
+    return function __compiledRuleSet__(request: Request) {
         let address = typeof request === 'string' ? request : request.address;
         let handleRoute = selectRouteHandler(address);
         let response = handleRoute(request);
@@ -47,11 +47,11 @@ export default function compileRouteTable(routeTable: {[pattern: string]: Functi
 
 
 // TODO: ...
-function findAllRoutesThroughTable(taxonomy: Taxonomy, routeTable: RouteTable): Map<Pattern, Route> {
+function findAllRoutesThroughRuleSet(taxonomy: Taxonomy, ruleSet: RuleSet): Map<Pattern, Route> {
 
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
     let equalBestRules = taxonomy.allNodes.reduce(
-        (map, node) => map.set(node.pattern, getEqualBestRulesForPattern(node.pattern, routeTable)),
+        (map, node) => map.set(node.pattern, getEqualBestRulesForPattern(node.pattern, ruleSet)),
         new Map<Pattern, Rule[]>()
     );
 
@@ -80,19 +80,19 @@ function findAllRoutesThroughTable(taxonomy: Taxonomy, routeTable: RouteTable): 
 
 
 // TODO:  make jsdoc...
-// Associate each distinct pattern (ie unique by signature) with the set of rules from the route table that *exactly* match
+// Associate each distinct pattern (ie unique by signature) with the set of rules from the ruleset that *exactly* match
 // it. Some patterns may have no such rules. Because:
-// > // `taxonomy` may include some patterns that are not in the route table, such as the always-present root pattern '…', as
-// > // well as patterns synthesized at the intersection of overlapping patterns in the route table.
+// > // `taxonomy` may include some patterns that are not in the ruleset, such as the always-present root pattern '…', as
+// > // well as patterns synthesized at the intersection of overlapping patterns in the ruleset.
 
 // TODO: add comment about Rule order in result (using tiebreak function).
-function getEqualBestRulesForPattern(pattern: Pattern, routeTable: RouteTable): Rule[] {
+function getEqualBestRulesForPattern(pattern: Pattern, ruleSet: RuleSet): Rule[] {
 
-    // Compile the rule list for this pattern from the route table entries.
-    let rules = Object.keys(routeTable)
+    // Compile the rule list for this pattern from the ruleset entries.
+    let rules = Object.keys(ruleSet)
         .map(key => new Pattern(key))
         .filter(pat => pat.normalized === pattern.normalized)
-        .map<Rule>(pat => ({ pattern: pat, handler: normalizeHandler(pat, routeTable[pat.toString()]) }));
+        .map<Rule>(pat => ({ pattern: pat, handler: normalizeHandler(pat, ruleSet[pat.toString()]) }));
 
     // TODO: explain sort... all rules are equal by pattern signature, but we need an unambiguous ordering.
     // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.

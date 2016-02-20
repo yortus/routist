@@ -54,6 +54,8 @@ A valid pattern string conforms to the following rules:
 
 **Rule:** A condition and action in the form of a Pattern/Handler pair.
 
+**Rule Set:** TODO...
+
 **Pattern:** A concise regex-like representation that matches a particular set of Addresses.
 
 **[Pattern] Signature:** TODO...
@@ -77,7 +79,7 @@ A valid pattern string conforms to the following rules:
 
 
 ```
-route table:
+rule set:
 - set of rules (unordered)
 
 rule:

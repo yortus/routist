@@ -1,6 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import compileRouteTable from '../../src/routing/compile-route-table';
+import compileRuleSet from '../../src/routing/compile-rule-set';
 
 
 // TODO: More coverage:
@@ -13,7 +13,7 @@ import compileRouteTable from '../../src/routing/compile-route-table';
 
 describe('Constructing a Router instance', () => {
 
-    let routeTable: {[pattern: string]: Function} = {
+    let ruleSet: {[pattern: string]: Function} = {
         //'**': () => null, // no-op catch-all rule (this would be implicitly present even if not listed here)
         '/foo': () => 'foo',
         '/bar': () => 'bar',
@@ -35,24 +35,24 @@ describe('Constructing a Router instance', () => {
         'api/bar': () => null,
     };
 
-    let testTable2 = {
-        '/** #latency':                 ($next) => null,
-        '/** #addBlahHeader':           ($next) => null,
-        '/** #authorize':               ($next) => null,
-        '/api/{...path}':               (path) => null,
-        '/public/main.js':              ($next) => null,
-        '/public/main.js #1.jquery':    () => null,
-        '/public/main.js #2.cajon':     () => null,
-    };
-
-    function compare(pat1, pat2) {
-        
-    }
-    let priorities = [
-        // Root-level decorators:
-        'latency', 'authorize', 'addBlahHeader'
-    ];
-
+    // TODO: use or remove...
+//     let testTable23 = {
+//         '/** #latency':                 ($next) => null,
+//         '/** #addBlahHeader':           ($next) => null,
+//         '/** #authorize':               ($next) => null,
+//         '/api/{...path}':               (path) => null,
+//         '/public/main.js':              ($next) => null,
+//         '/public/main.js #1.jquery':    () => null,
+//         '/public/main.js #2.cajon':     () => null,
+//     };
+// 
+//     function compare(pat1, pat2) {
+//         
+//     }
+//     let priorities = [
+//         // Root-level decorators:
+//         'latency', 'authorize', 'addBlahHeader'
+//     ];
 
 
     let tests = [
@@ -77,7 +77,7 @@ describe('Constructing a Router instance', () => {
         `api/bar ==> fallback`,
     ];
 
-    let routeTableHandler = compileRouteTable(routeTable);
+    let ruleSetHandler = compileRuleSet(ruleSet);
 
     tests.forEach(test => it(test, () => {
         let request = test.split(' ==> ')[0];
@@ -85,7 +85,7 @@ describe('Constructing a Router instance', () => {
         if (expected === 'UNHANDLED') expected = null;
         let actual: string;
         try {
-            actual = <string> routeTableHandler(request);
+            actual = <string> ruleSetHandler(request);
         }
         catch (ex) {
             actual = 'ERROR: ' + ex.message;

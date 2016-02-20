@@ -9,17 +9,17 @@ var make_route_handler_1 = require('./make-route-handler');
 var normalize_handler_1 = require('./normalize-handler');
 var pattern_1 = require('../pattern');
 // TODO: doc...
-function compileRouteTable(routeTable) {
-    // Generate a taxonomic arrangement of all the patterns that occur in the route table.
-    var taxonomy = new taxonomy_1.default(Object.keys(routeTable).map(function (src) { return new pattern_1.default(src); }));
-    // Find all functionally-distinct routes that an address can take through the route table.
-    var routes = findAllRoutesThroughTable(taxonomy, routeTable);
-    // Create a handler for each distinct route.
+function compileRuleSet(ruleSet) {
+    // Generate a taxonomic arrangement of all the patterns that occur in the ruleset.
+    var taxonomy = new taxonomy_1.default(Object.keys(ruleSet).map(function (src) { return new pattern_1.default(src); }));
+    // Find all functionally-distinct routes that an address can take through the ruleset.
+    var routes = findAllRoutesThroughRuleSet(taxonomy, ruleSet);
+    // Create a handler for each distinct route through the ruleset.
     var routeHandlers = Array.from(routes.keys()).reduce(function (map, pattern) { return map.set(pattern, make_route_handler_1.default(routes.get(pattern))); }, new Map());
     // Generate a function that, given an address, returns the handler for the best-matching route.
     var selectRouteHandler = make_dispatcher_1.default(taxonomy, routeHandlers);
     // TODO: ...
-    return function __compiledRouteTable__(request) {
+    return function __compiledRuleSet__(request) {
         var address = typeof request === 'string' ? request : request.address;
         var handleRoute = selectRouteHandler(address);
         var response = handleRoute(request);
@@ -27,11 +27,11 @@ function compileRouteTable(routeTable) {
     };
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = compileRouteTable;
+exports.default = compileRuleSet;
 // TODO: ...
-function findAllRoutesThroughTable(taxonomy, routeTable) {
+function findAllRoutesThroughRuleSet(taxonomy, ruleSet) {
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
-    var equalBestRules = taxonomy.allNodes.reduce(function (map, node) { return map.set(node.pattern, getEqualBestRulesForPattern(node.pattern, routeTable)); }, new Map());
+    var equalBestRules = taxonomy.allNodes.reduce(function (map, node) { return map.set(node.pattern, getEqualBestRulesForPattern(node.pattern, ruleSet)); }, new Map());
     // TODO: doc...
     return taxonomy.allNodes.reduce(function (map, node) {
         // TODO: doc...
@@ -45,17 +45,17 @@ function findAllRoutesThroughTable(taxonomy, routeTable) {
     }, new Map());
 }
 // TODO:  make jsdoc...
-// Associate each distinct pattern (ie unique by signature) with the set of rules from the route table that *exactly* match
+// Associate each distinct pattern (ie unique by signature) with the set of rules from the ruleset that *exactly* match
 // it. Some patterns may have no such rules. Because:
-// > // `taxonomy` may include some patterns that are not in the route table, such as the always-present root pattern '…', as
-// > // well as patterns synthesized at the intersection of overlapping patterns in the route table.
+// > // `taxonomy` may include some patterns that are not in the ruleset, such as the always-present root pattern '…', as
+// > // well as patterns synthesized at the intersection of overlapping patterns in the ruleset.
 // TODO: add comment about Rule order in result (using tiebreak function).
-function getEqualBestRulesForPattern(pattern, routeTable) {
-    // Compile the rule list for this pattern from the route table entries.
-    var rules = Object.keys(routeTable)
+function getEqualBestRulesForPattern(pattern, ruleSet) {
+    // Compile the rule list for this pattern from the ruleset entries.
+    var rules = Object.keys(ruleSet)
         .map(function (key) { return new pattern_1.default(key); })
         .filter(function (pat) { return pat.normalized === pattern.normalized; })
-        .map(function (pat) { return ({ pattern: pat, handler: normalize_handler_1.default(pat, routeTable[pat.toString()]) }); });
+        .map(function (pat) { return ({ pattern: pat, handler: normalize_handler_1.default(pat, ruleSet[pat.toString()]) }); });
     // TODO: explain sort... all rules are equal by pattern signature, but we need an unambiguous ordering.
     // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
     rules.sort(ruleComparator); // NB: may throw
@@ -132,4 +132,4 @@ function tieBreakFn(a, b) {
     if (b.pattern.comment < a.pattern.comment)
         return b;
 }
-//# sourceMappingURL=compile-route-table.js.map
+//# sourceMappingURL=compile-rule-set.js.map

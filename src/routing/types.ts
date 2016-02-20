@@ -7,10 +7,8 @@ import Response from '../response';
 
 
 
-// TODO: doc... rename this to RuleTable or something else? route now has specific meaning
-export type RouteTable = { [pattern: string]: Function };
-
-
+// TODO: doc...
+export type RuleSet = { [pattern: string]: Function };
 
 
 

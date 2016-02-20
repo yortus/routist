@@ -1,6 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
-var compile_route_table_1 = require('../../src/routing/compile-route-table');
+var compile_rule_set_1 = require('../../src/routing/compile-rule-set');
 // TODO: More coverage:
 // - multiple non-decorator handlers for same pattern
 // - multiple decorator handlers for same pattern
@@ -8,7 +8,7 @@ var compile_route_table_1 = require('../../src/routing/compile-route-table');
 // - decorators along ambiguous paths (same decorators on all paths)
 // - decorators along ambiguous paths (not same decorators on all paths)
 describe('Constructing a Router instance', function () {
-    var routeTable = {
+    var ruleSet = {
         //'**': () => null, // no-op catch-all rule (this would be implicitly present even if not listed here)
         '/foo': function () { return 'foo'; },
         '/bar': function () { return 'bar'; },
@@ -26,21 +26,24 @@ describe('Constructing a Router instance', function () {
         'api/foo': function () { return 'FOO'; },
         'api/bar': function () { return null; },
     };
-    var testTable2 = {
-        '/** #latency': function ($next) { return null; },
-        '/** #addBlahHeader': function ($next) { return null; },
-        '/** #authorize': function ($next) { return null; },
-        '/api/{...path}': function (path) { return null; },
-        '/public/main.js': function ($next) { return null; },
-        '/public/main.js #1.jquery': function () { return null; },
-        '/public/main.js #2.cajon': function () { return null; },
-    };
-    function compare(pat1, pat2) {
-    }
-    var priorities = [
-        // Root-level decorators:
-        'latency', 'authorize', 'addBlahHeader'
-    ];
+    // TODO: use or remove...
+    //     let testTable23 = {
+    //         '/** #latency':                 ($next) => null,
+    //         '/** #addBlahHeader':           ($next) => null,
+    //         '/** #authorize':               ($next) => null,
+    //         '/api/{...path}':               (path) => null,
+    //         '/public/main.js':              ($next) => null,
+    //         '/public/main.js #1.jquery':    () => null,
+    //         '/public/main.js #2.cajon':     () => null,
+    //     };
+    // 
+    //     function compare(pat1, pat2) {
+    //         
+    //     }
+    //     let priorities = [
+    //         // Root-level decorators:
+    //         'latency', 'authorize', 'addBlahHeader'
+    //     ];
     var tests = [
         "/foo ==> foo",
         "/bar ==> ---bar---",
@@ -59,7 +62,7 @@ describe('Constructing a Router instance', function () {
         "api/foo ==> FOO",
         "api/bar ==> fallback",
     ];
-    var routeTableHandler = compile_route_table_1.default(routeTable);
+    var ruleSetHandler = compile_rule_set_1.default(ruleSet);
     tests.forEach(function (test) { return it(test, function () {
         var request = test.split(' ==> ')[0];
         var expected = test.split(' ==> ')[1];
@@ -67,7 +70,7 @@ describe('Constructing a Router instance', function () {
             expected = null;
         var actual;
         try {
-            actual = routeTableHandler(request);
+            actual = ruleSetHandler(request);
         }
         catch (ex) {
             actual = 'ERROR: ' + ex.message;
