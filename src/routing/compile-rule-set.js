@@ -126,9 +126,15 @@ function ruleComparator(ruleA, ruleB) {
 // TODO: this should be passed in or somehow provided from outside...
 // TODO: return the WINNER, a.k.a. the MORE SPECIFIC rule
 function tieBreakFn(a, b) {
+    // TODO: is '<' reliable here for string comparisons? What compare fn does it map to? Locale? Case?
     if (a.pattern.comment < b.pattern.comment)
         return a;
     if (b.pattern.comment < a.pattern.comment)
+        return b;
+    // TODO: all else being equal, partial handler is always more specific than general handler on the same pattern...
+    if (is_partial_handler_1.default(a.handler) && !is_partial_handler_1.default(b.handler))
+        return a;
+    if (is_partial_handler_1.default(b.handler) && !is_partial_handler_1.default(a.handler))
         return b;
 }
 //# sourceMappingURL=compile-rule-set.js.map

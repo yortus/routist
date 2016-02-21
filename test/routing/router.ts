@@ -31,6 +31,13 @@ describe('Constructing a Router instance', () => {
         'api/** #a': () => `fallback`,
         'api/** #b': () => `fallback`, // TODO: temp testing, remove this...
         'api/f*o': () => null,
+
+        // TODO: temp testing...
+        'api/foo#': ($addr, $req, $next) => {
+            debugger;
+            return `---${$next($addr, $req) || 'NONE'}---`
+        },
+
         'api/foo': () => 'FOO',
         'api/bar': () => null,
     };
@@ -56,25 +63,25 @@ describe('Constructing a Router instance', () => {
 
 
     let tests = [
-        `/foo ==> foo`,
-        `/bar ==> ---bar---`,
-        `/baz ==> ---baz---`,
-        `/quux ==> UNHANDLED`,
-        `/qaax ==> ---NONE---`,
-        `/a ==> ---NONE---`,
-        `/ ==> UNHANDLED`,
-
-        `a/foo ==> starts with 'a'`,
-        `foo/b ==> ends with 'b'`,
-        `a/b ==> starts with 'a' AND ends with 'b'`,
-
-        `c/foo ==> starts with 'c'`,
-        `foo/d ==> ends with 'd'`,
-        `c/d ==> ERROR: Multiple possible fallbacks...`,
-
-        `api/ ==> fallback`,
+//         `/foo ==> foo`,
+//         `/bar ==> ---bar---`,
+//         `/baz ==> ---baz---`,
+//         `/quux ==> UNHANDLED`,
+//         `/qaax ==> ---NONE---`,
+//         `/a ==> ---NONE---`,
+//         `/ ==> UNHANDLED`,
+// 
+//         `a/foo ==> starts with 'a'`,
+//         `foo/b ==> ends with 'b'`,
+//         `a/b ==> starts with 'a' AND ends with 'b'`,
+// 
+//         `c/foo ==> starts with 'c'`,
+//         `foo/d ==> ends with 'd'`,
+//         `c/d ==> ERROR: Multiple possible fallbacks...`,
+// 
+//         `api/ ==> fallback`,
         `api/foo ==> FOO`,
-        `api/bar ==> fallback`,
+        // `api/bar ==> fallback`,
     ];
 
     let ruleSetHandler = compileRuleSet(ruleSet);

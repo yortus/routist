@@ -198,6 +198,12 @@ function ruleComparator(ruleA, ruleB) {
 // TODO: this should be passed in or somehow provided from outside...
 // TODO: return the WINNER, a.k.a. the MORE SPECIFIC rule
 function tieBreakFn(a: Rule, b: Rule): Rule {
+
+    // TODO: is '<' reliable here for string comparisons? What compare fn does it map to? Locale? Case?
     if (a.pattern.comment < b.pattern.comment) return a;
     if (b.pattern.comment < a.pattern.comment) return b;
+
+    // TODO: all else being equal, partial handler is always more specific than general handler on the same pattern...
+    if (isPartialHandler(a.handler) && !isPartialHandler(b.handler)) return a;
+    if (isPartialHandler(b.handler) && !isPartialHandler(a.handler)) return b;
 }

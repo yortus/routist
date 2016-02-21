@@ -56,25 +56,50 @@ const nullHandler: Handler = (address, request) => null;
 
 
 function makeRouteHandler2(route: Route): Handler {
-    //debugger;
-    let prolog = route.map(({pattern, handler}, i) => `var _${makePatternIdentifier(pattern)} = route[${i}].handler;\n`).join('');
+// TODO: temp testing...
+route.forEach(rule => {
+    console.log(`${rule.pattern.toString()} [${isPartialHandler(rule.handler) ? 'PARTIAL' : 'GENERAL'}]`);
+});
+//debugger;
 
-    let body = 'var response;\n';
+
+//TODO: BUG exposed on next line:
+//      - different rules whose pattern source is the same (but maybe they have a different commment) will try to overwrite
+//        the same identifier. They need to all get a unique indentifier! But still keep them human readable (eg append '_1', '_2' etc)
+//      - This BUG is probably also in makeDispatcher... Invesigate...
+
+    let prolog = route.map(({pattern, handler}, i) => `const _${makePatternIdentifier(pattern)} = route[${i}].handler;\n`).join('');
+
+    let bodyLines = ['var response;'];
 
     // Iterate over rules, from most to least specific
     for (let i = route.length - 1; i >= 0; --i) {
         let {pattern, handler} = route[i];
 
-        // TODO: temp just for now...
-        assert(isPartialHandler(handler));
+        if (isPartialHandler(handler)) {
+            // TODO: ...
+            let line = `if ((response = _${makePatternIdentifier(pattern)}(address, request)) !== null) return response;`;
+            bodyLines.push(line);
+        }
+        else /* general handler */ {
+            // TODO: ...
 
-        let line = `if ((response = _${makePatternIdentifier(pattern)}(address, request)) !== null) return response;\n`;
-        body += line;
+            bodyLines.forEach((line, i) => bodyLines[i] = `    ${line}`);
+            bodyLines.unshift(`function downstream(request) {debugger;`); // TODO: remove debugger...
+            bodyLines.push(`    return null;`);
+            bodyLines.push(`}`);
+            bodyLines.push(``);
+            bodyLines.push(`var response;`);
+            bodyLines.push(`if ((response = _${makePatternIdentifier(pattern)}(address, request, downstream)) !== null) return response;`);
+        }
     }
 
-    body += `return null;\n`;
+    bodyLines.push(`return null;`);
 
 
+    // TODO: remove try/catch from source after testing...
+    let indent = `    `;
+    let body = bodyLines.map(line => `${indent}${line}\n`).join('');
     let source = `${prolog}\nreturn function _route(address, request) {try{\n${body}}catch(ex){\ndebugger;      \n } }`;
 
 

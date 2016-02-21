@@ -23,6 +23,11 @@ describe('Constructing a Router instance', function () {
         'api/** #a': function () { return "fallback"; },
         'api/** #b': function () { return "fallback"; },
         'api/f*o': function () { return null; },
+        // TODO: temp testing...
+        'api/foo#': function ($addr, $req, $next) {
+            debugger;
+            return "---" + ($next($addr, $req) || 'NONE') + "---";
+        },
         'api/foo': function () { return 'FOO'; },
         'api/bar': function () { return null; },
     };
@@ -45,22 +50,24 @@ describe('Constructing a Router instance', function () {
     //         'latency', 'authorize', 'addBlahHeader'
     //     ];
     var tests = [
-        "/foo ==> foo",
-        "/bar ==> ---bar---",
-        "/baz ==> ---baz---",
-        "/quux ==> UNHANDLED",
-        "/qaax ==> ---NONE---",
-        "/a ==> ---NONE---",
-        "/ ==> UNHANDLED",
-        "a/foo ==> starts with 'a'",
-        "foo/b ==> ends with 'b'",
-        "a/b ==> starts with 'a' AND ends with 'b'",
-        "c/foo ==> starts with 'c'",
-        "foo/d ==> ends with 'd'",
-        "c/d ==> ERROR: Multiple possible fallbacks...",
-        "api/ ==> fallback",
+        //         `/foo ==> foo`,
+        //         `/bar ==> ---bar---`,
+        //         `/baz ==> ---baz---`,
+        //         `/quux ==> UNHANDLED`,
+        //         `/qaax ==> ---NONE---`,
+        //         `/a ==> ---NONE---`,
+        //         `/ ==> UNHANDLED`,
+        // 
+        //         `a/foo ==> starts with 'a'`,
+        //         `foo/b ==> ends with 'b'`,
+        //         `a/b ==> starts with 'a' AND ends with 'b'`,
+        // 
+        //         `c/foo ==> starts with 'c'`,
+        //         `foo/d ==> ends with 'd'`,
+        //         `c/d ==> ERROR: Multiple possible fallbacks...`,
+        // 
+        //         `api/ ==> fallback`,
         "api/foo ==> FOO",
-        "api/bar ==> fallback",
     ];
     var ruleSetHandler = compile_rule_set_1.default(ruleSet);
     tests.forEach(function (test) { return it(test, function () {
