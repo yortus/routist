@@ -26,19 +26,19 @@ export type RuleSet = { [pattern: string]: Function };
 
 // TODO: doc...
 // TODO: temp change sig to find site needing attention...
-export type Handler = (x: number, address: string, request: Request) => Response;
+export type Handler = (address: string, request: Request) => Response;
 
 
 // TODO: doc...
 // TODO: 'address' is sneakily passed as 'this' via Function#call
 //       - Function#call is about as fast as a direct call in V8 - see https://jsperf.com/function-calls-direct-vs-apply-vs-call-vs-bind/6
 //       - annotate with 'this=Address' (where type Address = string) when TS#6018 lands: https://github.com/Microsoft/TypeScript/issues/6018
-export type PartialHandler = (request: Request) => Response;
+export type PartialHandler = (address: string, request: Request) => Response;
 
 
 // TODO: doc...
 // TODO: note this=Address comments above apply here too...
-export type GeneralHandler = (request: Request, downstream: Handler) => Response;
+export type GeneralHandler = (address: string, request: Request, downstream: Handler) => Response;
 
 
 

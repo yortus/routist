@@ -45,10 +45,7 @@ export default function makeDispatcher<T>(taxonomy: Taxonomy, targetMap: Map<Pat
 // debugger;
 
     // TODO: temp testing... capture unmangled Pattern id... remove/fix this!!!
-    let fn = (function(Pattern) {
-        let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();
-        return fn;
-    })(Pattern);
+    let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();
 // console.log(fn.toString());
 // debugger;
     return fn;

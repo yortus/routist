@@ -33,10 +33,7 @@ function makeDispatcher(taxonomy, targetMap) {
     // console.log(lines);
     // debugger;
     // TODO: temp testing... capture unmangled Pattern id... remove/fix this!!!
-    var fn = (function (Pattern) {
-        var fn = eval("(() => {\n" + lines.join('\n') + "\n})")();
-        return fn;
-    })(pattern_1.default);
+    var fn = eval("(() => {\n" + lines.join('\n') + "\n})")();
     // console.log(fn.toString());
     // debugger;
     return fn;

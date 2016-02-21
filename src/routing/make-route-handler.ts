@@ -1,4 +1,5 @@
 'use strict';
+import * as assert from 'assert';
 import {Handler, PartialHandler, GeneralHandler, Route} from './types';
 import isPartialHandler from './is-partial-handler';
 import makePatternIdentifier from './make-pattern-identifier';
@@ -9,6 +10,12 @@ import makePatternIdentifier from './make-pattern-identifier';
 
 // TODO: ...
 export default function makeRouteHandler(route: Route): Handler {
+
+// TODO: temp testing...
+if (route.length > 4) {
+    return makeRouteHandler2(route);
+}    
+
 
     let reverseRoute = route.slice().reverse();
 
@@ -45,6 +52,47 @@ export default function makeRouteHandler(route: Route): Handler {
 const nullHandler: Handler = (address, request) => null;
 
 
+
+
+
+function makeRouteHandler2(route: Route): Handler {
+    //debugger;
+    let prolog = route.map(({pattern, handler}, i) => `var _${makePatternIdentifier(pattern)} = route[${i}].handler;\n`).join('');
+
+    let body = 'var response;\n';
+
+    // Iterate over rules, from most to least specific
+    for (let i = route.length - 1; i >= 0; --i) {
+        let {pattern, handler} = route[i];
+
+        // TODO: temp just for now...
+        assert(isPartialHandler(handler));
+
+        let line = `if ((response = _${makePatternIdentifier(pattern)}(address, request)) !== null) return response;\n`;
+        body += line;
+    }
+
+    body += `return null;\n`;
+
+
+    let source = `${prolog}\nreturn function _route(address, request) {try{\n${body}}catch(ex){\ndebugger;      \n } }`;
+
+
+    let fn = (function(route) {
+        let fn = eval(`(() => {\n${source}\n})`)();
+        return fn;
+    })(route);
+
+
+console.log(fn.toString());
+debugger;
+    return fn;
+}
+
+
+
+
+
 //TODO:
 // all handlers: pass in 'address' sneakily as 'this' via Function#call (still very fast!)
 
@@ -72,7 +120,6 @@ function makeHandler(rules: Rule[]) {
 
     let handle2 = function (address, request) {
 
-        // NB: closes over address... therefore need new function/closure for EVERY request!!! how to avoid??? Function#bind?
         let downstream = function (req) {
             req = arguments.length > 0 ? req : request;
             return handle3_4_5(address, req);
