@@ -49,11 +49,12 @@ function getBodyLines(specializations: TaxonomyNode[], fallback: Pattern, nestDe
         let condition = `${indent}${i > 0 ? 'else ' : ''}if (matches_${id}(address)) `;
         let nextLevel = node.specializations;
         if (nextLevel.length === 0) return lines.push(`${condition}return _${id};`);
-        lines.push.apply(lines, [
+        lines = [
+            ...lines,
             `${condition}{`,
             ...getBodyLines(nextLevel, node.pattern, nestDepth + 1),
             `${indent}}`
-        ]);
+        ];
     });
     lines.push(`${indent}return _${makePatternIdentifier(fallback)};`);
     return lines;

@@ -36,11 +36,11 @@ function getBodyLines(specializations, fallback, nestDepth) {
         var nextLevel = node.specializations;
         if (nextLevel.length === 0)
             return lines.push(condition + "return _" + id + ";");
-        lines.push.apply(lines, [
+        lines = lines.concat([
             (condition + "{")
-        ].concat(getBodyLines(nextLevel, node.pattern, nestDepth + 1), [
+        ], getBodyLines(nextLevel, node.pattern, nestDepth + 1), [
             (indent + "}")
-        ]));
+        ]);
     });
     lines.push(indent + "return _" + make_pattern_identifier_1.default(fallback) + ";");
     return lines;
