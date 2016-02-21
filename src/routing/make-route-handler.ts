@@ -67,26 +67,10 @@ function makeRouteHandler2(route: Route): Handler {
 // debugger;
 
 
-//TODO: BUG exposed on next line:
-//      - different rules whose pattern source is the same (but maybe they have a different commment) will try to overwrite
-//        the same identifier. They need to all get a unique indentifier! But still keep them human readable (eg append '_1', '_2' etc)
-//      - This BUG is probably also in makeDispatcher... Invesigate... ANS: no, only distinct patterns are used in the dispatcher...
+    // TODO: doc...
+    let handlerIds = makeHandlerIdentifiers(rules);
 
-    // TODO: move out to helper function...
-    let reservedIds = new Set<string>();
-    let handlerIds = rules.reduce(
-        (map, rule) => {
-            // TODO: ...
-            let base = makePatternIdentifier(rule.pattern);
-            for (let isReserved = true, index = 0; isReserved; ++index) {
-                var id = `_${base}${index ? `_${index}` : ''}`;
-                isReserved = reservedIds.has(id);
-            }
-            reservedIds.add(id);
-            return map.set(rule, id);
-        },
-        new Map<Rule, string>()
-    );
+
 
 
     let prolog = rules.map((rule, i) => `const ${handlerIds.get(rule)} = rules[${i}].handler;\n`).join('');
@@ -137,68 +121,24 @@ function makeRouteHandler2(route: Route): Handler {
 
 
 
-//TODO:
-// all handlers: pass in 'address' sneakily as 'this' via Function#call (still very fast!)
+// TODO: doc...
+function makeHandlerIdentifiers(rules: Rule[]) {
+    let reservedIds = new Set<string>();
+    let result = rules.reduce(
+        (map, rule) => {
 
-
-// TODO: temp testing...
-`
-function makeHandler(rules: Rule[]) {
-    say rules = {
-        0: <Root>Partial,
-        1: Partial,
-        2: Decorator,
-        3: Partial,
-        4: Partial,
-        5: <Leaf>Partial
-    }
-
-
-    let handle3_4_5 = function (address, request) {
-        var response;
-        if ((response = handler5(address, request)) !== null) return response;
-        if ((response = handler4(address, request)) !== null) return response;
-        if ((response = handler3(address, request)) !== null) return response;
-        return null;
-    }
-
-    let handle2 = function (address, request) {
-
-        let downstream = function (req) {
-            req = arguments.length > 0 ? req : request;
-            return handle3_4_5(address, req);
-        };
-
-        var response;
-        response = handler2(address, request, handle3_4_5);
-        return response;
-    }
-
-    let handle0_1_2 = function (address, request) {
-        var response;
-        if ((response = handler2(address, request)) !== null) return response;
-        if ((response = handler1(address, request)) !== null) return response;
-        if ((response = handler0(address, request)) !== null) return response;
-        return null;
-    }
-
-    let finalHandler = (address, request) {
-        return handle0_1_2(address, request);
-    }
-
-    
-
-    
-
-
-
+            // TODO: ...
+            let base = makePatternIdentifier(rule.pattern);
+            for (let isReserved = true, index = 0; isReserved; ++index) {
+                var id = `_${base}${index ? `_${index}` : ''}`;
+                isReserved = reservedIds.has(id);
+            }
+            
+            // TODO: ...
+            reservedIds.add(id);
+            return map.set(rule, id);
+        },
+        new Map<Rule, string>()
+    );
+    return result;
 }
-
-
-
-
-
-
-
-
-`
