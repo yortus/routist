@@ -9,6 +9,9 @@ import Response from '../response';
 
 // TODO: doc...
 export type RuleSet = { [pattern: string]: Function };
+// TODO: pass address to downstream via closure created for every request
+//       - it's only ~20% slower than explicit addr passing, and at least as fast as caching by addr
+//       - see: http://jsperf.com/54327545112451459541954/2
 
 
 
@@ -22,15 +25,20 @@ export type RuleSet = { [pattern: string]: Function };
 
 
 // TODO: doc...
-export type Handler = (address: string, request: Request) => Response;
+// TODO: temp change sig to find site needing attention...
+export type Handler = (x: number, address: string, request: Request) => Response;
 
 
 // TODO: doc...
-export type PartialHandler = (address: string, request: Request) => Response;
+// TODO: 'address' is sneakily passed as 'this' via Function#call
+//       - Function#call is about as fast as a direct call in V8 - see https://jsperf.com/function-calls-direct-vs-apply-vs-call-vs-bind/6
+//       - annotate with 'this=Address' (where type Address = string) when TS#6018 lands: https://github.com/Microsoft/TypeScript/issues/6018
+export type PartialHandler = (request: Request) => Response;
 
 
 // TODO: doc...
-export type GeneralHandler = (address: string, request: Request, downstream: Handler) => Response;
+// TODO: note this=Address comments above apply here too...
+export type GeneralHandler = (request: Request, downstream: Handler) => Response;
 
 
 
