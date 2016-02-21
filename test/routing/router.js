@@ -22,13 +22,13 @@ describe('Constructing a Router instance', function () {
         'c/d': function () { return null; },
         'api/** #a': function () { return "fallback"; },
         'api/** #b': function () { return "fallback"; },
-        'api/f*o': function () { return null; },
-        // TODO: temp testing...
-        'api/foo#': function ($addr, $req, $next) {
-            debugger;
-            return "---" + ($next($addr, $req) || 'NONE') + "---";
-        },
+        'api/fo*o': function () { return null; },
+        'api/fo* #2': function ($req, $next) { return ("fo2-(" + ($next($req) || 'NONE') + ")"); },
+        'api/fo* #1': function ($req, $next) { return ("fo1-(" + ($next($req) || 'NONE') + ")"); },
+        'api/foo ': function ($req, $next) { return (($next($req) || 'NONE') + "!"); },
         'api/foo': function () { return 'FOO'; },
+        'api/foot': function () { return 'FOOt'; },
+        'api/fooo': function () { return 'fooo'; },
         'api/bar': function () { return null; },
     };
     // TODO: use or remove...
@@ -67,7 +67,11 @@ describe('Constructing a Router instance', function () {
         //         `c/d ==> ERROR: Multiple possible fallbacks...`,
         // 
         //         `api/ ==> fallback`,
-        "api/foo ==> FOO",
+        "api/foo ==> fo2-(fo1-(FOO!))",
+        "api/fooo ==> fo2-(fo1-(fooo))",
+        "api/foooo ==> fo2-(fo1-(NONE))",
+        "api/foooot ==> fo2-(fo1-(NONE))",
+        "api/foot ==> fo2-(fo1-(FOOt))",
     ];
     var ruleSetHandler = compile_rule_set_1.default(ruleSet);
     tests.forEach(function (test) { return it(test, function () {

@@ -34,50 +34,59 @@ exports.default = makeRouteHandler;
 // TODO: ...
 var nullHandler = function (address, request) { return null; };
 function makeRouteHandler2(route) {
+    // TODO: specific to general...
+    var rules = route.slice().reverse();
     // TODO: temp testing...
-    route.forEach(function (rule) {
-        console.log(rule.pattern.toString() + " [" + (is_partial_handler_1.default(rule.handler) ? 'PARTIAL' : 'GENERAL') + "]");
-    });
-    //debugger;
+    // rules.forEach(rule => {
+    //     console.log(`${rule.pattern.toString()} [${isPartialHandler(rule.handler) ? 'PARTIAL' : 'GENERAL'}]`);
+    // });
+    // debugger;
     //TODO: BUG exposed on next line:
     //      - different rules whose pattern source is the same (but maybe they have a different commment) will try to overwrite
     //        the same identifier. They need to all get a unique indentifier! But still keep them human readable (eg append '_1', '_2' etc)
-    //      - This BUG is probably also in makeDispatcher... Invesigate...
-    var prolog = route.map(function (_a, i) {
-        var pattern = _a.pattern, handler = _a.handler;
-        return ("const _" + make_pattern_identifier_1.default(pattern) + " = route[" + i + "].handler;\n");
-    }).join('');
+    //      - This BUG is probably also in makeDispatcher... Invesigate... ANS: no, only distinct patterns are used in the dispatcher...
+    // TODO: move out to helper function...
+    var reservedIds = new Set();
+    var handlerIds = rules.reduce(function (map, rule) {
+        // TODO: ...
+        var base = make_pattern_identifier_1.default(rule.pattern);
+        for (var isReserved = true, index = 0; isReserved; ++index) {
+            var id = "_" + base + (index ? "_" + index : '');
+            isReserved = reservedIds.has(id);
+        }
+        reservedIds.add(id);
+        return map.set(rule, id);
+    }, new Map());
+    var prolog = rules.map(function (rule, i) { return ("const " + handlerIds.get(rule) + " = rules[" + i + "].handler;\n"); }).join('');
     var bodyLines = ['var response;'];
     // Iterate over rules, from most to least specific
-    for (var i = route.length - 1; i >= 0; --i) {
-        var _a = route[i], pattern = _a.pattern, handler = _a.handler;
-        if (is_partial_handler_1.default(handler)) {
+    rules.forEach(function (rule) {
+        if (is_partial_handler_1.default(rule.handler)) {
             // TODO: ...
-            var line = "if ((response = _" + make_pattern_identifier_1.default(pattern) + "(address, request)) !== null) return response;";
+            var line = "if ((response = " + handlerIds.get(rule) + "(address, request)) !== null) return response;";
             bodyLines.push(line);
         }
         else {
             // TODO: ...
             bodyLines.forEach(function (line, i) { return bodyLines[i] = "    " + line; });
-            bodyLines.unshift("function downstream(request) {debugger;"); // TODO: remove debugger...
+            bodyLines.unshift("function downstream(request) {"); // TODO: remove debugger...
             bodyLines.push("    return null;");
             bodyLines.push("}");
             bodyLines.push("");
             bodyLines.push("var response;");
-            bodyLines.push("if ((response = _" + make_pattern_identifier_1.default(pattern) + "(address, request, downstream)) !== null) return response;");
+            bodyLines.push("if ((response = " + handlerIds.get(rule) + "(address, request, downstream)) !== null) return response;");
         }
-    }
+    });
     bodyLines.push("return null;");
-    // TODO: remove try/catch from source after testing...
     var indent = "    ";
     var body = bodyLines.map(function (line) { return ("" + indent + line + "\n"); }).join('');
-    var source = prolog + "\nreturn function _route(address, request) {try{\n" + body + "}catch(ex){\ndebugger;      \n } }";
-    var fn = (function (route) {
+    var source = prolog + "\nreturn function _route(address, request) {\n" + body + "}";
+    var fn = (function (rules) {
         var fn = eval("(() => {\n" + source + "\n})")();
         return fn;
-    })(route);
-    console.log(fn.toString());
-    debugger;
+    })(rules);
+    //console.log(fn.toString());
+    //debugger;
     return fn;
 }
 //TODO:

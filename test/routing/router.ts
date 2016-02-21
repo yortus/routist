@@ -30,15 +30,13 @@ describe('Constructing a Router instance', () => {
 
         'api/** #a': () => `fallback`,
         'api/** #b': () => `fallback`, // TODO: temp testing, remove this...
-        'api/f*o': () => null,
-
-        // TODO: temp testing...
-        'api/foo#': ($addr, $req, $next) => {
-            debugger;
-            return `---${$next($addr, $req) || 'NONE'}---`
-        },
-
+        'api/fo*o': () => null,
+        'api/fo* #2': ($req, $next) => `fo2-(${$next($req) || 'NONE'})`,
+        'api/fo* #1': ($req, $next) => `fo1-(${$next($req) || 'NONE'})`,
+        'api/foo ': ($req, $next) => `${$next($req) || 'NONE'}!`,
         'api/foo': () => 'FOO',
+        'api/foot': () => 'FOOt',
+        'api/fooo': () => 'fooo',
         'api/bar': () => null,
     };
 
@@ -80,7 +78,11 @@ describe('Constructing a Router instance', () => {
 //         `c/d ==> ERROR: Multiple possible fallbacks...`,
 // 
 //         `api/ ==> fallback`,
-        `api/foo ==> FOO`,
+        `api/foo ==> fo2-(fo1-(FOO!))`,
+        `api/fooo ==> fo2-(fo1-(fooo))`,
+        `api/foooo ==> fo2-(fo1-(NONE))`,
+        `api/foooot ==> fo2-(fo1-(NONE))`,
+        `api/foot ==> fo2-(fo1-(FOOt))`,
         // `api/bar ==> fallback`,
     ];
 

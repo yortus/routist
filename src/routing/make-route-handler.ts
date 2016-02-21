@@ -1,6 +1,6 @@
 'use strict';
 import * as assert from 'assert';
-import {Handler, PartialHandler, GeneralHandler, Route} from './types';
+import {Handler, PartialHandler, GeneralHandler, Route, Rule} from './types';
 import isPartialHandler from './is-partial-handler';
 import makePatternIdentifier from './make-pattern-identifier';
 
@@ -56,61 +56,80 @@ const nullHandler: Handler = (address, request) => null;
 
 
 function makeRouteHandler2(route: Route): Handler {
+
+    // TODO: specific to general...
+    let rules = route.slice().reverse();
+
 // TODO: temp testing...
-route.forEach(rule => {
-    console.log(`${rule.pattern.toString()} [${isPartialHandler(rule.handler) ? 'PARTIAL' : 'GENERAL'}]`);
-});
-//debugger;
+// rules.forEach(rule => {
+//     console.log(`${rule.pattern.toString()} [${isPartialHandler(rule.handler) ? 'PARTIAL' : 'GENERAL'}]`);
+// });
+// debugger;
 
 
 //TODO: BUG exposed on next line:
 //      - different rules whose pattern source is the same (but maybe they have a different commment) will try to overwrite
 //        the same identifier. They need to all get a unique indentifier! But still keep them human readable (eg append '_1', '_2' etc)
-//      - This BUG is probably also in makeDispatcher... Invesigate...
+//      - This BUG is probably also in makeDispatcher... Invesigate... ANS: no, only distinct patterns are used in the dispatcher...
 
-    let prolog = route.map(({pattern, handler}, i) => `const _${makePatternIdentifier(pattern)} = route[${i}].handler;\n`).join('');
+    // TODO: move out to helper function...
+    let reservedIds = new Set<string>();
+    let handlerIds = rules.reduce(
+        (map, rule) => {
+            // TODO: ...
+            let base = makePatternIdentifier(rule.pattern);
+            for (let isReserved = true, index = 0; isReserved; ++index) {
+                var id = `_${base}${index ? `_${index}` : ''}`;
+                isReserved = reservedIds.has(id);
+            }
+            reservedIds.add(id);
+            return map.set(rule, id);
+        },
+        new Map<Rule, string>()
+    );
+
+
+    let prolog = rules.map((rule, i) => `const ${handlerIds.get(rule)} = rules[${i}].handler;\n`).join('');
 
     let bodyLines = ['var response;'];
 
     // Iterate over rules, from most to least specific
-    for (let i = route.length - 1; i >= 0; --i) {
-        let {pattern, handler} = route[i];
+    rules.forEach(rule => {
 
-        if (isPartialHandler(handler)) {
+        if (isPartialHandler(rule.handler)) {
             // TODO: ...
-            let line = `if ((response = _${makePatternIdentifier(pattern)}(address, request)) !== null) return response;`;
+            let line = `if ((response = ${handlerIds.get(rule)}(address, request)) !== null) return response;`;
             bodyLines.push(line);
         }
         else /* general handler */ {
             // TODO: ...
 
             bodyLines.forEach((line, i) => bodyLines[i] = `    ${line}`);
-            bodyLines.unshift(`function downstream(request) {debugger;`); // TODO: remove debugger...
+            bodyLines.unshift(`function downstream(request) {`); // TODO: remove debugger...
             bodyLines.push(`    return null;`);
             bodyLines.push(`}`);
             bodyLines.push(``);
             bodyLines.push(`var response;`);
-            bodyLines.push(`if ((response = _${makePatternIdentifier(pattern)}(address, request, downstream)) !== null) return response;`);
+            bodyLines.push(`if ((response = ${handlerIds.get(rule)}(address, request, downstream)) !== null) return response;`);
         }
-    }
+    });
 
     bodyLines.push(`return null;`);
 
 
-    // TODO: remove try/catch from source after testing...
     let indent = `    `;
     let body = bodyLines.map(line => `${indent}${line}\n`).join('');
-    let source = `${prolog}\nreturn function _route(address, request) {try{\n${body}}catch(ex){\ndebugger;      \n } }`;
+    let source = `${prolog}\nreturn function _route(address, request) {\n${body}}`;
 
 
-    let fn = (function(route) {
+    let fn = (function(rules) {
         let fn = eval(`(() => {\n${source}\n})`)();
         return fn;
-    })(route);
+    })(rules);
 
 
-console.log(fn.toString());
-debugger;
+//console.log(fn.toString());
+//debugger;
     return fn;
 }
 
