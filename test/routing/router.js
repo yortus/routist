@@ -67,11 +67,8 @@ describe('Constructing a Router instance', function () {
         //         `c/d ==> ERROR: Multiple possible fallbacks...`,
         // 
         //         `api/ ==> fallback`,
-        "api/foo ==> fo2-(fo1-(FOO!))",
+        //`api/foo ==> fo2-(fo1-(FOO!))`,
         "api/fooo ==> fo2-(fo1-(fooo))",
-        "api/foooo ==> fo2-(fo1-(NONE))",
-        "api/foooot ==> fo2-(fo1-(NONE))",
-        "api/foot ==> fo2-(fo1-(FOOt))",
     ];
     var ruleSetHandler = compile_rule_set_1.default(ruleSet);
     tests.forEach(function (test) { return it(test, function () {

@@ -43,37 +43,54 @@ function makeRouteHandler2(route) {
     // debugger;
     // TODO: doc...
     var handlerIds = makeHandlerIdentifiers(rules);
-    var prolog = rules.map(function (rule, i) { return ("const " + handlerIds.get(rule) + " = rules[" + i + "].handler;\n"); }).join('');
-    var bodyLines = ['var response;'];
+    var lines = rules.map(function (rule, i) { return ("const " + handlerIds.get(rule) + " = rules[" + i + "].handler;"); }).concat([
+        '',
+        'return function _route(address, request) {',
+        '    var response;'
+    ], getBodyLines(rules, handlerIds, 1), [
+        '};'
+    ]);
+    // console.log(lines);
+    // debugger;
+    var fn = eval("(() => {\n" + lines.join('\n') + "\n})")();
+    // let prolog = rules.map((rule, i) => `const ${handlerIds.get(rule)} = rules[${i}].handler;\n`).join('');
+    // let indent = `    `;
+    // let body = bodyLines.map(line => `${indent}${line}\n`).join('');
+    // let source = `${prolog}\nreturn function _route(address, request) {\n${body}}`;
+    // let fn = (function(rules) {
+    //     let fn = eval(`(() => {\n${source}\n})`)();
+    //     return fn;
+    // })(rules);
+    console.log("\n\n\n\n\n" + fn.toString());
+    //debugger;
+    return fn;
+}
+// TODO: doc...
+function getBodyLines(rules, handlerIds, nestDepth) {
+    var indent = '    '.repeat(nestDepth); // TODO: rename to 'tab' here and in makeDispatcher? Clearer?
+    var lines = [];
     // Iterate over rules, from most to least specific
     rules.forEach(function (rule) {
         if (is_partial_handler_1.default(rule.handler)) {
             // TODO: ...
-            var line = "if ((response = " + handlerIds.get(rule) + "(address, request)) !== null) return response;";
-            bodyLines.push(line);
+            var line = indent + "if ((response = " + handlerIds.get(rule) + "(address, request)) !== null) return response;";
+            lines.push(line);
         }
         else {
             // TODO: ...
-            bodyLines.forEach(function (line, i) { return bodyLines[i] = "    " + line; });
-            bodyLines.unshift("function downstream(request) {"); // TODO: remove debugger...
-            bodyLines.push("    return null;");
-            bodyLines.push("}");
-            bodyLines.push("");
-            bodyLines.push("var response;");
-            bodyLines.push("if ((response = " + handlerIds.get(rule) + "(address, request, downstream)) !== null) return response;");
+            lines = [
+                (indent + "function downstream(request) {")
+            ].concat(lines.map(function (line) { return ("" + indent + line); }), [
+                ("" + indent + indent + "return null;"),
+                (indent + "}"),
+                "",
+                //`${indent}var response;`,
+                (indent + "if ((response = " + handlerIds.get(rule) + "(address, request, downstream)) !== null) return response;")
+            ]);
         }
     });
-    bodyLines.push("return null;");
-    var indent = "    ";
-    var body = bodyLines.map(function (line) { return ("" + indent + line + "\n"); }).join('');
-    var source = prolog + "\nreturn function _route(address, request) {\n" + body + "}";
-    var fn = (function (rules) {
-        var fn = eval("(() => {\n" + source + "\n})")();
-        return fn;
-    })(rules);
-    //console.log(fn.toString());
-    //debugger;
-    return fn;
+    lines.push(indent + "return null;");
+    return lines;
 }
 // TODO: doc...
 function makeHandlerIdentifiers(rules) {
@@ -90,5 +107,76 @@ function makeHandlerIdentifiers(rules) {
         return map.set(rule, id);
     }, new Map());
     return result;
+}
+function _route1(address, request) {
+    var response;
+    function downstream(request) {
+        function downstream(request) {
+            if ((response = _apiﾉfoᕽo(address, request)) !== null)
+                return response;
+            return null;
+        }
+        if ((response = _apiﾉfoᕽ(address, request, downstream)) !== null)
+            return response;
+        return null;
+    }
+    if ((response = _apiﾉfoᕽ_1(address, request, downstream)) !== null)
+        return response;
+    if ((response = _apiﾉ﹍(address, request)) !== null)
+        return response;
+    if ((response = _apiﾉ﹍_1(address, request)) !== null)
+        return response;
+    if ((response = _﹍(address, request)) !== null)
+        return response;
+    return null;
+}
+function _route2(address, request) {
+    var response;
+    function downstream(request) {
+        function downstream(request) {
+            return null;
+        }
+        if ((response = _apiﾉfoᕽ(address, request, downstream)) !== null)
+            return response;
+        return null;
+    }
+    if ((response = _apiﾉfoᕽ_1(address, request, downstream)) !== null)
+        return response;
+    if ((response = _apiﾉ﹍(address, request)) !== null)
+        return response;
+    if ((response = _apiﾉ﹍_1(address, request)) !== null)
+        return response;
+    if ((response = _﹍(address, request)) !== null)
+        return response;
+    return null;
+}
+function _route3(address, request) {
+    var response;
+    function downstream(request) {
+        function downstream(request) {
+            function downstream(request) {
+                if ((response = _apiﾉfoo(address, request)) !== null)
+                    return response;
+                return null;
+            }
+            if ((response = _apiﾉfoo_1(address, request, downstream)) !== null)
+                return response;
+            if ((response = _apiﾉfoᕽo(address, request)) !== null)
+                return response;
+            return null;
+        }
+        if ((response = _apiﾉfoᕽ(address, request, downstream)) !== null)
+            return response;
+        return null;
+    }
+    if ((response = _apiﾉfoᕽ_1(address, request, downstream)) !== null)
+        return response;
+    if ((response = _apiﾉ﹍(address, request)) !== null)
+        return response;
+    if ((response = _apiﾉ﹍_1(address, request)) !== null)
+        return response;
+    if ((response = _﹍(address, request)) !== null)
+        return response;
+    return null;
 }
 //# sourceMappingURL=make-route-handler.js.map

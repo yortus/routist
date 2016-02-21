@@ -78,11 +78,11 @@ describe('Constructing a Router instance', () => {
 //         `c/d ==> ERROR: Multiple possible fallbacks...`,
 // 
 //         `api/ ==> fallback`,
-        `api/foo ==> fo2-(fo1-(FOO!))`,
+        //`api/foo ==> fo2-(fo1-(FOO!))`,
         `api/fooo ==> fo2-(fo1-(fooo))`,
-        `api/foooo ==> fo2-(fo1-(NONE))`,
-        `api/foooot ==> fo2-(fo1-(NONE))`,
-        `api/foot ==> fo2-(fo1-(FOOt))`,
+        //`api/foooo ==> fo2-(fo1-(NONE))`,
+        //`api/foooot ==> fo2-(fo1-(NONE))`,
+        //`api/foot ==> fo2-(fo1-(FOOt))`,
         // `api/bar ==> fallback`,
     ];
 
