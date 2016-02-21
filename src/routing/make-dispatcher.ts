@@ -18,27 +18,43 @@ export default function makeDispatcher<T>(taxonomy: Taxonomy, targetMap: Map<Pat
     let targets = patterns.map(pat => targetMap.get(pat));
 
     // TODO: doc...
-    function getBody(specializations: TaxonomyNode[], fallback: Pattern, nestDepth: number): string {
+    function getBodyLines(specializations: TaxonomyNode[], fallback: Pattern, nestDepth: number) {
         let indent = ' '.repeat(nestDepth * 4);
-        let firstLines = specializations.map((spec, i) => {
-            let nextLevel = spec.specializations;
+        let firstLines: string[] = specializations.reduce((lines, node, i) => {
+            let nextLevel = node.specializations;
             let isLeaf = nextLevel.length === 0;
-            let id = makePatternIdentifier(spec.pattern);
+            let id = makePatternIdentifier(node.pattern);
             let condition = `${indent}${i > 0 ? 'else ' : ''}if (matches_${id}(address)) `;
-            let consequent = isLeaf ? `return _${id};\n` : `{\n${getBody(nextLevel, spec.pattern, nestDepth + 1)}${indent}}\n`; // TODO: shorten to <120
-            return condition + consequent;
-        });
-        let lastLine = `${indent}return _${makePatternIdentifier(fallback)};\n`;
-        return firstLines.join('') + lastLine;
+
+            // let condition = `${indent}${i > 0 ? 'else ' : ''}if (matches_${id}(address)) `;
+            // let consequent = isLeaf ? `return _${id};\n` : `{\n${getBody(nextLevel, spec.pattern, nestDepth + 1)}${indent}}\n`; // TODO: shorten to <120
+            // return condition + consequent;
+
+
+
+            if (isLeaf) {
+                let result = lines.concat(`${condition}return _${id};`);
+                return result;
+            }
+
+            let result = lines.concat([
+                `${condition}{`,
+                ...getBodyLines(nextLevel, node.pattern, nestDepth + 1),
+                `${indent}}`
+            ]);
+            return result;
+        }, <string[]> []);
+        let lastLine = `${indent}return _${makePatternIdentifier(fallback)};`;
+        return firstLines.concat(lastLine);
     }
 
     // TODO: doc...
     let lines = [
-        ...patterns.map((pat, i) => `let matches_${makePatternIdentifier(pat)} = patterns[${i}].match;\n`),
-        ...patterns.map((pat, i) => `let _${makePatternIdentifier(pat)} = targets[${i}];\n`),
+        ...patterns.map((pat, i) => `let matches_${makePatternIdentifier(pat)} = patterns[${i}].match;`),
+        ...patterns.map((pat, i) => `let _${makePatternIdentifier(pat)} = targets[${i}];`),
         '',
         'return function dispatch(address) {',
-        getBody(taxonomy.rootNode.specializations, Pattern.UNIVERSAL, 1),
+        ...getBodyLines(taxonomy.rootNode.specializations, Pattern.UNIVERSAL, 1),
         '};'
     ];
 // console.log(lines);
