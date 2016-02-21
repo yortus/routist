@@ -28,7 +28,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = makeDispatcher;
 // TODO: doc...
 function getBodyLines(specializations, fallback, nestDepth) {
-    var indent = ' '.repeat(nestDepth * 4);
+    var indent = '    '.repeat(nestDepth);
     var lines = [];
     specializations.forEach(function (node, i) {
         var id = make_pattern_identifier_1.default(node.pattern);

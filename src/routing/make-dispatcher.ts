@@ -42,7 +42,7 @@ export default function makeDispatcher<T>(taxonomy: Taxonomy, targetMap: Map<Pat
 
 // TODO: doc...
 function getBodyLines(specializations: TaxonomyNode[], fallback: Pattern, nestDepth: number) {
-    let indent = ' '.repeat(nestDepth * 4);
+    let indent = '    '.repeat(nestDepth);
     let lines: string[] = [];
     specializations.forEach((node, i) => {
         let id = makePatternIdentifier(node.pattern);
