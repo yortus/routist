@@ -91,7 +91,8 @@ function getEqualBestRulesForPattern(pattern: Pattern, ruleSet: RuleSet): Rule[]
     let rules = Object.keys(ruleSet)
         .map(key => new Pattern(key))
         .filter(pat => pat.normalized === pattern.normalized)
-        .map<Rule>(pat => ({ pattern: pat, handler: normalizeHandler(pat, ruleSet[pat.toString()]) }));
+        .map<Rule>(pat => ({ pattern: pat, handler: <any>ruleSet[pat.toString()] }));
+        //TODO:...was...remove?... .map<Rule>(pat => ({ pattern: pat, handler: normalizeHandler(pat, ruleSet[pat.toString()]) }));
 
     // TODO: explain sort... all rules are equal by pattern signature, but we need an unambiguous ordering.
     // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
@@ -153,7 +154,7 @@ function reduceToSingleRoute(pattern: Pattern, candidates: Route[]) {
     let ambiguousFallbacks = candidates.map(cand => cand[cand.length - suffix.length - 1]);
     let crasher: Rule = {
         pattern,
-        handler: function crasher(address, request): any {
+        handler: function crasher(): any {
             // TODO: improve error message/handling
             throw new Error(`Multiple possible fallbacks from '${pattern}: ${ambiguousFallbacks.map(fn => fn.toString())}`);
         }
@@ -169,7 +170,7 @@ function reduceToSingleRoute(pattern: Pattern, candidates: Route[]) {
 
 
 // TODO: doc...
-const nullHandler: Handler = function __nullHandler__(address, request) { return null; };
+const nullHandler: Handler = function __nullHandler__() { return null; };
 
 
 

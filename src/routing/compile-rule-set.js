@@ -6,7 +6,6 @@ var taxonomy_1 = require('../taxonomy');
 var is_partial_handler_1 = require('./is-partial-handler');
 var make_dispatcher_1 = require('./make-dispatcher');
 var make_route_handler_1 = require('./make-route-handler');
-var normalize_handler_1 = require('./normalize-handler');
 var pattern_1 = require('../pattern');
 // TODO: doc...
 function compileRuleSet(ruleSet) {
@@ -54,7 +53,8 @@ function getEqualBestRulesForPattern(pattern, ruleSet) {
     var rules = Object.keys(ruleSet)
         .map(function (key) { return new pattern_1.default(key); })
         .filter(function (pat) { return pat.normalized === pattern.normalized; })
-        .map(function (pat) { return ({ pattern: pat, handler: normalize_handler_1.default(pat, ruleSet[pat.toString()]) }); });
+        .map(function (pat) { return ({ pattern: pat, handler: ruleSet[pat.toString()] }); });
+    //TODO:...was...remove?... .map<Rule>(pat => ({ pattern: pat, handler: normalizeHandler(pat, ruleSet[pat.toString()]) }));
     // TODO: explain sort... all rules are equal by pattern signature, but we need an unambiguous ordering.
     // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
     rules.sort(ruleComparator); // NB: may throw
@@ -102,7 +102,7 @@ function reduceToSingleRoute(pattern, candidates) {
     var ambiguousFallbacks = candidates.map(function (cand) { return cand[cand.length - suffix.length - 1]; });
     var crasher = {
         pattern: pattern,
-        handler: function crasher(address, request) {
+        handler: function crasher() {
             // TODO: improve error message/handling
             throw new Error("Multiple possible fallbacks from '" + pattern + ": " + ambiguousFallbacks.map(function (fn) { return fn.toString(); }));
         }
@@ -112,7 +112,7 @@ function reduceToSingleRoute(pattern, candidates) {
     return result;
 }
 // TODO: doc...
-var nullHandler = function __nullHandler__(address, request) { return null; };
+var nullHandler = function __nullHandler__() { return null; };
 // TODO: doc...
 var universalRule = { pattern: pattern_1.default.UNIVERSAL, handler: nullHandler };
 // TODO: doc...

@@ -1,4 +1,5 @@
 'use strict';
+var util_1 = require('../util');
 // TODO: revise docs below...
 /**
  * Indicates whether or not `handler` is a decorator. A handler is a decorator
@@ -7,7 +8,9 @@
  * and non-decorators.
  */
 function isPartialHandler(handler) {
-    return handler.length === 2;
+    // TODO: super inefficient!!! Review this...    
+    return util_1.getFunctionParameterNames(handler).indexOf('$next') === -1;
+    // TODO: was... return handler.length === 2;
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = isPartialHandler;

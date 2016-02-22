@@ -83,10 +83,14 @@ export default function normalizeHandler(pattern: Pattern, rawHandler: Function)
     // Precompute a map with keys that match all of the the `action` function's formal parameter names. The value
     // for each key holds the source code to supply the actual parameter for the corresponding formal parameter.
     let paramMappings = captureNames.reduce((map, name) => (map[name] = `paramBindings.${name}`, map), {});
-    paramMappings['$addr'] = 'address'; // TODO: temp testing remove!!!
-    paramMappings['$req'] = 'request';
-    paramMappings['$next'] = 'downstream';
-    assert(builtinNames.every(bname => !!paramMappings[bname])); // sanity check: ensure all builtins are mapped
+    let builtinMappings = {
+        $addr: 'address',
+        $req: 'request',
+        $next: 'downstream'
+    };
+
+    // sanity check: ensure all builtins are mapped
+    assert(builtinNames.every(bname => !!builtinMappings[bname]));
 
     // Generate the source code for the `execute` function. The `execute` function calls the handler function,
     // passing it a set of capture values and/or builtins that correspond to its formal parameter names (a form of DI).
@@ -100,7 +104,7 @@ export default function normalizeHandler(pattern: Pattern, rawHandler: Function)
     let source = `(function __${makePatternIdentifier(pattern)}__(address, request${isDecorator ? ', downstream' : ''}) {
         var paramBindings = match(address);
         if (!paramBindings) return null; // pattern didn't match address
-        return rawHandler(${paramNames.map(name => paramMappings[name])});
+        return rawHandler(${paramNames.map(name => paramMappings[name] || builtinMappings[name])});
     })`;
 
     // Evaluate the source code into a function, and return it. This use of eval here is safe. In particular, the

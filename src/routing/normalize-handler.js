@@ -61,10 +61,13 @@ function normalizeHandler(pattern, rawHandler) {
     // Precompute a map with keys that match all of the the `action` function's formal parameter names. The value
     // for each key holds the source code to supply the actual parameter for the corresponding formal parameter.
     var paramMappings = captureNames.reduce(function (map, name) { return (map[name] = "paramBindings." + name, map); }, {});
-    paramMappings['$addr'] = 'address'; // TODO: temp testing remove!!!
-    paramMappings['$req'] = 'request';
-    paramMappings['$next'] = 'downstream';
-    assert(builtinNames.every(function (bname) { return !!paramMappings[bname]; })); // sanity check: ensure all builtins are mapped
+    var builtinMappings = {
+        $addr: 'address',
+        $req: 'request',
+        $next: 'downstream'
+    };
+    // sanity check: ensure all builtins are mapped
+    assert(builtinNames.every(function (bname) { return !!builtinMappings[bname]; }));
     // Generate the source code for the `execute` function. The `execute` function calls the handler function,
     // passing it a set of capture values and/or builtins that correspond to its formal parameter names (a form of DI).
     // The remaining logic depends on whether the rule is a decorator or not, as follows:
@@ -73,7 +76,7 @@ function normalizeHandler(pattern, rawHandler) {
     // - for non-decorators: first call `executeDownstreamHandlers`. If that returned a response, return that response.
     //   Otherwise, execute the handler function and return its response.
     //TODO: remove 'if (!paramBindings)...' line (or change to debug assertion) - normalized handler will never be called with a non-matching address
-    var source = "(function __" + make_pattern_identifier_1.default(pattern) + "__(address, request" + (isDecorator ? ', downstream' : '') + ") {\n        var paramBindings = match(address);\n        if (!paramBindings) return null; // pattern didn't match address\n        return rawHandler(" + paramNames.map(function (name) { return paramMappings[name]; }) + ");\n    })";
+    var source = "(function __" + make_pattern_identifier_1.default(pattern) + "__(address, request" + (isDecorator ? ', downstream' : '') + ") {\n        var paramBindings = match(address);\n        if (!paramBindings) return null; // pattern didn't match address\n        return rawHandler(" + paramNames.map(function (name) { return paramMappings[name] || builtinMappings[name]; }) + ");\n    })";
     // Evaluate the source code into a function, and return it. This use of eval here is safe. In particular, the
     // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
     // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.

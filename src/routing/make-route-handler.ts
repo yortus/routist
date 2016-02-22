@@ -1,5 +1,6 @@
 'use strict';
 import * as assert from 'assert';
+import {getFunctionParameterNames} from '../util';
 import {Handler, PartialHandler, GeneralHandler, Route, Rule} from './types';
 import isPartialHandler from './is-partial-handler';
 import makePatternIdentifier from './make-pattern-identifier';
@@ -17,6 +18,7 @@ export default function makeRouteHandler(route: Route): Handler {
     let handlerIds = makeHandlerIdentifiers(rules);
 
     let lines = [
+        ...rules.map((rule, i) => `var match${handlerIds.get(rule)} = rules[${i}].pattern.match;`).filter((_, i) => rules[i].pattern.captureNames.length > 0), // TODO: line too long!!!
         ...rules.map((rule, i) => `var handle${handlerIds.get(rule)} = rules[${i}].handler;`),
         '',
         'function no_downstream(req) { return null; }',
@@ -25,12 +27,12 @@ export default function makeRouteHandler(route: Route): Handler {
         ...getBodyLines(rules, handlerIds).map(line => `    ${line}`),
         '};'
     ];
-// console.log(lines);
-// debugger;
+//console.log(lines);
+//debugger;
 
 
     let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();
-//console.log(`\n\n\n\n\n${fn.toString()}`);
+console.log(`\n\n\n\n\n${fn.toString()}`);
 //debugger;
     return fn;
 }
@@ -44,7 +46,7 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
 
 
     let rules2 = rules.slice();
-    let body2 = [`var addr = address, req = request, res;`];
+    let body2 = [`var addr = address, req = request, res, captures;`]; // TODO: think about deopt due to 'captures' being re-used with different props...
     let lines2: string[] = [];
     let downstreamRule: Rule;
 
@@ -66,11 +68,6 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
                 ];
                 lines2 = [];
             }
-// 
-//             else {
-//                 // TODO: Only need a singleton nullHandler!!
-//                 body2.push(`function no_downstream(req) { return null; }`);
-//             }
         }
 
 
@@ -84,20 +81,29 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
 
         while (run.length > 0) {
             let rule = run.shift();
-            let downstream = isPartialHandler(rule.handler) ? '' : `, ${downstreamRule ? `downstream_of${handlerIds.get(downstreamRule)}` : 'no_downstream'}`;
+
+
+            let paramNames = getFunctionParameterNames(rule.handler);
+            let captureNames = rule.pattern.captureNames;
+            let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures.${name}`, map), {});
+            if (captureNames.length > 0) lines2.push(`captures = match${handlerIds.get(rule)}(addr);`);
+            let builtinMappings = {
+                $addr: 'addr',
+                $req: 'req',
+                $next: isPartialHandler(rule.handler) ? '' : `${downstreamRule ? `downstream_of${handlerIds.get(downstreamRule)}` : 'no_downstream'}`
+            };
+
+            
+
+            //let downstream = isPartialHandler(rule.handler) ? '' : `${downstreamRule ? `downstream_of${handlerIds.get(downstreamRule)}` : 'no_downstream'}`;
             let pre = run.length > 0 ? `if ((res = ` : `return `;
             let post = run.length > 0 ? `) !== null) return res;` : `;`;
-            lines2.push(`${pre}handle${handlerIds.get(rule)}(addr, req${downstream})${post}`);
+            lines2.push(`${pre}handle${handlerIds.get(rule)}(${paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')})${post}`);
             if (run.length === 0) downstreamRule = rules2[0];
         }
        
     }
     body2 = body2.concat(lines2);
-
-
-//console.log('\n\n\n\n\n');
-//console.log(body2);
-//debugger;
     return body2;
 }
 

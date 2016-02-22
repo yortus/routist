@@ -1,5 +1,6 @@
 'use strict';
 import {GeneralHandler, PartialHandler} from './types';
+import {getFunctionParameterNames} from '../util';
 // TODO: revise docs below...
 
 
@@ -13,5 +14,8 @@ import {GeneralHandler, PartialHandler} from './types';
  * and non-decorators.
  */
 export default function isPartialHandler(handler: PartialHandler | GeneralHandler): handler is PartialHandler {
-    return handler.length === 2;
+
+    // TODO: super inefficient!!! Review this...    
+    return getFunctionParameterNames(handler).indexOf('$next') === -1;
+    // TODO: was... return handler.length === 2;
 }
