@@ -19,8 +19,8 @@ export default function makeDispatcher<T>(taxonomy: Taxonomy, targetMap: Map<Pat
 
     // TODO: doc...
     let lines = [
-        ...patterns.map((pat, i) => `let matches_${makePatternIdentifier(pat)} = patterns[${i}].match;`),
-        ...patterns.map((pat, i) => `let _${makePatternIdentifier(pat)} = targets[${i}];`),
+        ...patterns.map((pat, i) => `var matches_${makePatternIdentifier(pat)} = patterns[${i}].match;`),
+        ...patterns.map((pat, i) => `var _${makePatternIdentifier(pat)} = targets[${i}];`),
         '',
         'return function dispatch(address) {',
         ...getBodyLines(taxonomy.rootNode.specializations, Pattern.UNIVERSAL, 1),

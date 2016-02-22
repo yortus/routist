@@ -13,7 +13,7 @@ describe('Constructing a Router instance', function () {
         '/foo': function () { return 'foo'; },
         '/bar': function () { return 'bar'; },
         '/baz': function () { return 'baz'; },
-        '/*a*': function ($addr, $req, $next) { return ("---" + ($next($addr, $req) || 'NONE') + "---"); },
+        '/*a*': function ($next) { return ("---" + ($next() || 'NONE') + "---"); },
         'a/*': function () { return "starts with 'a'"; },
         '*/b': function () { return "ends with 'b'"; },
         'a/b': function () { return "starts with 'a' AND ends with 'b'"; },
@@ -30,6 +30,9 @@ describe('Constructing a Router instance', function () {
         'api/foot': function () { return 'FOOt'; },
         'api/fooo': function () { return 'fooo'; },
         'api/bar': function () { return null; },
+        'zzz/{...rest}': function ($next, rest) { return ("" + ($next({ address: rest.split('').reverse().join('') }) || 'NONE')); },
+        'zzz/b*z': function ($req) { return ("" + $req.address); },
+        'zzz/./*': function () { return 'forty-two'; }
     };
     // TODO: use or remove...
     //     let testTable23 = {
@@ -50,25 +53,30 @@ describe('Constructing a Router instance', function () {
     //         'latency', 'authorize', 'addBlahHeader'
     //     ];
     var tests = [
-        //         `/foo ==> foo`,
-        //         `/bar ==> ---bar---`,
-        //         `/baz ==> ---baz---`,
-        //         `/quux ==> UNHANDLED`,
-        //         `/qaax ==> ---NONE---`,
-        //         `/a ==> ---NONE---`,
-        //         `/ ==> UNHANDLED`,
-        // 
-        //         `a/foo ==> starts with 'a'`,
-        //         `foo/b ==> ends with 'b'`,
-        //         `a/b ==> starts with 'a' AND ends with 'b'`,
-        // 
-        //         `c/foo ==> starts with 'c'`,
-        //         `foo/d ==> ends with 'd'`,
-        //         `c/d ==> ERROR: Multiple possible fallbacks...`,
-        // 
-        //         `api/ ==> fallback`,
-        //`api/foo ==> fo2-(fo1-(FOO!))`,
+        "/foo ==> foo",
+        "/bar ==> ---bar---",
+        "/baz ==> ---baz---",
+        "/quux ==> UNHANDLED",
+        "/qaax ==> ---NONE---",
+        "/a ==> ---NONE---",
+        "/ ==> UNHANDLED",
+        "a/foo ==> starts with 'a'",
+        "foo/b ==> ends with 'b'",
+        "a/b ==> starts with 'a' AND ends with 'b'",
+        "c/foo ==> starts with 'c'",
+        "foo/d ==> ends with 'd'",
+        "c/d ==> ERROR: Multiple possible fallbacks...",
+        "api/ ==> fallback",
+        "api/foo ==> fo2-(fo1-(FOO!))",
         "api/fooo ==> fo2-(fo1-(fooo))",
+        "api/foooo ==> fo2-(fo1-(NONE))",
+        "api/foooot ==> fo2-(fo1-(NONE))",
+        "api/foot ==> fo2-(fo1-(FOOt))",
+        "api/bar ==> fallback",
+        "zzz/baz ==> zab",
+        "zzz/booz ==> zoob",
+        "zzz/looz ==> NONE",
+        "zzz/./{whatever} ==> forty-two"
     ];
     var ruleSetHandler = compile_rule_set_1.default(ruleSet);
     tests.forEach(function (test) { return it(test, function () {

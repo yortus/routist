@@ -18,7 +18,7 @@ describe('Constructing a Router instance', () => {
         '/foo': () => 'foo',
         '/bar': () => 'bar',
         '/baz': () => 'baz',
-        '/*a*': ($addr, $req, $next) => `---${$next($addr, $req) || 'NONE'}---`,
+        '/*a*': ($next) => `---${$next() || 'NONE'}---`,
 
         'a/*': () => `starts with 'a'`,
         '*/b': () => `ends with 'b'`,
@@ -38,6 +38,10 @@ describe('Constructing a Router instance', () => {
         'api/foot': () => 'FOOt',
         'api/fooo': () => 'fooo',
         'api/bar': () => null,
+
+        'zzz/{...rest}': ($next, rest) => `${$next({address: rest.split('').reverse().join('')}) || 'NONE'}`,
+        'zzz/b*z': ($req) => `${$req.address}`,
+        'zzz/./*': () => 'forty-two'
     };
 
     // TODO: use or remove...
@@ -61,29 +65,34 @@ describe('Constructing a Router instance', () => {
 
 
     let tests = [
-//         `/foo ==> foo`,
-//         `/bar ==> ---bar---`,
-//         `/baz ==> ---baz---`,
-//         `/quux ==> UNHANDLED`,
-//         `/qaax ==> ---NONE---`,
-//         `/a ==> ---NONE---`,
-//         `/ ==> UNHANDLED`,
-// 
-//         `a/foo ==> starts with 'a'`,
-//         `foo/b ==> ends with 'b'`,
-//         `a/b ==> starts with 'a' AND ends with 'b'`,
-// 
-//         `c/foo ==> starts with 'c'`,
-//         `foo/d ==> ends with 'd'`,
-//         `c/d ==> ERROR: Multiple possible fallbacks...`,
-// 
-//         `api/ ==> fallback`,
-        //`api/foo ==> fo2-(fo1-(FOO!))`,
+        `/foo ==> foo`,
+        `/bar ==> ---bar---`,
+        `/baz ==> ---baz---`,
+        `/quux ==> UNHANDLED`,
+        `/qaax ==> ---NONE---`,
+        `/a ==> ---NONE---`,
+        `/ ==> UNHANDLED`,
+
+        `a/foo ==> starts with 'a'`,
+        `foo/b ==> ends with 'b'`,
+        `a/b ==> starts with 'a' AND ends with 'b'`,
+
+        `c/foo ==> starts with 'c'`,
+        `foo/d ==> ends with 'd'`,
+        `c/d ==> ERROR: Multiple possible fallbacks...`,
+
+        `api/ ==> fallback`,
+        `api/foo ==> fo2-(fo1-(FOO!))`,
         `api/fooo ==> fo2-(fo1-(fooo))`,
-        //`api/foooo ==> fo2-(fo1-(NONE))`,
-        //`api/foooot ==> fo2-(fo1-(NONE))`,
-        //`api/foot ==> fo2-(fo1-(FOOt))`,
-        // `api/bar ==> fallback`,
+        `api/foooo ==> fo2-(fo1-(NONE))`,
+        `api/foooot ==> fo2-(fo1-(NONE))`,
+        `api/foot ==> fo2-(fo1-(FOOt))`,
+        `api/bar ==> fallback`,
+
+        `zzz/baz ==> zab`,
+        `zzz/booz ==> zoob`,
+        `zzz/looz ==> NONE`,
+        `zzz/./{whatever} ==> forty-two`
     ];
 
     let ruleSetHandler = compileRuleSet(ruleSet);

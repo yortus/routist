@@ -1,96 +1,67 @@
 'use strict';
 var is_partial_handler_1 = require('./is-partial-handler');
 var make_pattern_identifier_1 = require('./make-pattern-identifier');
-// TODO: ...
 function makeRouteHandler(route) {
-    // TODO: temp testing...
-    if (route.length > 4) {
-        return makeRouteHandler2(route);
-    }
-    var reverseRoute = route.slice().reverse();
-    var name = '__' + make_pattern_identifier_1.default(reverseRoute[0].pattern) + '__';
-    // TODO: ...
-    var execute = reverseRoute.reduce(function (downstream, rule) {
-        var handler = rule.handler;
-        if (is_partial_handler_1.default(handler)) {
-            return function (address, request) {
-                var response = downstream(address, request);
-                if (response !== null)
-                    return response;
-                return handler(address, request);
-            };
-        }
-        else {
-            return function (address, request) { return handler(address, request, downstream); };
-        }
-    }, nullHandler);
-    // TODO: needless wrapping of func-in-func?
-    var source = "function " + name + "(address, request) { return execute(address, request); }";
-    var result = eval("(" + source + ")");
-    return result;
-}
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = makeRouteHandler;
-// TODO: ...
-var nullHandler = function (address, request) { return null; };
-function makeRouteHandler2(route) {
     // TODO: specific to general...
     var rules = route.slice().reverse();
-    // TODO: temp testing...
-    // rules.forEach(rule => {
-    //     console.log(`${rule.pattern.toString()} [${isPartialHandler(rule.handler) ? 'PARTIAL' : 'GENERAL'}]`);
-    // });
-    // debugger;
     // TODO: doc...
     var handlerIds = makeHandlerIdentifiers(rules);
-    var lines = rules.map(function (rule, i) { return ("const " + handlerIds.get(rule) + " = rules[" + i + "].handler;"); }).concat([
+    var lines = rules.map(function (rule, i) { return ("var handle" + handlerIds.get(rule) + " = rules[" + i + "].handler;"); }).concat([
         '',
-        'return function _route(address, request) {',
-        '    var response;'
-    ], getBodyLines(rules, handlerIds, 1), [
+        'function no_downstream(req) { return null; }',
+        '',
+        ("return function route" + handlerIds.get(rules[0]) + "(address, request) {")
+    ], getBodyLines(rules, handlerIds).map(function (line) { return ("    " + line); }), [
         '};'
     ]);
     // console.log(lines);
     // debugger;
     var fn = eval("(() => {\n" + lines.join('\n') + "\n})")();
-    // let prolog = rules.map((rule, i) => `const ${handlerIds.get(rule)} = rules[${i}].handler;\n`).join('');
-    // let indent = `    `;
-    // let body = bodyLines.map(line => `${indent}${line}\n`).join('');
-    // let source = `${prolog}\nreturn function _route(address, request) {\n${body}}`;
-    // let fn = (function(rules) {
-    //     let fn = eval(`(() => {\n${source}\n})`)();
-    //     return fn;
-    // })(rules);
-    console.log("\n\n\n\n\n" + fn.toString());
+    //console.log(`\n\n\n\n\n${fn.toString()}`);
     //debugger;
     return fn;
 }
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = makeRouteHandler;
 // TODO: doc...
-function getBodyLines(rules, handlerIds, nestDepth) {
-    var indent = '    '.repeat(nestDepth); // TODO: rename to 'tab' here and in makeDispatcher? Clearer?
-    var lines = [];
-    // Iterate over rules, from most to least specific
-    rules.forEach(function (rule) {
-        if (is_partial_handler_1.default(rule.handler)) {
-            // TODO: ...
-            var line = indent + "if ((response = " + handlerIds.get(rule) + "(address, request)) !== null) return response;";
-            lines.push(line);
+function getBodyLines(rules, handlerIds) {
+    var rules2 = rules.slice();
+    var body2 = ["var addr = address, req = request, res;"];
+    var lines2 = [];
+    var downstreamRule;
+    // TODO: Iterate over rules, from most to least specific
+    while (rules2.length > 0) {
+        if (!is_partial_handler_1.default(rules2[0].handler)) {
+            if (lines2.length > 0) {
+                body2 = body2.concat([
+                    ("function downstream_of" + handlerIds.get(downstreamRule) + "(req) {"),
+                    "    if (req === void 0) req = request;"
+                ], lines2.map(function (line) { return ("    " + line); }), [
+                    "}"
+                ]);
+                lines2 = [];
+            }
         }
-        else {
-            // TODO: ...
-            lines = [
-                (indent + "function downstream(request) {")
-            ].concat(lines.map(function (line) { return ("" + indent + line); }), [
-                ("" + indent + indent + "return null;"),
-                (indent + "}"),
-                "",
-                //`${indent}var response;`,
-                (indent + "if ((response = " + handlerIds.get(rule) + "(address, request, downstream)) !== null) return response;")
-            ]);
+        var runCount = rules2.slice(1).findIndex(function (rule) { return !is_partial_handler_1.default(rule.handler); }) + 1;
+        if (runCount === 0)
+            runCount = rules2.length;
+        var run = rules2.slice(0, runCount);
+        rules2 = rules2.slice(runCount);
+        while (run.length > 0) {
+            var rule = run.shift();
+            var downstream = is_partial_handler_1.default(rule.handler) ? '' : ", " + (downstreamRule ? "downstream_of" + handlerIds.get(downstreamRule) : 'no_downstream');
+            var pre = run.length > 0 ? "if ((res = " : "return ";
+            var post = run.length > 0 ? ") !== null) return res;" : ";";
+            lines2.push(pre + "handle" + handlerIds.get(rule) + "(addr, req" + downstream + ")" + post);
+            if (run.length === 0)
+                downstreamRule = rules2[0];
         }
-    });
-    lines.push(indent + "return null;");
-    return lines;
+    }
+    body2 = body2.concat(lines2);
+    //console.log('\n\n\n\n\n');
+    //console.log(body2);
+    //debugger;
+    return body2;
 }
 // TODO: doc...
 function makeHandlerIdentifiers(rules) {
@@ -107,76 +78,5 @@ function makeHandlerIdentifiers(rules) {
         return map.set(rule, id);
     }, new Map());
     return result;
-}
-function _route1(address, request) {
-    var response;
-    function downstream(request) {
-        function downstream(request) {
-            if ((response = _apiﾉfoᕽo(address, request)) !== null)
-                return response;
-            return null;
-        }
-        if ((response = _apiﾉfoᕽ(address, request, downstream)) !== null)
-            return response;
-        return null;
-    }
-    if ((response = _apiﾉfoᕽ_1(address, request, downstream)) !== null)
-        return response;
-    if ((response = _apiﾉ﹍(address, request)) !== null)
-        return response;
-    if ((response = _apiﾉ﹍_1(address, request)) !== null)
-        return response;
-    if ((response = _﹍(address, request)) !== null)
-        return response;
-    return null;
-}
-function _route2(address, request) {
-    var response;
-    function downstream(request) {
-        function downstream(request) {
-            return null;
-        }
-        if ((response = _apiﾉfoᕽ(address, request, downstream)) !== null)
-            return response;
-        return null;
-    }
-    if ((response = _apiﾉfoᕽ_1(address, request, downstream)) !== null)
-        return response;
-    if ((response = _apiﾉ﹍(address, request)) !== null)
-        return response;
-    if ((response = _apiﾉ﹍_1(address, request)) !== null)
-        return response;
-    if ((response = _﹍(address, request)) !== null)
-        return response;
-    return null;
-}
-function _route3(address, request) {
-    var response;
-    function downstream(request) {
-        function downstream(request) {
-            function downstream(request) {
-                if ((response = _apiﾉfoo(address, request)) !== null)
-                    return response;
-                return null;
-            }
-            if ((response = _apiﾉfoo_1(address, request, downstream)) !== null)
-                return response;
-            if ((response = _apiﾉfoᕽo(address, request)) !== null)
-                return response;
-            return null;
-        }
-        if ((response = _apiﾉfoᕽ(address, request, downstream)) !== null)
-            return response;
-        return null;
-    }
-    if ((response = _apiﾉfoᕽ_1(address, request, downstream)) !== null)
-        return response;
-    if ((response = _apiﾉ﹍(address, request)) !== null)
-        return response;
-    if ((response = _apiﾉ﹍_1(address, request)) !== null)
-        return response;
-    if ((response = _﹍(address, request)) !== null)
-        return response;
-    return null;
 }
 //# sourceMappingURL=make-route-handler.js.map

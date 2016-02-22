@@ -10,7 +10,7 @@ function makeDispatcher(taxonomy, targetMap) {
     var patterns = taxonomy.allNodes.map(function (node) { return node.pattern; });
     var targets = patterns.map(function (pat) { return targetMap.get(pat); });
     // TODO: doc...
-    var lines = patterns.map(function (pat, i) { return ("let matches_" + make_pattern_identifier_1.default(pat) + " = patterns[" + i + "].match;"); }).concat(patterns.map(function (pat, i) { return ("let _" + make_pattern_identifier_1.default(pat) + " = targets[" + i + "];"); }), [
+    var lines = patterns.map(function (pat, i) { return ("var matches_" + make_pattern_identifier_1.default(pat) + " = patterns[" + i + "].match;"); }).concat(patterns.map(function (pat, i) { return ("var _" + make_pattern_identifier_1.default(pat) + " = targets[" + i + "];"); }), [
         '',
         'return function dispatch(address) {'
     ], getBodyLines(taxonomy.rootNode.specializations, pattern_1.default.UNIVERSAL, 1), [
