@@ -3,7 +3,7 @@
 // import Pattern from '../../src/pattern';
 // 
 // 
-// describe('Comparing patterns with their normalized forms', () => {
+// describe('Comparing a pattern with its normalized form', () => {
 //     let patterns = [
 //         '/*/bar/{...baz}',
 //         '/*/bar/…',
@@ -25,4 +25,4 @@
 //         });
 //     });
 // });
-//# sourceMappingURL=comparing-patterns-with-their-normalized-forms.js.map
+//# sourceMappingURL=comparing-a-pattern-with-its-normalized-form.js.map

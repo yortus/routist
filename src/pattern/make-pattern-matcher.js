@@ -82,9 +82,9 @@ function makePatternMatcher(patternSource, patternAST) {
                 var _a;
             };
         default:
-            var recogniser_1 = makeAddressRecogniser(patternAST);
+            var recogniser = makeAddressRecogniser(patternAST);
             return function (addr) {
-                var matches = addr.match(recogniser_1);
+                var matches = addr.match(recogniser);
                 if (!matches)
                     return null;
                 var result = captureNames
