@@ -16,6 +16,11 @@ function makeRouteHandler(route) {
     ]);
     //console.log(lines);
     //debugger;
+    // TODO: review comment bwloe, originally from normalize-handler.ts...
+    // TODO: add a similar comment to make-dispatcher.ts?
+    // Evaluate the source code into a function, and return it. This use of eval here is safe. In particular, the
+    // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
+    // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
     var fn = eval("(() => {\n" + lines.join('\n') + "\n})")();
     console.log("\n\n\n\n\n" + fn.toString());
     //debugger;
@@ -59,6 +64,9 @@ function getBodyLines(rules, handlerIds) {
                 $req: 'req === void 0 ? request : req',
                 $next: "" + (downstreamRule ? "downstream_of" + handlerIds.get(downstreamRule) : 'no_downstream')
             };
+            // TODO: restore the following check originally from normalize-handler.ts
+            // sanity check: ensure all builtins are mapped
+            //assert(builtinNames.every(bname => !!builtinMappings[bname]));
             var call = "handle" + handlerIds.get(rule) + "(" + paramNames.map(function (name) { return paramMappings[name] || builtinMappings[name]; }).join(', ') + ")";
             if (run.length > 0) {
                 lines2.push("res = " + call + ";");

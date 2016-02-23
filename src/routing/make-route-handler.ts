@@ -1,7 +1,7 @@
 'use strict';
 import * as assert from 'assert';
 import {getFunctionParameterNames} from '../util';
-import {Handler, PartialHandler, GeneralHandler, Route} from './types';
+import {Handler, Route} from './types';
 import makePatternIdentifier from './make-pattern-identifier';
 import Rule from './rule';
 
@@ -30,6 +30,11 @@ export default function makeRouteHandler(route: Route): Handler {
 //console.log(lines);
 //debugger;
 
+    // TODO: review comment bwloe, originally from normalize-handler.ts...
+    // TODO: add a similar comment to make-dispatcher.ts?
+    // Evaluate the source code into a function, and return it. This use of eval here is safe. In particular, the
+    // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
+    // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
 
     let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();
 console.log(`\n\n\n\n\n${fn.toString()}`);
@@ -91,6 +96,12 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
                 $req: 'req === void 0 ? request : req',
                 $next: `${downstreamRule ? `downstream_of${handlerIds.get(downstreamRule)}` : 'no_downstream'}`
             };
+
+
+            // TODO: restore the following check originally from normalize-handler.ts
+            // sanity check: ensure all builtins are mapped
+            //assert(builtinNames.every(bname => !!builtinMappings[bname]));
+
 
             let call = `handle${handlerIds.get(rule)}(${paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')})`;
 

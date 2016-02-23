@@ -14,9 +14,17 @@ export default class Rule {
 
     // TODO: doc...
     constructor(rawPattern: string, rawHandler: Function) {
+
+        // TODO: ...
         let pattern = this.pattern = new Pattern(rawPattern); // NB: may throw...
         let paramNames = this.parameterNames = getFunctionParameterNames(rawHandler);
+
+        // Assert the mutual validity of `pattern` and `paramNames`. This allows the body of
+        // the 'execute' function to be simpler, as it can safely forego some extra checks.
         validateNames(pattern, paramNames); // NB: may throw...
+
+        // TODO: ...
+        // If the handler function has a formal parameter named '$next', that signifies this rule as a decorator.
         this.handler = rawHandler;
         this.isDecorator = paramNames.indexOf('$next') !== -1;
     }
@@ -81,3 +89,63 @@ function validateNames(pattern: Pattern, paramNames: string[]) {
     ok = excessParams.length === 0;
     assert(ok, `Handler parameter(s) '${excessParams.join("', '")}' not captured by pattern '${pattern}'`);
 }
+
+
+
+
+
+// TODO: for review... comments originally from normalize-handler.ts...
+
+
+
+
+
+// /**
+//  * A handler provides a standarized means for transforming a request to a response,
+//  * according to the particulars of the pattern/action pair it was constructed with.
+//  */
+
+
+
+
+
+/**
+ * Constructs a Rule instance.
+ * @param {string} patternSource - the pattern recognized by this handler.
+ * @param {Function} handler - a function providing processing logic for producing
+ *        a reponse from a given request. The `action` function may be invoked when
+ *        the `Handler#execute` method is called. Each of the `action` function's
+ *        formal parameter names must match either a capture name from `pattern`, or
+ *        a builtin name such as `$req` or `$yield`. Capture values and/or builtin
+ *        values are passed to the matching parameters of `action` upon invocation.
+ *        A non-null return value from `action` is interpreted as a response. A null
+ *        return value from `action` signifies that the action declined to respond to
+ *        the given request, even if the pattern matched the request's address.
+ */
+
+
+
+
+
+/**
+ * Executes the rule. There are two modes of execution depending on whether or not
+ * the rule is a decorator:
+ * (1) A decorator has control over downstream execution. Its handler's $next' parameter
+ * is bound to the `executeDownstreamHandlers` callback passed to `execute`. A decorator
+ * may perform arbitrary steps before downstream execution, including modifying the
+ * request. It may also perform arbitrary steps after downstream execution, including
+ * modifying the response.
+ * (2) A non-decorator rule always perform downstream execution first, and then only
+ * executes its handler if the downsteam handlers did not produce a response.
+ * @param {Request} request - an object containing all information relevant to producing
+ *        a response, including the address from which capture name/value pairs are bound
+ *        to handler function parameters.
+ * @param {(request?: Request) => Response} executeDownstreamHandlers - a callback that
+ *        executes all downsteam handlers and returns their collective response. The
+ *        callback is already bound to the current request, and passes it to downstream
+ *        handlers if invoked with no argument. A modified or alternative request may be
+ *        passed to downstream handlers by passing it to this callback.
+ * @returns {Response} - the response object returned by the handler. The handler may
+ *        return null to indicate that it declined to produce a response. Processing
+ *        proceeds upstream until a handler responds are all decorators have run.
+ */
