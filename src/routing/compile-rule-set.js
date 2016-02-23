@@ -2,11 +2,11 @@
 var assert = require('assert');
 var util_1 = require('util');
 var util_2 = require('../util');
-var taxonomy_1 = require('../taxonomy');
-var is_partial_handler_1 = require('./is-partial-handler');
 var make_dispatcher_1 = require('./make-dispatcher');
 var make_route_handler_1 = require('./make-route-handler');
 var pattern_1 = require('../pattern');
+var rule_1 = require('./rule');
+var taxonomy_1 = require('../taxonomy');
 // TODO: doc...
 function compileRuleSet(ruleSet) {
     // Generate a taxonomic arrangement of all the patterns that occur in the ruleset.
@@ -53,7 +53,8 @@ function getEqualBestRulesForPattern(pattern, ruleSet) {
     var rules = Object.keys(ruleSet)
         .map(function (key) { return new pattern_1.default(key); })
         .filter(function (pat) { return pat.normalized === pattern.normalized; })
-        .map(function (pat) { return ({ pattern: pat, handler: ruleSet[pat.toString()] }); });
+        .map(function (pat) { return pat.toString(); })
+        .map(function (key) { return new rule_1.default(key, ruleSet[key]); });
     //TODO:...was...remove?... .map<Rule>(pat => ({ pattern: pat, handler: normalizeHandler(pat, ruleSet[pat.toString()]) }));
     // TODO: explain sort... all rules are equal by pattern signature, but we need an unambiguous ordering.
     // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
@@ -93,20 +94,17 @@ function reduceToSingleRoute(pattern, candidates) {
     // Ensure the non-common parts contain NO decorators.
     candidates.forEach(function (cand) {
         var choppedRules = cand.slice(prefix.length, -suffix.length);
-        if (choppedRules.every(function (rule) { return is_partial_handler_1.default(rule.handler); }))
+        if (choppedRules.every(function (rule) { return !rule.isDecorator; }))
             return;
         // TODO: improve error message/handling
         throw new Error("Multiple routes to '" + pattern + "' with different decorators");
     });
     // Synthesize a 'crasher' rule that throws an 'ambiguous' error.
     var ambiguousFallbacks = candidates.map(function (cand) { return cand[cand.length - suffix.length - 1]; });
-    var crasher = {
-        pattern: pattern,
-        handler: function crasher() {
-            // TODO: improve error message/handling
-            throw new Error("Multiple possible fallbacks from '" + pattern + ": " + ambiguousFallbacks.map(function (fn) { return fn.toString(); }));
-        }
-    };
+    var crasher = new rule_1.default(pattern.toString(), function crasher() {
+        // TODO: improve error message/handling
+        throw new Error("Multiple possible fallbacks from '" + pattern + ": " + ambiguousFallbacks.map(function (fn) { return fn.toString(); }));
+    });
     // final composite rule: splice of common prefix + crasher + common suffix
     var result = [].concat(prefix, crasher, suffix);
     return result;
@@ -114,7 +112,7 @@ function reduceToSingleRoute(pattern, candidates) {
 // TODO: doc...
 var nullHandler = function __nullHandler__() { return null; };
 // TODO: doc...
-var universalRule = { pattern: pattern_1.default.UNIVERSAL, handler: nullHandler };
+var universalRule = new rule_1.default(pattern_1.default.UNIVERSAL.toString(), nullHandler);
 // TODO: doc...
 // TODO: improve error message/handling in here...
 function ruleComparator(ruleA, ruleB) {
@@ -132,9 +130,9 @@ function tieBreakFn(a, b) {
     if (b.pattern.comment < a.pattern.comment)
         return b;
     // TODO: all else being equal, partial handler is always more specific than general handler on the same pattern...
-    if (is_partial_handler_1.default(a.handler) && !is_partial_handler_1.default(b.handler))
+    if (!a.isDecorator && b.isDecorator)
         return a;
-    if (is_partial_handler_1.default(b.handler) && !is_partial_handler_1.default(a.handler))
+    if (!b.isDecorator && a.isDecorator)
         return b;
 }
 //# sourceMappingURL=compile-rule-set.js.map

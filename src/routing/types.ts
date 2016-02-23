@@ -2,6 +2,7 @@
 import Pattern from '../pattern';
 import Request from '../request';
 import Response from '../response';
+import Rule from './rule';
 
 
 
@@ -44,11 +45,11 @@ export type GeneralHandler = (address: string, request: Request, downstream: Han
 
 
 
-// TODO: doc...
-export interface Rule {
-    pattern: Pattern;
-    handler: Handler; // TODO:. doc.. Each rule's handler is normalized.
-}
+// TODO: was... remove...
+// export interface Rule {
+//     pattern: Pattern;
+//     handler: Handler; // TODO:. doc.. Each rule's handler is normalized.
+// }
 
 
 

@@ -1,6 +1,5 @@
 'use strict';
 var util_1 = require('../util');
-var is_partial_handler_1 = require('./is-partial-handler');
 var make_pattern_identifier_1 = require('./make-pattern-identifier');
 function makeRouteHandler(route) {
     // TODO: specific to general...
@@ -32,7 +31,7 @@ function getBodyLines(rules, handlerIds) {
     var downstreamRule;
     // TODO: Iterate over rules, from most to least specific
     while (rules2.length > 0) {
-        if (!is_partial_handler_1.default(rules2[0].handler)) {
+        if (rules2[0].isDecorator) {
             if (lines2.length > 0) {
                 body2 = body2.concat([
                     ("function downstream_of" + handlerIds.get(downstreamRule) + "(req) {")
@@ -43,7 +42,7 @@ function getBodyLines(rules, handlerIds) {
                 lines2 = [];
             }
         }
-        var runCount = rules2.slice(1).findIndex(function (rule) { return !is_partial_handler_1.default(rule.handler); }) + 1;
+        var runCount = rules2.slice(1).findIndex(function (rule) { return rule.isDecorator; }) + 1;
         if (runCount === 0)
             runCount = rules2.length;
         var run = rules2.slice(0, runCount);

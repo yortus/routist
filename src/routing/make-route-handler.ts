@@ -1,9 +1,9 @@
 'use strict';
 import * as assert from 'assert';
 import {getFunctionParameterNames} from '../util';
-import {Handler, PartialHandler, GeneralHandler, Route, Rule} from './types';
-import isPartialHandler from './is-partial-handler';
+import {Handler, PartialHandler, GeneralHandler, Route} from './types';
 import makePatternIdentifier from './make-pattern-identifier';
+import Rule from './rule';
 
 
 
@@ -55,7 +55,7 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
     while (rules2.length > 0) {
 
 
-        if (!isPartialHandler(rules2[0].handler)) {
+        if (rules2[0].isDecorator) {
 
             if (lines2.length > 0) {
 
@@ -71,7 +71,7 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
         }
 
 
-        let runCount = rules2.slice(1).findIndex(rule => !isPartialHandler(rule.handler)) + 1;
+        let runCount = rules2.slice(1).findIndex(rule => rule.isDecorator) + 1;
         if (runCount === 0) runCount = rules2.length;
 
 

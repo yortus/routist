@@ -2,14 +2,13 @@
 import * as assert from 'assert';
 import {inspect} from 'util';
 import {getLongestCommonPrefix} from '../util';
-import {Handler, Route, Rule, RuleSet} from './types';
-import Taxonomy, {TaxonomyNode} from '../taxonomy';
-import isPartialHandler from './is-partial-handler';
+import {Handler, Route, RuleSet} from './types';
 import makeDispatcher from './make-dispatcher';
 import makeRouteHandler from './make-route-handler';
-import normalizeHandler from './normalize-handler';
 import Pattern from '../pattern';
 import Request from '../request';
+import Rule from './rule';
+import Taxonomy, {TaxonomyNode} from '../taxonomy';
 
 
 
@@ -91,7 +90,8 @@ function getEqualBestRulesForPattern(pattern: Pattern, ruleSet: RuleSet): Rule[]
     let rules = Object.keys(ruleSet)
         .map(key => new Pattern(key))
         .filter(pat => pat.normalized === pattern.normalized)
-        .map<Rule>(pat => ({ pattern: pat, handler: <any>ruleSet[pat.toString()] }));
+        .map(pat => pat.toString())
+        .map(key => new Rule(key, ruleSet[key]));
         //TODO:...was...remove?... .map<Rule>(pat => ({ pattern: pat, handler: normalizeHandler(pat, ruleSet[pat.toString()]) }));
 
     // TODO: explain sort... all rules are equal by pattern signature, but we need an unambiguous ordering.
@@ -144,21 +144,21 @@ function reduceToSingleRoute(pattern: Pattern, candidates: Route[]) {
 
     // Ensure the non-common parts contain NO decorators.
     candidates.forEach(cand => {
-        let choppedRules = cand.slice(prefix.length, -suffix.length);
-        if (choppedRules.every(rule => isPartialHandler(rule.handler))) return;
+        let choppedRules: Rule[] = cand.slice(prefix.length, -suffix.length);
+        if (choppedRules.every(rule => !rule.isDecorator)) return;
         // TODO: improve error message/handling
         throw new Error(`Multiple routes to '${pattern}' with different decorators`);
     });
 
     // Synthesize a 'crasher' rule that throws an 'ambiguous' error.
     let ambiguousFallbacks = candidates.map(cand => cand[cand.length - suffix.length - 1]);
-    let crasher: Rule = {
-        pattern,
-        handler: function crasher(): any {
+    let crasher = new Rule(
+        pattern.toString(),
+        function crasher() {
             // TODO: improve error message/handling
             throw new Error(`Multiple possible fallbacks from '${pattern}: ${ambiguousFallbacks.map(fn => fn.toString())}`);
         }
-    };
+    );
 
     // final composite rule: splice of common prefix + crasher + common suffix
     let result = [].concat(prefix, crasher, suffix);
@@ -177,7 +177,7 @@ const nullHandler: Handler = function __nullHandler__() { return null; };
 
 
 // TODO: doc...
-const universalRule: Rule = { pattern: Pattern.UNIVERSAL, handler: nullHandler };
+const universalRule = new Rule(Pattern.UNIVERSAL.toString(), nullHandler);
 
 
 
@@ -185,7 +185,7 @@ const universalRule: Rule = { pattern: Pattern.UNIVERSAL, handler: nullHandler }
 
 // TODO: doc...
 // TODO: improve error message/handling in here...
-function ruleComparator(ruleA, ruleB) {
+function ruleComparator(ruleA: Rule, ruleB: Rule) {
     let moreSpecificRule = tieBreakFn(ruleA, ruleB);
     assert(moreSpecificRule === ruleA || moreSpecificRule === ruleB, `ambiguous rules - which is more specific? A: ${inspect(ruleA)}, B: ${inspect(ruleB)}`); // TODO: test/improve this message
     assert.strictEqual(moreSpecificRule, tieBreakFn(ruleB, ruleA)); // consistency check
@@ -205,6 +205,6 @@ function tieBreakFn(a: Rule, b: Rule): Rule {
     if (b.pattern.comment < a.pattern.comment) return b;
 
     // TODO: all else being equal, partial handler is always more specific than general handler on the same pattern...
-    if (isPartialHandler(a.handler) && !isPartialHandler(b.handler)) return a;
-    if (isPartialHandler(b.handler) && !isPartialHandler(a.handler)) return b;
+    if (!a.isDecorator && b.isDecorator) return a;
+    if (!b.isDecorator && a.isDecorator) return b;
 }
