@@ -97,6 +97,31 @@ export default class Pattern {
     }
 
 
+    /**
+     * Returns a string that is visually similar to the normalized source of this pattern, but
+     * where every character is a valid IdentifierPart according to the ECMAScript grammar
+     * (see http://www.ecma-international.org/ecma-262/6.0/index.html#sec-names-and-keywords).
+     * NB: The returned string is not guaranteed to be a valid Identifier or IdentifierName,
+     * since the first character may not be a valid IdentifierStart, or the entire string may
+     * match a reserved word. It is the caller's responsibility to deal with this as needed.
+    */
+    toIdentifierParts(): string {
+        return this.normalized.source
+            .split('')
+            .map(c => {
+                if (/[a-zA-Z0-9_]/.test(c)) return c;
+                if (c === '/') return 'ﾉ'; // (U+FF89)
+                if (c === '.') return 'ˌ'; // (U+02CC)
+                if (c === '-') return 'ー'; // (U+30FC)
+                if (c === ' ') return 'ㆍ'; // (U+318D)
+                if (c === '…') return '﹍'; // (U+FE4D)
+                if (c === '*') return 'ᕽ'; // (U+157D)
+                throw new Error(`Unrecognized character '${c}' in pattern '${this}'`); // sanity check
+            })
+            .join('');
+    }    
+
+
     /** The text of the comment portion of the pattern source, or '' if there is no comment. */
     comment: string;
 

@@ -54,6 +54,37 @@ var Pattern = (function () {
     Pattern.prototype.intersect = function (other) {
         return intersect_patterns_1.default(this, other);
     };
+    /**
+     * Returns a string that is visually similar to the normalized source of this pattern, but
+     * where every character is a valid IdentifierPart according to the ECMAScript grammar
+     * (see http://www.ecma-international.org/ecma-262/6.0/index.html#sec-names-and-keywords).
+     * NB: The returned string is not guaranteed to be a valid Identifier or IdentifierName,
+     * since the first character may not be a valid IdentifierStart, or the entire string may
+     * match a reserved word. It is the caller's responsibility to deal with this as needed.
+    */
+    Pattern.prototype.toIdentifierParts = function () {
+        var _this = this;
+        return this.normalized.source
+            .split('')
+            .map(function (c) {
+            if (/[a-zA-Z0-9_]/.test(c))
+                return c;
+            if (c === '/')
+                return 'ﾉ'; // (U+FF89)
+            if (c === '.')
+                return 'ˌ'; // (U+02CC)
+            if (c === '-')
+                return 'ー'; // (U+30FC)
+            if (c === ' ')
+                return 'ㆍ'; // (U+318D)
+            if (c === '…')
+                return '﹍'; // (U+FE4D)
+            if (c === '*')
+                return 'ᕽ'; // (U+157D)
+            throw new Error("Unrecognized character '" + c + "' in pattern '" + _this + "'"); // sanity check
+        })
+            .join('');
+    };
     /** Returns the source string with which this instance was constructed. */
     Pattern.prototype.toString = function () { return this.source; };
     /** A singleton pattern that recognises all addresses (i.e., the universal set). */

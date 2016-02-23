@@ -1,15 +1,14 @@
 'use strict';
 import * as assert from 'assert';
 import {getFunctionParameterNames} from '../util';
-import {Handler, PartialHandler, GeneralHandler, Route, Rule} from './types';
-import isPartialHandler from './is-partial-handler';
-import makePatternIdentifier from './make-pattern-identifier';
+import {Handler, Route} from './types';
+import Rule from './rule';
 
 
 
 
 
-export default function makeRouteHandler(route: Route): Handler {
+export default function makeRouteHandler<TRequest, TResponse>(route: Route): Handler<TRequest, TResponse> {
 
     // TODO: specific to general...
     let rules = route.slice().reverse();
@@ -30,6 +29,11 @@ export default function makeRouteHandler(route: Route): Handler {
 //console.log(lines);
 //debugger;
 
+    // TODO: review comment bwloe, originally from normalize-handler.ts...
+    // TODO: add a similar comment to make-dispatcher.ts?
+    // Evaluate the source code into a function, and return it. This use of eval here is safe. In particular, the
+    // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
+    // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
 
     let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();
 console.log(`\n\n\n\n\n${fn.toString()}`);
@@ -46,7 +50,7 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
 
 
     let rules2 = rules.slice();
-    let body2 = [`var addr = address, req = request, res, captures;`]; // TODO: think about deopt due to 'captures' being re-used with different props...
+    let body2 = [`var req = request, res, captures;`, '']; // TODO: think about deopt due to 'captures' being re-used with different props...
     let lines2: string[] = [];
     let downstreamRule: Rule;
 
@@ -55,23 +59,23 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
     while (rules2.length > 0) {
 
 
-        if (!isPartialHandler(rules2[0].handler)) {
+        if (rules2[0].isDecorator) {
 
             if (lines2.length > 0) {
 
                 body2 = [
                     ...body2,
                     `function downstream_of${handlerIds.get(downstreamRule)}(req) {`,
-                    `    if (req === void 0) req = request;`,
                     ...lines2.map(line => `    ${line}`),
-                    `}`
+                    `}`,
+                    ''
                 ];
                 lines2 = [];
             }
         }
 
 
-        let runCount = rules2.slice(1).findIndex(rule => !isPartialHandler(rule.handler)) + 1;
+        let runCount = rules2.slice(1).findIndex(rule => rule.isDecorator) + 1;
         if (runCount === 0) runCount = rules2.length;
 
 
@@ -82,26 +86,34 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
         while (run.length > 0) {
             let rule = run.shift();
 
-
             let paramNames = getFunctionParameterNames(rule.handler);
             let captureNames = rule.pattern.captureNames;
             let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures.${name}`, map), {});
-            if (captureNames.length > 0) lines2.push(`captures = match${handlerIds.get(rule)}(addr);`);
+            if (captureNames.length > 0) lines2.push(`captures = match${handlerIds.get(rule)}(address);`);
             let builtinMappings = {
-                $addr: 'addr',
-                $req: 'req',
-                $next: isPartialHandler(rule.handler) ? '' : `${downstreamRule ? `downstream_of${handlerIds.get(downstreamRule)}` : 'no_downstream'}`
+                $addr: 'address',
+                $req: 'req === void 0 ? request : req',
+                $next: `${downstreamRule ? `downstream_of${handlerIds.get(downstreamRule)}` : 'no_downstream'}`
             };
 
-            
 
-            //let downstream = isPartialHandler(rule.handler) ? '' : `${downstreamRule ? `downstream_of${handlerIds.get(downstreamRule)}` : 'no_downstream'}`;
-            let pre = run.length > 0 ? `if ((res = ` : `return `;
-            let post = run.length > 0 ? `) !== null) return res;` : `;`;
-            lines2.push(`${pre}handle${handlerIds.get(rule)}(${paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')})${post}`);
-            if (run.length === 0) downstreamRule = rules2[0];
+            // TODO: restore the following check originally from normalize-handler.ts
+            // sanity check: ensure all builtins are mapped
+            //assert(builtinNames.every(bname => !!builtinMappings[bname]));
+
+
+            let call = `handle${handlerIds.get(rule)}(${paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')})`;
+
+            if (run.length > 0) {
+                lines2.push(`res = ${call};`);
+                lines2.push(`if (res !== null) return res;`);
+                lines2.push('');
+            }
+            else {
+                lines2.push(`return ${call};`);
+                downstreamRule = rules2[0];
+            }
         }
-       
     }
     body2 = body2.concat(lines2);
     return body2;
@@ -118,7 +130,7 @@ function makeHandlerIdentifiers(rules: Rule[]) {
         (map, rule) => {
 
             // TODO: ...
-            let base = makePatternIdentifier(rule.pattern);
+            let base = rule.pattern.toIdentifierParts();
             for (let isReserved = true, index = 0; isReserved; ++index) {
                 var id = `_${base}${index ? `_${index}` : ''}`;
                 isReserved = reservedIds.has(id);
