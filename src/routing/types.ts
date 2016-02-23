@@ -1,7 +1,5 @@
 'use strict';
 import Pattern from '../pattern';
-import Request from '../request';
-import Response from '../response';
 import Rule from './rule';
 
 
@@ -20,7 +18,7 @@ export type RuleSet = { [pattern: string]: Function };
 
 // TODO: doc...
 // TODO: temp change sig to find site needing attention...
-export type Handler = (address: string, request: Request) => Response;
+export type Handler<TRequest, TResponse> = (address: string, request: TRequest) => TResponse;
 
 
 

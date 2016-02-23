@@ -6,7 +6,7 @@ import {Handler, Route, RuleSet} from './types';
 import makeDispatcher from './make-dispatcher';
 import makeRouteHandler from './make-route-handler';
 import Pattern from '../pattern';
-import Request from '../request';
+//TODO: remove... import Request from '../request';
 import Rule from './rule';
 import Taxonomy, {TaxonomyNode} from '../taxonomy';
 
@@ -15,7 +15,7 @@ import Taxonomy, {TaxonomyNode} from '../taxonomy';
 
 
 // TODO: doc...
-export default function compileRuleSet(ruleSet: RuleSet): Handler {
+export default function compileRuleSet<TRequest, TResponse>(ruleSet: RuleSet): Handler<TRequest, TResponse> {
 
     // Generate a taxonomic arrangement of all the patterns that occur in the ruleset.
     let taxonomy = new Taxonomy(Object.keys(ruleSet).map(src => new Pattern(src)));
@@ -25,15 +25,15 @@ export default function compileRuleSet(ruleSet: RuleSet): Handler {
 
     // Create a handler for each distinct route through the ruleset.
     let routeHandlers = Array.from(routes.keys()).reduce(
-        (map, pattern) => map.set(pattern, makeRouteHandler(routes.get(pattern))),
-        new Map<Pattern, Handler>()
+        (map, pattern) => map.set(pattern, makeRouteHandler<TRequest, TResponse>(routes.get(pattern))),
+        new Map<Pattern, Handler<TRequest, TResponse>>()
     );
 
     // Generate a function that, given an address, returns the handler for the best-matching route.
     let selectRouteHandler = makeDispatcher(taxonomy, routeHandlers);
 
     // TODO: ...
-    return function __compiledRuleSet__(address: string, request: Request) {
+    return function __compiledRuleSet__(address: string, request: TRequest) {
         let handleRoute = selectRouteHandler(address);
         let response = handleRoute(address, request);
         return response;
@@ -170,7 +170,7 @@ function reduceToSingleRoute(pattern: Pattern, candidates: Route[]) {
 
 
 // TODO: doc...
-const nullHandler: Handler = function __nullHandler__() { return null; };
+const nullHandler: Handler<any, any> = function __nullHandler__() { return null; };
 
 
 

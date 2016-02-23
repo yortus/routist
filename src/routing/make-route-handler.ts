@@ -9,7 +9,7 @@ import Rule from './rule';
 
 
 
-export default function makeRouteHandler(route: Route): Handler {
+export default function makeRouteHandler<TRequest, TResponse>(route: Route): Handler<TRequest, TResponse> {
 
     // TODO: specific to general...
     let rules = route.slice().reverse();
