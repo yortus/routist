@@ -3,6 +3,8 @@
 
 ## To Do List
 
+- [ ] change {...rest} to {**rest} / {…rest} for consistency?
+- [ ] change ** to ...?
 - [x] rename Taxonomy --> TxonomyNode? Need to make clear each instance fundamentally represents a node, and a bunch of them form a graph
 - [x] decouple address from Request
 - [x] add Pattern#intersect, update all call sites (just make-taxonomy)
