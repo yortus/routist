@@ -46,7 +46,7 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
 
 
     let rules2 = rules.slice();
-    let body2 = [`var addr = address, req = request, res, captures;`]; // TODO: think about deopt due to 'captures' being re-used with different props...
+    let body2 = [`var req = request, res, captures;`, '']; // TODO: think about deopt due to 'captures' being re-used with different props...
     let lines2: string[] = [];
     let downstreamRule: Rule;
 
@@ -62,9 +62,9 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
                 body2 = [
                     ...body2,
                     `function downstream_of${handlerIds.get(downstreamRule)}(req) {`,
-                    `    if (req === void 0) req = request;`,
                     ...lines2.map(line => `    ${line}`),
-                    `}`
+                    `}`,
+                    ''
                 ];
                 lines2 = [];
             }
@@ -82,26 +82,28 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
         while (run.length > 0) {
             let rule = run.shift();
 
-
             let paramNames = getFunctionParameterNames(rule.handler);
             let captureNames = rule.pattern.captureNames;
             let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures.${name}`, map), {});
-            if (captureNames.length > 0) lines2.push(`captures = match${handlerIds.get(rule)}(addr);`);
+            if (captureNames.length > 0) lines2.push(`captures = match${handlerIds.get(rule)}(address);`);
             let builtinMappings = {
-                $addr: 'addr',
-                $req: 'req',
-                $next: isPartialHandler(rule.handler) ? '' : `${downstreamRule ? `downstream_of${handlerIds.get(downstreamRule)}` : 'no_downstream'}`
+                $addr: 'address',
+                $req: 'req === void 0 ? request : req',
+                $next: `${downstreamRule ? `downstream_of${handlerIds.get(downstreamRule)}` : 'no_downstream'}`
             };
 
-            
+            let call = `handle${handlerIds.get(rule)}(${paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')})`;
 
-            //let downstream = isPartialHandler(rule.handler) ? '' : `${downstreamRule ? `downstream_of${handlerIds.get(downstreamRule)}` : 'no_downstream'}`;
-            let pre = run.length > 0 ? `if ((res = ` : `return `;
-            let post = run.length > 0 ? `) !== null) return res;` : `;`;
-            lines2.push(`${pre}handle${handlerIds.get(rule)}(${paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')})${post}`);
-            if (run.length === 0) downstreamRule = rules2[0];
+            if (run.length > 0) {
+                lines2.push(`res = ${call};`);
+                lines2.push(`if (res !== null) return res;`);
+                lines2.push('');
+            }
+            else {
+                lines2.push(`return ${call};`);
+                downstreamRule = rules2[0];
+            }
         }
-       
     }
     body2 = body2.concat(lines2);
     return body2;
