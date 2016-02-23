@@ -1,6 +1,5 @@
 'use strict';
 var util_1 = require('../util');
-var make_pattern_identifier_1 = require('./make-pattern-identifier');
 function makeRouteHandler(route) {
     // TODO: specific to general...
     var rules = route.slice().reverse();
@@ -90,7 +89,7 @@ function makeHandlerIdentifiers(rules) {
     var reservedIds = new Set();
     var result = rules.reduce(function (map, rule) {
         // TODO: ...
-        var base = make_pattern_identifier_1.default(rule.pattern);
+        var base = rule.pattern.toIdentifierParts();
         for (var isReserved = true, index = 0; isReserved; ++index) {
             var id = "_" + base + (index ? "_" + index : '');
             isReserved = reservedIds.has(id);

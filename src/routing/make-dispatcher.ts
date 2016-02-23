@@ -1,8 +1,7 @@
 'use strict';
-import makePatternIdentifier from './make-pattern-identifier';
 import Pattern from '../pattern';
 import Taxonomy, {TaxonomyNode} from '../taxonomy';
-// TODO: factor/reduce repeated makePatternIdentifier calls...
+// TODO: factor/reduce repeated .toIdentifierParts() calls...
 
 
 
@@ -19,8 +18,8 @@ export default function makeDispatcher<T>(taxonomy: Taxonomy, targetMap: Map<Pat
 
     // TODO: doc...
     let lines = [
-        ...patterns.map((pat, i) => `var matches_${makePatternIdentifier(pat)} = patterns[${i}].match;`),
-        ...patterns.map((pat, i) => `var _${makePatternIdentifier(pat)} = targets[${i}];`),
+        ...patterns.map((pat, i) => `var matches_${pat.toIdentifierParts()} = patterns[${i}].match;`),
+        ...patterns.map((pat, i) => `var _${pat.toIdentifierParts()} = targets[${i}];`),
         '',
         'return function dispatch(address) {',
         ...getBodyLines(taxonomy.rootNode.specializations, Pattern.UNIVERSAL, 1),
@@ -45,7 +44,7 @@ function getBodyLines(specializations: TaxonomyNode[], fallback: Pattern, nestDe
     let indent = '    '.repeat(nestDepth);
     let lines: string[] = [];
     specializations.forEach((node, i) => {
-        let id = makePatternIdentifier(node.pattern);
+        let id = node.pattern.toIdentifierParts();
         let condition = `${indent}${i > 0 ? 'else ' : ''}if (matches_${id}(address)) `;
         let nextLevel = node.specializations;
         if (nextLevel.length === 0) return lines.push(`${condition}return _${id};`);
@@ -56,6 +55,6 @@ function getBodyLines(specializations: TaxonomyNode[], fallback: Pattern, nestDe
             `${indent}}`
         ];
     });
-    lines.push(`${indent}return _${makePatternIdentifier(fallback)};`);
+    lines.push(`${indent}return _${fallback.toIdentifierParts()};`);
     return lines;
 }

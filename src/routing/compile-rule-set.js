@@ -5,7 +5,6 @@ var util_2 = require('../util');
 var make_dispatcher_1 = require('./make-dispatcher');
 var make_route_handler_1 = require('./make-route-handler');
 var pattern_1 = require('../pattern');
-//TODO: remove... import Request from '../request';
 var rule_1 = require('./rule');
 var taxonomy_1 = require('../taxonomy');
 // TODO: doc...

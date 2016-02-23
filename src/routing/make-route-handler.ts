@@ -2,7 +2,6 @@
 import * as assert from 'assert';
 import {getFunctionParameterNames} from '../util';
 import {Handler, Route} from './types';
-import makePatternIdentifier from './make-pattern-identifier';
 import Rule from './rule';
 
 
@@ -131,7 +130,7 @@ function makeHandlerIdentifiers(rules: Rule[]) {
         (map, rule) => {
 
             // TODO: ...
-            let base = makePatternIdentifier(rule.pattern);
+            let base = rule.pattern.toIdentifierParts();
             for (let isReserved = true, index = 0; isReserved; ++index) {
                 var id = `_${base}${index ? `_${index}` : ''}`;
                 isReserved = reservedIds.has(id);

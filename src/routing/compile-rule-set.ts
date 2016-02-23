@@ -6,7 +6,6 @@ import {Handler, Route, RuleSet} from './types';
 import makeDispatcher from './make-dispatcher';
 import makeRouteHandler from './make-route-handler';
 import Pattern from '../pattern';
-//TODO: remove... import Request from '../request';
 import Rule from './rule';
 import Taxonomy, {TaxonomyNode} from '../taxonomy';
 

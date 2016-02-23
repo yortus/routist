@@ -1,6 +1,10 @@
 'use strict';
 import Pattern from '../pattern';
 import Rule from './rule';
+// TODO: move these into other foles as follows, and delete this file:
+//       - RuleSet --> compile-rule-set.ts
+//       - Handler --> ???
+//       - Route --> make-route-handler.ts
 
 
 
