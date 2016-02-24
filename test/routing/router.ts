@@ -97,21 +97,63 @@ describe('Constructing a Router instance', () => {
 
     let ruleSetHandler = compileRuleSet(ruleSet);
 
-    tests.forEach(test => it(test, () => {
-        let address = test.split(' ==> ')[0];
-        let request = {address};
-        let expected = test.split(' ==> ')[1];
-        if (expected === 'UNHANDLED') expected = null;
-        let actual: string;
-        try {
-            actual = <string> ruleSetHandler(address, request);
-        }
-        catch (ex) {
-            actual = 'ERROR: ' + ex.message;
-            if (expected.slice(-3) === '...') {
-                actual = actual.slice(0, expected.length - 3) + '...';
-            }
-        }
-        expect(actual).equals(expected);
-    }));
+    // TODO: was... restore this...
+    // tests.forEach(test => it(test, () => {
+    //     let address = test.split(' ==> ')[0];
+    //     let request = {address};
+    //     let expected = test.split(' ==> ')[1];
+    //     if (expected === 'UNHANDLED') expected = null;
+    //     let actual: string;
+    //     try {
+    //         actual = <string> ruleSetHandler(address, request);
+    //     }
+    //     catch (ex) {
+    //         actual = 'ERROR: ' + ex.message;
+    //         if (expected.slice(-3) === '...') {
+    //             actual = actual.slice(0, expected.length - 3) + '...';
+    //         }
+    //     }
+    //     expect(actual).equals(expected);
+    // }));
+
+
+    // TODO: temp perf testing...
+    // RESULTS:
+    // 1,000,000 requests in 2.034ms (DEV-PC01)
+//     it('performance', () => {
+// 
+//         // Setup
+//         tests = tests.filter(test => test.indexOf('==> ERROR') === -1);
+//         let addresses = tests.map(test => test.split(' ==> ')[0]);
+//         let requests = addresses.map(address => ({address}));
+//         let responses = tests.map(test => test.split(' ==> ')[1]);
+//         responses.forEach((res, i) => { if (res === 'UNHANDLED') responses[i] = null; });
+// 
+//         // Start timer
+//         let start = new Date().getTime();
+// 
+//         // Loop over tests
+//         const COUNT = 1000000;
+//         for (let i = 0; i < COUNT; ++i) {
+//             let index = Math.floor(Math.random() * tests.length);
+//             let actualResponse = <string> ruleSetHandler(addresses[index], requests[index]);
+//             expect(actualResponse).equals(responses[index]);
+//         }
+// 
+//         // Stop timer
+//         let stop = new Date().getTime();
+// 
+//         // Output time taken
+//         let sec = (stop - start) / 1000;
+//         console.log(`Dispatched ${COUNT} requests in ${sec}ms`)
+// 
+// 
+//     });
+// 
+
+
+
+
+
+    
 });
