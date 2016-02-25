@@ -36,7 +36,7 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
     // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
 
     let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();
-console.log(`\n\n\n\n\n${fn.toString()}`);
+//console.log(`\n\n\n\n\n${fn.toString()}`);
 //debugger;
     return fn;
 }

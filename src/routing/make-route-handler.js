@@ -21,7 +21,7 @@ function makeRouteHandler(route) {
     // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
     // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
     var fn = eval("(() => {\n" + lines.join('\n') + "\n})")();
-    console.log("\n\n\n\n\n" + fn.toString());
+    //console.log(`\n\n\n\n\n${fn.toString()}`);
     //debugger;
     return fn;
 }
