@@ -1,6 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
-var get_function_parameter_names_1 = require('../../src/util/get-function-parameter-names');
+var util_1 = require('../../src/util');
 describe("Identifying a function's formal parameters", function () {
     var tests = [
         "function () {} ==> ",
@@ -91,7 +91,7 @@ describe("Identifying a function's formal parameters", function () {
             var actualParamNames, expectedParamNames;
             try {
                 var func = eval("(" + funcSource + ")");
-                actualParamNames = get_function_parameter_names_1.default(func);
+                actualParamNames = util_1.getFunctionParameterNames(func);
                 expectedParamNames = rhs ? rhs.split(',') : [];
             }
             catch (ex) {

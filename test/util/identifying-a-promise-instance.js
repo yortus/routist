@@ -1,6 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
-var is_promise_1 = require('../../src/util/is-promise');
+var util_1 = require('../../src/util');
 describe('Identifying a Promise instance', function () {
     var tests = [
         "T: new Promise(res => {})",
@@ -24,7 +24,7 @@ describe('Identifying a Promise instance', function () {
         it(test, function () {
             var testVal = eval("(" + test.slice(3) + ")");
             var expected = test[0] === 'T' ? true : false;
-            var actual = is_promise_1.default(testVal);
+            var actual = util_1.isPromise(testVal);
             chai_1.expect(actual).equals(expected);
         });
     });

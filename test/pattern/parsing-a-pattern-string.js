@@ -1,6 +1,6 @@
 'use strict';
 var chai_1 = require('chai');
-var parse_pattern_source_1 = require('../../src/pattern/parse-pattern-source');
+var pattern_1 = require('../../src/pattern');
 describe('Parsing a pattern string', function () {
     var tests = [
         '/api/foo ==> {signature: "/api/foo", captures: []}',
@@ -44,7 +44,7 @@ describe('Parsing a pattern string', function () {
             var expected = rhs === "ERROR" ? rhs : eval("(" + rhs + ")");
             var actual = 'ERROR';
             try {
-                actual = parse_pattern_source_1.default(patternSource);
+                actual = pattern_1.parsePatternSource(patternSource);
             }
             catch (ex) { }
             chai_1.expect(actual).to.deep.equal(expected);

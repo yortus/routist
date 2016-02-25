@@ -1,2 +1,2 @@
-import Pattern from './pattern';
-export default Pattern;
+export {default} from './pattern';
+export {default as parsePatternSource, PatternAST} from './parse-pattern-source';
