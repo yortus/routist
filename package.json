@@ -37,6 +37,6 @@
     "mocha": "^2.2.5",
     "pegjs": "^0.9.0",
     "rimraf": "^2.5.2",
-    "typescript": "^1.9.0-dev.20160217"
+    "typescript": "^1.9.0-dev.20160224"
   }
 }
