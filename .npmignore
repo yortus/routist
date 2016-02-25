@@ -1,0 +1,9 @@
+.vs/
+.vscode/
+dev/
+test/
+*.ts
+*.js.map
+*.log
+*.sln
+**/tsconfig.json
