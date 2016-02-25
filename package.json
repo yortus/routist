@@ -9,8 +9,8 @@
     "build": "npm run build-ts && npm run build-peg && npm run make-dist",
     "clean": "rimraf built/ dist/",
     "prepublish": "npm run build",
-    "test": "node ./dev/npm-scripts/run-mocha-tests",
-    "perf": "node ./dev/npm-scripts/run-perf-tests",
+    "test": "node ./scripts/run-mocha-tests",
+    "perf": "node ./scripts/run-perf-tests",
 
     "build-ts": "tsc",
     "build-peg": "pegjs src/pattern/pattern-source-grammar.peg built/src/pattern/pattern-source-grammar.js",

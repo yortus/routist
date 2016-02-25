@@ -13,4 +13,4 @@ process.argv.push('--no-exit');
 process.argv.push('--timeout', '600000');
 
 // Run the tests.
-require('../../node_modules/mocha/bin/_mocha');
+require('../node_modules/mocha/bin/_mocha');
