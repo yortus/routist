@@ -10,7 +10,7 @@ describe('Constructing a Taxonomy instance', () => {
             // ======================================== 1. ========================================
             name: 'simple tree',
             patterns: [
-                '/**',
+                '/...',
                 '/foo/*',
                 '/bar/*',
                 '/foo/bar'
@@ -28,7 +28,7 @@ describe('Constructing a Taxonomy instance', () => {
             // ======================================== 2. ========================================
             name: 'impossible intersections',
             patterns: [
-                '**',
+                '...',
                 'a*',
                 '*a',
             ],
@@ -41,13 +41,13 @@ describe('Constructing a Taxonomy instance', () => {
                 'a*',
                 '*m*',
                 '*z',
-                '**',
+                '...',
                 '/bar',
                 '/*',
                 '/foo',
                 '/foo/*.html',
                 '/…o…o….html',
-                '/**o**o**',
+                '/...o...o...',
                 '/bar',
                 'a*',
                 '/a/*',

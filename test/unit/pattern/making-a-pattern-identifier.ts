@@ -9,19 +9,19 @@ describe('Making a pattern identifier', () => {
         '/api/foo ==> ﾉapiﾉfoo',
         '/api/foo/BAR ==> ﾉapiﾉfooﾉBAR',
         '/api/foo… ==> ﾉapiﾉfoo﹍',
-        '/api/foo** ==> ﾉapiﾉfoo﹍',
-        '/api/foo/** ==> ﾉapiﾉfooﾉ﹍',
+        '/api/foo... ==> ﾉapiﾉfoo﹍',
+        '/api/foo/... ==> ﾉapiﾉfooﾉ﹍',
         '/api/foo/{...rest} ==> ﾉapiﾉfooﾉ﹍',
         '/API/f* ==> ﾉAPIﾉfᕽ',
         '/api/{foO}O ==> ﾉapiﾉᕽO',
         '/…/{name}.{ext} ==> ﾉ﹍ﾉᕽˌᕽ',
-        '/**/{name}.{ext} ==> ﾉ﹍ﾉᕽˌᕽ',
+        '/.../{name}.{ext} ==> ﾉ﹍ﾉᕽˌᕽ',
         '/{...aPath}/{name}.{ext} ==> ﾉ﹍ﾉᕽˌᕽ',
         '/-/./- ==> ﾉーﾉˌﾉー',
         '/foo// ==> ﾉfooﾉﾉ',
         '// ==> ﾉﾉ',
         '{$} ==> ᕽ',
-        '{...__} ==> ﹍',
+        '{…__} ==> ﹍',
     ];
 
     tests.forEach(test => {

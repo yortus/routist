@@ -19,12 +19,12 @@ Element
 /   Literal
 
 Globstar 'globstar'
-=   ("**" / "…")   !("*" / "…" / "{")   { return ['…', '?']; }
-/   "{..."   id:IDENTIFIER   "}"   !("*" / "…" / "{")   { return ['…', id]; }
+=   ("..." / "…")   !("*" / "..." / "…" / "{")   { return ['…', '?']; }
+/   ("{..." / "{…")   id:IDENTIFIER   "}"   !("*" / "..." / "…" / "{")   { return ['…', id]; }
 
 Wildcard 'wildcard'
-=   "*"   !("*" / "…" / "{")   { return ['*', '?']; }
-/   "{"   id:IDENTIFIER   "}"   !("*" / "…" / "{")   { return ['*', id]; }
+=   "*"   !("*" / "..." / "…" / "{")   { return ['*', '?']; }
+/   "{"   id:IDENTIFIER   "}"   !("*" / "..." / "…" / "{")   { return ['*', id]; }
 
 Literal 'literal'
 =   c:[a-zA-Z0-9/._-]   { return [c, null]; }

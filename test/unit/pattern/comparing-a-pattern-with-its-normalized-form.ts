@@ -8,8 +8,8 @@ describe('Comparing a pattern with its normalized form', () => {
     let patterns = [
         '/*/bar/{...baz}',
         '/*/bar/…',
-        '/{n}/bar/**',
-        '/{__}/bar/{...baz}'
+        '/{n}/bar/...',
+        '/{__}/bar/{…baz}'
     ];
 
     patterns.forEach(a1 => {

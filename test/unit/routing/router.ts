@@ -14,7 +14,7 @@ import compileRuleSet from '../../../src/routing/compile-rule-set';
 describe('Constructing a Router instance', () => {
 
     let ruleSet: {[pattern: string]: Function} = {
-        //'**': () => null, // no-op catch-all rule (this would be implicitly present even if not listed here)
+        //'...': () => null, // no-op catch-all rule (this would be implicitly present even if not listed here)
         '/foo': () => 'foo',
         '/bar': () => 'bar',
         '/baz': () => 'baz',
@@ -28,8 +28,8 @@ describe('Constructing a Router instance', () => {
         '*/d': () => `ends with 'd'`,
         'c/d': () => null,
 
-        'api/** #a': () => `fallback`,
-        'api/** #b': () => `fallback`, // TODO: temp testing, remove this...
+        'api/... #a': () => `fallback`,
+        'api/... #b': () => `fallback`, // TODO: temp testing, remove this...
         'api/fo*o': () => null,
         'api/fo* #2': ($req, $next) => `fo2-(${$next($req) || 'NONE'})`,
         'api/fo* #1': ($req, $next) => `fo1-(${$next($req) || 'NONE'})`,
@@ -46,9 +46,9 @@ describe('Constructing a Router instance', () => {
 
     // TODO: use or remove...
 //     let testTable23 = {
-//         '/** #latency':                 ($next) => null,
-//         '/** #addBlahHeader':           ($next) => null,
-//         '/** #authorize':               ($next) => null,
+//         '/... #latency':                 ($next) => null,
+//         '/... #addBlahHeader':           ($next) => null,
+//         '/... #authorize':               ($next) => null,
 //         '/api/{...path}':               (path) => null,
 //         '/public/main.js':              ($next) => null,
 //         '/public/main.js #1.jquery':    () => null,

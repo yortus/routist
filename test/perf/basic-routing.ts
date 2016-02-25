@@ -25,7 +25,7 @@ const COUNT = 1000000;
 
 // Declare the test rule set.
 const ruleSet = {
-    //'**': () => null, // no-op catch-all rule (this would be implicitly present even if not listed here)
+    //...: () => null, // no-op catch-all rule (this would be implicitly present even if not listed here)
     '/foo': () => 'foo',
     '/bar': () => 'bar',
     '/baz': () => 'baz',
@@ -39,8 +39,8 @@ const ruleSet = {
     '*/d': () => `ends with 'd'`,
     'c/d': () => null,
 
-    'api/** #a': () => `fallback`,
-    'api/** #b': () => `fallback`,
+    'api/... #a': () => `fallback`,
+    'api/... #b': () => `fallback`,
     'api/fo*o': () => null,
     'api/fo* #2': ($req, $next) => `fo2-(${$next($req) || 'NONE'})`,
     'api/fo* #1': ($req, $next) => `fo1-(${$next($req) || 'NONE'})`,

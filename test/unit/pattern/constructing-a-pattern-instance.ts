@@ -9,13 +9,13 @@ describe('Constructing a Pattern instance', () => {
         '/api/foo ==> /api/foo WITH []',
         '/api/foo/BAR ==> /api/foo/BAR WITH []',
         '/api/foo… ==> /api/foo… WITH []',
-        '/api/foo** ==> /api/foo… WITH []',
-        '/api/foo/** ==> /api/foo/… WITH []',
-        '/api/foo/{...rest} ==> /api/foo/… WITH ["rest"]',
+        '/api/foo... ==> /api/foo… WITH []',
+        '/api/foo/… ==> /api/foo/… WITH []',
+        '/api/foo/{…rest} ==> /api/foo/… WITH ["rest"]',
         '/API/f*## ==> /API/f* WITH []',
         '/api/{foO}O ==> /api/*O WITH ["foO"]',
         '/…/{name}.{ext} ==> /…/*.* WITH ["name", "ext"]',
-        '/**/{name}.{ext} ==> /…/*.* WITH ["name", "ext"]',
+        '/.../{name}.{ext} ==> /…/*.* WITH ["name", "ext"]',
         '/{...aPath}/{name}.{ext} ==> /…/*.* WITH ["aPath", "name", "ext"]',
         '/-/./- ==> /-/./-',
         '/*** ==> ERROR',
@@ -41,7 +41,7 @@ describe('Constructing a Pattern instance', () => {
         '   #comment ==> ',
         '# /a/b/c   fsdfsdf ==> ',
         '/a/b#comment ==> /a/b',
-        '/**/{name}.js   #12 ==> /…/*.js WITH ["name"]',
+        '/.../{name}.js   #12 ==> /…/*.js WITH ["name"]',
     ];
 
     tests.forEach(test => {

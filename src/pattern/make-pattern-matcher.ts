@@ -21,12 +21,13 @@ export default function makePatternMatcher(patternSource: string, patternAST: Pa
     // that all but the default case below could be commented out with no change in runtime
     // behaviour. The additional cases are strictly optimizations.
     let simplifiedPatternSignature = patternSource
-        .replace(/\*\*/g, '…')          // Each anonymous capture simplified to just '*' or '…'
-        .replace(/{[^.}]+}/g, 'ᕽ')
-        .replace(/{\.+[^}]+}/g, '﹍')
-        .replace(/[^*…ᕽ﹍]+/g, 'lit')    // Each sequence of literal characters simplified to 'lit'
-        .replace(/ᕽ/g, '{cap}')         // Each named wildcard capture simplified to '{cap}'
-        .replace(/﹍/g, '{...cap}');     // Each named globstar capture simplified to '{...cap}'
+        .replace(/{[^.}]+}/g, 'ᕽ')      // replace '{name}' with 'ᕽ'
+        .replace(/{\.+[^}]+}/g, '﹍')    // replace '{...name}' with '﹍'
+        .replace(/{…[^}]+}/g, '﹍')      // replace '{…name}' with '﹍'
+        .replace(/\.\.\./g, '…')          // replace '...' with '…'
+        .replace(/[^*…ᕽ﹍]+/g, 'lit')    // replace sequences of literal characters with 'lit'
+        .replace(/ᕽ/g, '{cap}')         // replace named wildcard captures with '{cap}'
+        .replace(/﹍/g, '{...cap}');     // replace named globstar captures with '{...cap}'
     switch (simplifiedPatternSignature) {
         case 'lit':
             return addr => addr === lit ? SUCCESSFUL_MATCH_NO_CAPTURES : null;

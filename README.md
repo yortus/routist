@@ -3,10 +3,10 @@
 
 ## To Do List
 
-- [ ] transpile to /dist or /built directory and npmignore src/
+- [x] transpile to /dist or /built directory and npmignore src/
 - [x] more pegjs to devDeps and make PEG compilation a build step
-- [ ] change {...rest} to {**rest} / {…rest} for consistency?
-- [ ] change ** to ...?
+- [x] change {...rest} to {**rest} / {…rest} for consistency?
+- [x] change ** to ...?
 - [x] rename Taxonomy --> TxonomyNode? Need to make clear each instance fundamentally represents a node, and a bunch of them form a graph
 - [x] decouple address from Request
 - [x] add Pattern#intersect, update all call sites (just make-taxonomy)
@@ -14,7 +14,7 @@
 - [x] improve taxonomy test coverage
 - [ ] asyncify Handler#execute
 - [ ] still need `isPromise`? If not, remove it :( Otherwise find a use for it.
-- [ ] add npmignore
+- [x] add npmignore
 - [ ] for 'file' responses, harden againt rel paths in address eg '../../../sys/passwords.txt'
 
 
@@ -30,7 +30,7 @@ A valid pattern string conforms to the following rules:
 - A globstar greedily matches zero or more adjacent characters in an address.
 - A wildcard greedily matches zero or more adjacent characters in an address, but cannot match `/`.
 - Captures may be named or anonymous. Named captures return their correspoding capture values in the result of a call to `Pattern#match`.
-- An anonymous globstar is designated with `**` or `…`.
+- An anonymous globstar is designated with `...` or `…`.
 - A named globstar is designated with `{...id}` where id is a valid JS identifier.
 - An anonymous wildcard is designated with `*`.
 - A named wildcard is designated with `{id}` where id is a valid JS identifier.
@@ -44,10 +44,10 @@ A valid pattern string conforms to the following rules:
 
 - `'/foo'` matches only the literal address `'/foo'` and nothing else
 - `'/foo/*'` matches `'/foo/bar'` and `'/foo/'` but not `'/foo'` or `'/foo/bar/baz'`
-- `'/foo**'` (or `'/foo…'`) matches `'/foo'`, `'/foo/bar'` and `'/foo/bar/baz'`
+- `'/foo...'` (or `'/foo…'`) matches `'/foo'`, `'/foo/bar'` and `'/foo/bar/baz'`
 - `'{...path}/{name}.{ext}` matches `'/api/foo/bar.html'` with `{path: '/api/foo', name: 'bar', ext: 'baz' }`
 - `'*{...path}'` is invalid (two adjacent captures)
-- `'**'` (or `'…'`) matches all addresses
+- `'...'` (or `'…'`) matches all addresses
 - `'*'` matches all addresses that do not contain `'/'`
 - `'∅'` matches no addresses
 
