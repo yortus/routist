@@ -4,6 +4,7 @@ dev/
 test/
 *.ts
 *.js.map
+*.peg
 *.log
 *.sln
 **/tsconfig.json
