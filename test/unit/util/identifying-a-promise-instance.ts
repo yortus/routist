@@ -1,6 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import {isPromise} from '../../../src/util';
+import {util} from 'routist';
 
 
 describe('Identifying a Promise instance', () => {
@@ -28,7 +28,7 @@ describe('Identifying a Promise instance', () => {
         it(test, () => {
             let testVal = eval(`(${test.slice(3)})`);
             let expected = test[0] === 'T' ? true : false;
-            let actual = isPromise(testVal);
+            let actual = util.isPromise(testVal);
             expect(actual).equals(expected);
         });
     });

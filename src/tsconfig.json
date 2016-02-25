@@ -4,12 +4,7 @@
         "module": "commonjs",
         "removeComments": false,
         "sourceMap": true,
-        "outDir": "built"
-    },
-    "exclude": [
-        "built",
-        "dev",
-        "dist",
-        "node_modules"
-    ]
+        "declaration": true,
+        "outDir": "../built"
+    }
 }

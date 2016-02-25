@@ -109,7 +109,7 @@ export default function makePatternMatcher(patternSource: string, patternAST: Pa
 
 
 /** Describes the signature of the Pattern#match method. */
-type MatchFunction  = (address: string) => {[captureName: string]: string};
+export type MatchFunction = (address: string) => {[captureName: string]: string};
 
 
 

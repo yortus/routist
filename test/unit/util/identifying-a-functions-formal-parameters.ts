@@ -1,6 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import {getFunctionParameterNames} from '../../../src/util';
+import {util} from 'routist';
 
 
 describe(`Identifying a function's formal parameters`, () => {
@@ -71,7 +71,7 @@ describe(`Identifying a function's formal parameters`, () => {
             let actualParamNames, expectedParamNames;
             try {
                 let func = eval(`(${funcSource})`);
-                actualParamNames = getFunctionParameterNames(func);
+                actualParamNames = util.getFunctionParameterNames(func);
                 expectedParamNames = rhs ? rhs.split(',') : [];
             }
             catch (ex) {
