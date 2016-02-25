@@ -1,10 +1,12 @@
 .vs/
 .vscode/
+built/
 dev/
+src/
 test/
 *.ts
 *.js.map
 *.peg
 *.log
 *.sln
-**/tsconfig.json
+tsconfig.json

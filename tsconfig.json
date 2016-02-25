@@ -3,9 +3,13 @@
         "target": "es5",
         "module": "commonjs",
         "removeComments": false,
-        "sourceMap": true
+        "sourceMap": true,
+        "outDir": "built"
     },
     "exclude": [
+        "built",
+        "dev",
+        "dist",
         "node_modules"
     ]
 }
