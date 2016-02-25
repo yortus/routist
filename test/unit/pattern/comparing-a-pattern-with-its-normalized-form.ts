@@ -1,9 +1,10 @@
 'use strict';
 import {expect} from 'chai';
-import Pattern from '../../../src/pattern';
+import {Pattern} from 'routist';
 
 
 describe('Comparing a pattern with its normalized form', () => {
+
     let patterns = [
         '/*/bar/{...baz}',
         '/*/bar/…',

@@ -1,9 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import Pattern from '../../../src/pattern';
-
-
-
+import {Pattern} from 'routist';
 
 
 describe('Making a pattern identifier', () => {
