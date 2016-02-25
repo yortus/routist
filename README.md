@@ -4,7 +4,7 @@
 ## To Do List
 
 - [ ] transpile to /dist or /built directory and npmignore src/
-- [ ] more pegjs to devDeps and make PEG compilation a build step
+- [x] more pegjs to devDeps and make PEG compilation a build step
 - [ ] change {...rest} to {**rest} / {…rest} for consistency?
 - [ ] change ** to ...?
 - [x] rename Taxonomy --> TxonomyNode? Need to make clear each instance fundamentally represents a node, and a bunch of them form a graph

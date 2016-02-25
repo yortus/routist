@@ -1,5 +1,5 @@
 'use strict';
-import * as PEG from 'pegjs';
+var patternSourceGrammar: { parse(input: string): PatternAST; } = require('./pattern-source-grammar');
 
 
 
@@ -38,7 +38,7 @@ export interface PatternAST {
  */
 export default function parsePatternSource(patternSource: string) {
     try {
-        let ast = parser.parse(patternSource);
+        let ast = patternSourceGrammar.parse(patternSource);
         return ast;
     }
     catch (ex) {
@@ -50,44 +50,3 @@ export default function parsePatternSource(patternSource: string) {
         throw new Error(msg);
     }
 }
-
-
-
-
-
-// Use a PEG grammar to parse pattern strings.
-var parser: { parse(input: string): PatternAST; };
-parser = PEG.buildParser(`
-    // ================================================================================
-    Pattern
-    =   !"∅"   elems:Element*   TRAILING_WS?
-        {
-            var signature = elems.map(elem => elem[0]).join('');
-            var captures = elems.map(elem => elem[1]).filter(name => !!name);
-            return { signature, captures };
-        }
-    /   "∅"   { return { signature: "∅", captures: [] }; }
-
-    Element
-    =   Globstar
-    /   Wildcard
-    /   Literal
-
-    Globstar 'globstar'
-    =   ("**" / "…")   !("*" / "…" / "{")   { return ['…', '?']; }
-    /   "{..."   id:IDENTIFIER   "}"   !("*" / "…" / "{")   { return ['…', id]; }
-
-    Wildcard 'wildcard'
-    =   "*"   !("*" / "…" / "{")   { return ['*', '?']; }
-    /   "{"   id:IDENTIFIER   "}"   !("*" / "…" / "{")   { return ['*', id]; }
-
-    Literal 'literal'
-    =   c:[a-zA-Z0-9/._-]   { return [c, null]; }
-
-    IDENTIFIER
-    =   [a-z_$]i   [a-z0-9_$]i*   { return text(); }
-
-    TRAILING_WS
-    =   " "*   ("#"   .*)?
-    // ================================================================================
-`);
