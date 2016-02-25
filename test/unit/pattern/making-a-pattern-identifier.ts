@@ -1,6 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import Pattern from '../../src/pattern';
+import Pattern from '../../../src/pattern';
 
 
 

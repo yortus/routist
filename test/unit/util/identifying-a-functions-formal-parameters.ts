@@ -1,6 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import {getFunctionParameterNames} from '../../src/util';
+import {getFunctionParameterNames} from '../../../src/util';
 
 
 describe(`Identifying a function's formal parameters`, () => {

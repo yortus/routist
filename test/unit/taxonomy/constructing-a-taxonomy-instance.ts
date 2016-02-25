@@ -1,7 +1,7 @@
 'use strict';
 import {expect} from 'chai';
-import Pattern from '../../src/pattern';
-import Taxonomy, {TaxonomyNode} from '../../src/taxonomy';
+import Pattern from '../../../src/pattern';
+import Taxonomy, {TaxonomyNode} from '../../../src/taxonomy';
 
 
 describe('Constructing a Taxonomy instance', () => {

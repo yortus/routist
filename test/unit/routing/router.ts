@@ -1,6 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import compileRuleSet from '../../src/routing/compile-rule-set';
+import compileRuleSet from '../../../src/routing/compile-rule-set';
 
 
 // TODO: More coverage:

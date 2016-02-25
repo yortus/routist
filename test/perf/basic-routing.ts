@@ -1,6 +1,6 @@
 'use strict';
-const assert = require('assert');
-const compileRuleSet = require('../../src/routing/compile-rule-set').default;
+import * as assert from 'assert';
+import compileRuleSet from '../../src/routing/compile-rule-set';
 // TODO: perf testing... write this up properly.
 
 

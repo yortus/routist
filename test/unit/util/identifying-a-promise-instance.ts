@@ -1,6 +1,6 @@
 'use strict';
 import {expect} from 'chai';
-import {isPromise} from '../../src/util';
+import {isPromise} from '../../../src/util';
 
 
 describe('Identifying a Promise instance', () => {

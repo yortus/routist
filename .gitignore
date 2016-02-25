@@ -1,7 +1,6 @@
 built/
 dist/
 node_modules/
-.vs/
 *.js.map
 *.log
 *.sln
