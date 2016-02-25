@@ -1,19 +1,19 @@
 {
   "name": "routist",
-  "version": "0.0.6",
+  "version": "0.0.8",
   "description": "routist",
   "readmeFilename": "README.md",
   "main": "built/index.js",
   "typings": "built/index.d.ts",
   "scripts": {
-    "build": "npm run require-self && npm run build-ts && npm run build-peg",
+    "build": "npm run build-ts && npm run build-peg",
     "clean": "rimraf built/",
-    "prepublish": "npm run build",
+    "prepublish": "npm run self-ref && npm run build",
     "test": "node ./scripts/run-mocha-tests",
     "perf": "node ./scripts/run-perf-tests",
     "build-ts": "tsc -p src && tsc -p test",
     "build-peg": "pegjs src/pattern/pattern-source-grammar.peg built/pattern/pattern-source-grammar.js",
-    "require-self": "node ./scripts/require-self"
+    "self-ref": "node ./scripts/enable-self-reference"
   },
   "repository": {
     "type": "git",
