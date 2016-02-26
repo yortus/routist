@@ -13,16 +13,16 @@ import Taxonomy, {TaxonomyNode} from '../taxonomy';
 
 
 
-// TODO: doc...
+/** Internal function used to generate the RuleSet#execute method. */
 export default function compileRuleSet<TRequest, TResponse>(ruleSet: RuleSet): Handler<TRequest, TResponse> {
 
-    // Generate a taxonomic arrangement of all the patterns that occur in the ruleset.
+    // Generate a taxonomic arrangement of all the patterns that occur in the rule set.
     let taxonomy = new Taxonomy(Object.keys(ruleSet).map(src => new Pattern(src)));
 
-    // Find all functionally-distinct routes that an address can take through the ruleset.
+    // Find all functionally-distinct routes that an address can take through the rule set.
     let routes = findAllRoutesThroughRuleSet(taxonomy, ruleSet);
 
-    // Create a handler for each distinct route through the ruleset.
+    // Create an aggregate handler for each distinct route through the rule set.
     let routeHandlers = Array.from(routes.keys()).reduce(
         (map, pattern) => map.set(pattern, makeRouteHandler<TRequest, TResponse>(routes.get(pattern))),
         new Map<Pattern, Handler<TRequest, TResponse>>()

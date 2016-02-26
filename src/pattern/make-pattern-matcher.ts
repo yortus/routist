@@ -5,7 +5,7 @@ import {PatternAST} from './parse-pattern-source';
 
 
 
-/** Internal function used to create the Pattern#match method. */
+/** Internal function used to generate the Pattern#match method. */
 export default function makePatternMatcher(patternSource: string, patternAST: PatternAST): MatchFunction {
 
     // Gather information about the pattern to be matched. The closures below refer to these.
