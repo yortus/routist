@@ -8,7 +8,7 @@
 			// Type of configuration.
 			"type": "node",
 			// Workspace relative or absolute path to the program.
-			"program": "scripts/run-mocha-tests.js",
+			"program": "${workspaceRoot}/scripts/run-perf-tests.js",
 			// Automatically stop program after launch.
 			"stopOnEntry": false,
 			// Command line arguments passed to the program.
@@ -26,7 +26,7 @@
 			// Use JavaScript source maps (if they exist).
 			"sourceMaps": true,
 			// If JavaScript source maps are enabled, the generated code is expected in this directory.
-			"outDir": "built"
+			"outDir": "${workspaceRoot}/built"
 		},
 		{
 			"name": "Attach",

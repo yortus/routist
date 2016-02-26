@@ -9,7 +9,7 @@
     "build": "tsc -p src && tsc -p test && pegjs src/pattern/pattern-source-grammar.peg built/pattern/pattern-source-grammar.js",
     "clean": "rimraf built/",
     "prepublish": "npm run self-ref && npm run build",
-    "test": "node ./scripts/run-mocha-tests",
+    "test": "node ./scripts/run-unit-tests",
     "perf": "node ./scripts/run-perf-tests",
     "self-ref": "node ./scripts/enable-self-reference"
   },
