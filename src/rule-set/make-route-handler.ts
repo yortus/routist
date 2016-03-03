@@ -63,7 +63,7 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
 
     // TODO: ... rename all these...
     let rules2 = rules.slice();
-    let body2 = [`var req = request, res, captures;`, '']; // TODO: think about deopt due to 'captures' being re-used with different props...
+    let body2 = [`var req = request, res, captures, state = 1;`, '']; // TODO: think about deopt due to 'captures' being re-used with different props...
     let lines2: string[] = [];
     let downstreamRule: Rule;
 
@@ -110,7 +110,7 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
             let builtinMappings = {
                 $addr: 'address',
                 $req: 'req === void 0 ? request : req',
-                $next: `${downstreamRule ? `downstream_of${handlerIds.get(downstreamRule)}` : 'no_downstream'}`
+                $next: `${downstreamRule ? `(state = 1, downstream_of${handlerIds.get(downstreamRule)})` : 'no_downstream'}`
             };
 
             // TODO: ...
@@ -125,7 +125,7 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
 
             // TODO: ...
             if (i < run.length) {
-                lines2.push(`    if (isPromise(res)) return res.then(val => (res = val, ${runName}(req, ${i + 1})));`); // TODO: <----- NAME of self
+                lines2.push(`    if (isPromise(res)) return res.then(val => (res = val, state = ${i + 1}, ${runName}(req)));`); // TODO: <----- NAME of self
                 lines2.push(`    /* fall-through */`);
                 lines2.push(`    `);
             }
@@ -137,8 +137,8 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
         // Run prolog and epilog...
         if (run.length > 1) {
             lines2 = [
-                `function ${runName}(req, state) {`,
-                `    switch (state || 1) {`,
+                `function ${runName}(req) {`,
+                `    switch (state) {`,
                 ...lines2.map(line => `        ${line}`),
                 `    }`,
                 `}`,
