@@ -84,8 +84,8 @@ function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
     );
 
     let lines = [
-        `function self(req, res, state) {`,
-        `    switch (state) {`
+        // `function self(req, res, state) {`,
+        // `    switch (state) {`
     ];
     let currentState = 1;
     let previousGroupStartState = 0;
@@ -103,34 +103,36 @@ function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
             let builtinMappings = {
                 $addr: 'address',
                 $req: 'req',
-                $next: `${previousGroupStartState ? `req => self(req === void 0 ? request : req, null, ${previousGroupStartState})` : 'no_downstream'}`
+                $next: `${previousGroupStartState ? `self${previousGroupStartState}` : 'no_downstream'}`
             };
+            let isFirstInGroup = rule === group[0];
+            let isLastInGroup = rule === group[group.length - 1];
 
             // TODO: ...
 
             // TODO: ...
             lines.push('');
-            lines.push(`        case ${currentState}:`);
+            lines.push(`function self${currentState}(req${isFirstInGroup ? '' : ', res'}) {`);
 
             // TODO: ...
-            if (currentState !== currentGroupStartState) {
-                lines.push(`            if (res !== null) return res;`);
-            }
+            if (isFirstInGroup) lines.push(`    if (req === void 0) req = request;`);
+            if (!isFirstInGroup) lines.push(`    if (res !== null) return res;`);
 
             // TODO: ...
-            if (captureNames.length > 0) lines.push(`            var captures${hid} = match${hid}(address);`);
+            if (captureNames.length > 0) lines.push(`    var captures${hid} = match${hid}(address);`);
             let call = `handle${hid}(${paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')})`;
 
             // TODO: ...
-            if (rule !== group[group.length - 1]) {
-                lines.push(`            res = ${call};`);
-                lines.push(`            if (isPromise(res)) return res.then(res => self(req, res, ${currentState + 1}));`);
-                lines.push(`            /* else fall through */`);
+            if (!isLastInGroup) {
+                lines.push(`    var res = ${call};`);
+                lines.push(`    if (isPromise(res)) return res.then(res => self${currentState + 1}(req, res));`);
+                lines.push(`    return self${currentState + 1}(req, res);`);
             }
             else {
-                lines.push(`            return ${call};`);
+                lines.push(`    return ${call};`);
             }
 
+            lines.push('}');
             ++currentState;
         });
 
@@ -140,10 +142,10 @@ function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
     // TODO: ...
     lines = [
         ...lines,
-        `    }`,
-        `}`,
+//        `    }`,
+//        `}`,
         '',
-        `return self(request, null, ${previousGroupStartState});`,
+        `return self${previousGroupStartState}(request);`,
     ];
     return lines;
 }

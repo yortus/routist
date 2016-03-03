@@ -19,46 +19,54 @@ declare var handle_apiﾉfoo_1;
 
 
 function route_apiﾉfoo(address, request) {
-    function self(req, res, state) {
-        switch (state) {
 
-            case 1:
-                return handle_apiﾉfoo();
-
-            case 2:
-                res = handle_apiﾉfoo_1(req, req => self(req === void 0 ? request : req, null, 1));
-                if (isPromise(res)) return res.then(res => self(req, res, 3));
-                /* else fall through */
-
-            case 3:
-                if (res !== null) return res;
-                return handle_apiﾉfoᕽo();
-
-            case 4:
-                return handle_apiﾉfoᕽ(req, req => self(req === void 0 ? request : req, null, 2));
-
-            case 5:
-                res = handle_apiﾉfoᕽ_1(req, req => self(req === void 0 ? request : req, null, 4));
-                if (isPromise(res)) return res.then(res => self(req, res, 6));
-                /* else fall through */
-
-            case 6:
-                if (res !== null) return res;
-                res = handle_apiﾉ﹍();
-                if (isPromise(res)) return res.then(res => self(req, res, 7));
-                /* else fall through */
-
-            case 7:
-                if (res !== null) return res;
-                res = handle_apiﾉ﹍_1();
-                if (isPromise(res)) return res.then(res => self(req, res, 8));
-                /* else fall through */
-
-            case 8:
-                if (res !== null) return res;
-                return handle_﹍();
-        }
+    function self1(req) {
+        if (req === void 0) req = request;
+        return handle_apiﾉfoo();
     }
 
-    return self(request, null, 5);
+    function self2(req) {
+        if (req === void 0) req = request;
+        var res = handle_apiﾉfoo_1(req, self1);
+        if (isPromise(res)) return res.then(res => self3(req, res));
+        return self3(req, res);
+    }
+
+    function self3(req, res) {
+        if (res !== null) return res;
+        return handle_apiﾉfoᕽo();
+    }
+
+    function self4(req) {
+        if (req === void 0) req = request;
+        return handle_apiﾉfoᕽ(req, self2);
+    }
+
+    function self5(req) {
+        if (req === void 0) req = request;
+        var res = handle_apiﾉfoᕽ_1(req, self4);
+        if (isPromise(res)) return res.then(res => self6(req, res));
+        return self6(req, res);
+    }
+
+    function self6(req, res) {
+        if (res !== null) return res;
+        var res = handle_apiﾉ﹍();
+        if (isPromise(res)) return res.then(res => self7(req, res));
+        return self7(req, res);
+    }
+
+    function self7(req, res) {
+        if (res !== null) return res;
+        var res = handle_apiﾉ﹍_1();
+        if (isPromise(res)) return res.then(res => self8(req, res));
+        return self8(req, res);
+    }
+
+    function self8(req, res) {
+        if (res !== null) return res;
+        return handle_﹍();
+    }
+
+    return self5(request);
 }
