@@ -105,6 +105,8 @@ function route_apiﾉfoo(address, request) {
         }
     }
 
-    var res, captures, state = 5;
+    var res;
+    //var captures;
+    var state = 5;
     return main();
 }

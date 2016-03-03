@@ -27,7 +27,6 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
 
 
 
-
     let lines = [
         ...rules.map((rule, i) => `var match${handlerIds.get(rule)} = rules[${i}].pattern.match;`).filter((_, i) => rules[i].pattern.captureNames.length > 0), // TODO: line too long!!!
         ...rules.map((rule, i) => `var handle${handlerIds.get(rule)} = rules[${i}].handler;`),
@@ -84,8 +83,8 @@ function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
         <Rule[][]>[[]]
     );
 
-    // TODO: think about deopt due to 'captures' being re-used with different props...
     let lines = [
+        `var res = null;`,
         `function main(req) {`,
         `    switch (state) {`
     ];
@@ -98,9 +97,10 @@ function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
         group.forEach((rule, ri) => {
 
             // TODO: ...
+            let hid = handlerIds.get(rule);
             let paramNames = rule.parameterNames;
             let captureNames = rule.pattern.captureNames;
-            let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures.${name}`, map), {});
+            let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${hid}.${name}`, map), {});
             let builtinMappings = {
                 $addr: 'address',
                 $req: 'req === void 0 ? request : req',
@@ -119,12 +119,12 @@ function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
             }
 
             // TODO: ...
-            if (captureNames.length > 0) lines.push(`            captures = match${handlerIds.get(rule)}(address);`);
-            lines.push(`            res = handle${handlerIds.get(rule)}(${paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')});`);
+            if (captureNames.length > 0) lines.push(`            var captures${hid} = match${hid}(address);`);
+            lines.push(`            res = handle${hid}(${paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')});`);
 
             // TODO: ...
             if (rule !== group[group.length - 1]) {
-                lines.push(`            if (isPromise(res)) return res.then(val => (res = val, state = ${currentState + 1}, main(req)));`);
+                lines.push(`            if (isPromise(res)) return res.then(val => { res = val; state = ${currentState + 1}; main(req); });`);
                 lines.push(`            /* else fall through */`);
             }
             else {
@@ -143,7 +143,7 @@ function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
         `    }`,
         `}`,
         '',
-        `var res, captures, state = ${previousGroupStartState};`,
+        `var state = ${previousGroupStartState};`,
         `return main();`,
     ];
     return lines;
