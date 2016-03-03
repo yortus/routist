@@ -60,7 +60,9 @@ function route_apiﾉfoᕽo____(address, request) {
 
 
 function route_apiﾉfoo(address, request) {
-    function main(req?) {
+    var res = null;
+    function self(req) {
+        if (req === void 0) res = request;
         switch (state) {
 
             case 1:
@@ -68,8 +70,8 @@ function route_apiﾉfoo(address, request) {
                 return res;
 
             case 2:
-                res = handle_apiﾉfoo_1(req === void 0 ? request : req, (state = 1, main));
-                if (isPromise(res)) return res.then(val => (res = val, state = 3, main(req)));
+                res = handle_apiﾉfoo_1(req, (state = 1, self));
+                if (isPromise(res)) return res.then(val => { res = val; state = 3; self(req); });
                 /* else fall through */
 
             case 3:
@@ -78,24 +80,24 @@ function route_apiﾉfoo(address, request) {
                 return res;
 
             case 4:
-                res = handle_apiﾉfoᕽ(req === void 0 ? request : req, (state = 2, main));
+                res = handle_apiﾉfoᕽ(req, (state = 2, self));
                 return res;
 
             case 5:
-                res = handle_apiﾉfoᕽ_1(req === void 0 ? request : req, (state = 4, main));
-                if (isPromise(res)) return res.then(val => (res = val, state = 6, main(req)));
+                res = handle_apiﾉfoᕽ_1(req, (state = 4, self));
+                if (isPromise(res)) return res.then(val => { res = val; state = 6; self(req); });
                 /* else fall through */
 
             case 6:
                 if (res !== null) return res;
                 res = handle_apiﾉ﹍();
-                if (isPromise(res)) return res.then(val => (res = val, state = 7, main(req)));
+                if (isPromise(res)) return res.then(val => { res = val; state = 7; self(req); });
                 /* else fall through */
 
             case 7:
                 if (res !== null) return res;
                 res = handle_apiﾉ﹍_1();
-                if (isPromise(res)) return res.then(val => (res = val, state = 8, main(req)));
+                if (isPromise(res)) return res.then(val => { res = val; state = 8; self(req); });
                 /* else fall through */
 
             case 8:
@@ -105,8 +107,6 @@ function route_apiﾉfoo(address, request) {
         }
     }
 
-    var res;
-    //var captures;
     var state = 5;
-    return main();
+    return self(request);
 }
