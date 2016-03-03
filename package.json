@@ -34,6 +34,7 @@
   "homepage": "https://github.com/yortus/routist#readme",
   "dependencies": {},
   "devDependencies": {
+    "asyncawait": "^1.0.3",
     "chai": "^3.2.0",
     "mocha": "^2.2.5",
     "ncp": "^2.0.0",

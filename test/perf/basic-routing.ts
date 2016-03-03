@@ -1,6 +1,7 @@
 'use strict';
 import * as assert from 'assert';
-import {RuleSet} from 'routist';
+import {async, await} from 'asyncawait';
+import {RuleSet, util} from 'routist';
 // TODO: perf testing... write this up properly.
 
 
@@ -89,32 +90,37 @@ const tests = [
 ];
 
 
-// Set up the tests.
-console.log(`Running perf test: basic routing...`);
-let ruleSetHandler = new RuleSet(ruleSet).execute;
-let addresses = tests.map(test => test.split(' ==> ')[0]);
-let requests = addresses.map(address => ({address}));
-let responses = tests.map(test => test.split(' ==> ')[1]);
-responses.forEach((res, i) => { if (res === 'UNHANDLED') responses[i] = null; });
+// TODO: ...
+(async(() => {
+
+    // Set up the tests.
+    console.log(`Running perf test: basic routing...`);
+    let ruleSetHandler = new RuleSet(ruleSet).execute;
+    let addresses = tests.map(test => test.split(' ==> ')[0]);
+    let requests = addresses.map(address => ({address}));
+    let responses = tests.map(test => test.split(' ==> ')[1]);
+    responses.forEach((res, i) => { if (res === 'UNHANDLED') responses[i] = null; });
 
 
-// Start timer.
-let start = new Date().getTime();
+    // Start timer.
+    let start = new Date().getTime();
 
 
-// Loop over the tests.
-for (let i = 0; i < COUNT; ++i) {
-    let index = Math.floor(Math.random() * tests.length);
-    let actualResponse = ruleSetHandler(addresses[index], requests[index]);
-    assert.equal(actualResponse, responses[index]);
-}
+    // Loop over the tests.
+    for (let i = 0; i < COUNT; ++i) {
+        let index = Math.floor(Math.random() * tests.length);
+        let actualResponse = ruleSetHandler(addresses[index], requests[index]);
+        if (util.isPromise(actualResponse)) actualResponse = await (actualResponse);
+        assert.equal(actualResponse, responses[index]);
+    }
 
 
-// Stop timer.
-let stop = new Date().getTime();
+    // Stop timer.
+    let stop = new Date().getTime();
 
 
-// Output performance results.
-let sec = (stop - start) / 1000;
-let rate = Math.round(0.001 * COUNT / sec) * 1000;
-console.log(`Dispatched ${COUNT} requests in ${sec} seconds   (~${rate} req/sec)`);
+    // Output performance results.
+    let sec = (stop - start) / 1000;
+    let rate = Math.round(0.001 * COUNT / sec) * 1000;
+    console.log(`Dispatched ${COUNT} requests in ${sec} seconds   (~${rate} req/sec)`);
+}))().catch(console.log);
