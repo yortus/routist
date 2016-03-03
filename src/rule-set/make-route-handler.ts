@@ -96,7 +96,7 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: st
             let builtinMappings = {
                 $addr: 'address',
                 $req: 'req',
-                $next: `${previousGroupStartState !== -1 ? `self${previousGroupStartState}` : '_Ø'}`
+                $next: `${previousGroupStartState !== -1 ? `${handlerIds.get(rules[previousGroupStartState])}` : '_Ø'}`
             };
             let isFirstInGroup = rule === group[0];
             let isLastInGroup = rule === group[group.length - 1];
@@ -106,7 +106,7 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: st
 
             // TODO: ...
             lines.push('');
-            lines.push(`function self${currentState}(req${isFirstInGroup ? '' : ', res'}) {`);
+            lines.push(`function ${hid}(req${isFirstInGroup ? '' : ', res'}) {`);
 
             // TODO: ...
             // TODO: doc this! no longer allowing decorators' 'req' param to be optional!... was... if (isFirstInGroup) lines2.push(`    if (req === void 0) req = request;`);
@@ -119,8 +119,8 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: st
             // TODO: ...
             if (!isLastInGroup) {
                 lines.push(`    var res = ${call};`);
-                lines.push(`    if (isPromise(res)) return res.then(res => self${currentState + 1}(req, res));`);
-                lines.push(`    return self${currentState + 1}(req, res);`);
+                lines.push(`    if (isPromise(res)) return res.then(res => ${handlerIds.get(rules[currentState + 1])}(req, res));`);
+                lines.push(`    return ${handlerIds.get(rules[currentState + 1])}(req, res);`);
             }
             else {
                 lines.push(`    return ${call};`);
@@ -143,7 +143,7 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: st
     inner = [
         ...inner,
         '',
-        `return self${previousGroupStartState}(request);`,
+        `return ${handlerIds.get(rules[previousGroupStartState])}(request);`,
     ];
     return {inner, outer};
 }
