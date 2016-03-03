@@ -1,4 +1,5 @@
 'use strict';
+import {Handler} from './types';
 import Pattern from '../pattern';
 import Taxonomy, {TaxonomyNode} from '../taxonomy';
 // TODO: factor/reduce repeated .toIdentifierParts() calls...
@@ -10,7 +11,7 @@ import Taxonomy, {TaxonomyNode} from '../taxonomy';
 // TODO: ...
 // TODO: construct taxonomy from targets? ie don't need it as parameter, can calc it
 // TODO: shorten sig to < 120chars
-export default function makeDispatcher<T>(taxonomy: Taxonomy, targetMap: Map<Pattern, T>): (address: string) => T {
+export default function makeRouteSelector<TRequest, TResponse>(taxonomy: Taxonomy, targetMap: Map<Pattern, Handler<TRequest, TResponse>>): (address: string) => Handler<TRequest, TResponse> {
 
     // TODO: ...
     let patterns = taxonomy.allNodes.map(node => node.pattern);

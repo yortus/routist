@@ -1,9 +1,8 @@
 'use strict';
-import * as assert from 'assert';
-import {inspect} from 'util';
-import {getLongestCommonPrefix} from '../util';
+import disambiguateRoutes from './disambiguate-routes';
+import disambiguateRules from './disambiguate-rules';
 import {Handler, Route, RuleSet} from './types';
-import makeDispatcher from './make-dispatcher';
+import makeRouteSelector from './make-route-selector';
 import makeRouteHandler from './make-route-handler';
 import Pattern from '../pattern';
 import Rule from './rule';
@@ -14,7 +13,7 @@ import Taxonomy, {TaxonomyNode} from '../taxonomy';
 
 
 /** Internal function used to generate the RuleSet#execute method. */
-export default function compileRuleSet<TRequest, TResponse>(ruleSet: RuleSet): Handler<TRequest, TResponse> {
+export default function makeRuleSetHandler<TRequest, TResponse>(ruleSet: RuleSet): Handler<TRequest, TResponse> {
 
     // Generate a taxonomic arrangement of all the patterns that occur in the rule set.
     let taxonomy = new Taxonomy(Object.keys(ruleSet).map(src => new Pattern(src)));
@@ -29,7 +28,7 @@ export default function compileRuleSet<TRequest, TResponse>(ruleSet: RuleSet): H
     );
 
     // Generate a function that, given an address, returns the handler for the best-matching route.
-    let selectRouteHandler = makeDispatcher(taxonomy, routeHandlers);
+    let selectRouteHandler = makeRouteSelector(taxonomy, routeHandlers);
 
     // TODO: ...
     return function __compiledRuleSet__(address: string, request: TRequest) {
@@ -47,8 +46,15 @@ export default function compileRuleSet<TRequest, TResponse>(ruleSet: RuleSet): H
 function findAllRoutesThroughRuleSet(taxonomy: Taxonomy, ruleSet: RuleSet): Map<Pattern, Route> {
 
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
+    // TODO: explain sort... all rules are equal by pattern signature, but we need an unambiguous ordering.
+    // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
     let equalBestRules = taxonomy.allNodes.reduce(
-        (map, node) => map.set(node.pattern, getEqualBestRulesForPattern(node.pattern, ruleSet)),
+        (map, node) => {
+            let rules = getEqualBestRulesForPattern(node.pattern, ruleSet);
+            rules = disambiguateRules(rules); // NB: may throw
+            map.set(node.pattern, rules);
+            return map;
+        },
         new Map<Pattern, Rule[]>()
     );
 
@@ -65,7 +71,7 @@ function findAllRoutesThroughRuleSet(taxonomy: Taxonomy, ruleSet: RuleSet): Map<
                 );
 
             // TODO: make a single best route. Ensure no possibility of ambiguity.
-            let singleRoute = reduceToSingleRoute(node.pattern, alternateRoutes);
+            let singleRoute = disambiguateRoutes(node.pattern, alternateRoutes);
             return map.set(node.pattern, singleRoute);
         },
         new Map<Pattern, Route>()
@@ -92,10 +98,6 @@ function getEqualBestRulesForPattern(pattern: Pattern, ruleSet: RuleSet): Rule[]
         .map(pat => pat.toString())
         .map(key => new Rule(key, ruleSet[key]));
         //TODO:...was...remove?... .map<Rule>(pat => ({ pattern: pat, handler: normalizeHandler(pat, ruleSet[pat.toString()]) }));
-
-    // TODO: explain sort... all rules are equal by pattern signature, but we need an unambiguous ordering.
-    // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
-    rules.sort(ruleComparator); // NB: may throw
 
     // TODO: ...
     return rules;
@@ -128,47 +130,6 @@ function getAllPathsFromRootToHere(node: TaxonomyNode): Pattern[][] {
 
 
 // TODO: doc...
-function reduceToSingleRoute(pattern: Pattern, candidates: Route[]) {
-
-    // TODO: ... simple case... explain...
-    if (candidates.length === 1) {
-        return candidates[0];
-    }
-
-    // Find the longest common prefix and suffix of all the candidates.
-    let prefix = getLongestCommonPrefix(candidates);
-    let suffix = getLongestCommonPrefix(candidates.map(cand => cand.slice().reverse())).reverse(); // TODO: revise... inefficient copies...
-
-    // TODO: possible for prefix and suffix to overlap? What to do?
-
-    // Ensure the non-common parts contain NO decorators.
-    candidates.forEach(cand => {
-        let choppedRules: Rule[] = cand.slice(prefix.length, -suffix.length);
-        if (choppedRules.every(rule => !rule.isDecorator)) return;
-        // TODO: improve error message/handling
-        throw new Error(`Multiple routes to '${pattern}' with different decorators`);
-    });
-
-    // Synthesize a 'crasher' rule that throws an 'ambiguous' error.
-    let ambiguousFallbacks = candidates.map(cand => cand[cand.length - suffix.length - 1]);
-    let crasher = new Rule(
-        pattern.toString(),
-        function crasher() {
-            // TODO: improve error message/handling
-            throw new Error(`Multiple possible fallbacks from '${pattern}: ${ambiguousFallbacks.map(fn => fn.toString())}`);
-        }
-    );
-
-    // final composite rule: splice of common prefix + crasher + common suffix
-    let result = [].concat(prefix, crasher, suffix);
-    return result;
-}
-
-
-
-
-
-// TODO: doc...
 const nullHandler: Handler<any, any> = function __nullHandler__() { return null; };
 
 
@@ -177,33 +138,3 @@ const nullHandler: Handler<any, any> = function __nullHandler__() { return null;
 
 // TODO: doc...
 const universalRule = new Rule(Pattern.UNIVERSAL.toString(), nullHandler);
-
-
-
-
-
-// TODO: doc...
-// TODO: improve error message/handling in here...
-function ruleComparator(ruleA: Rule, ruleB: Rule) {
-    let moreSpecificRule = tieBreakFn(ruleA, ruleB);
-    assert(moreSpecificRule === ruleA || moreSpecificRule === ruleB, `ambiguous rules - which is more specific? A: ${inspect(ruleA)}, B: ${inspect(ruleB)}`); // TODO: test/improve this message
-    assert.strictEqual(moreSpecificRule, tieBreakFn(ruleB, ruleA)); // consistency check
-    return moreSpecificRule === ruleA ? 1 : -1;
-}
-
-
-
-
-
-// TODO: this should be passed in or somehow provided from outside...
-// TODO: return the WINNER, a.k.a. the MORE SPECIFIC rule
-function tieBreakFn(a: Rule, b: Rule): Rule {
-
-    // TODO: is '<' reliable here for string comparisons? What compare fn does it map to? Locale? Case?
-    if (a.pattern.comment < b.pattern.comment) return a;
-    if (b.pattern.comment < a.pattern.comment) return b;
-
-    // TODO: all else being equal, partial handler is always more specific than general handler on the same pattern...
-    if (!a.isDecorator && b.isDecorator) return a;
-    if (!b.isDecorator && a.isDecorator) return b;
-}

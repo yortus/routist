@@ -1,5 +1,5 @@
 'use strict';
-import compileRuleSet from './compile-rule-set';
+import makeRuleSetHandler from './make-rule-set-handler';
 // TODO: write up [1] ref below: resolving ambiguous pattern order (overlaps and tiebreak fn)
 
 
@@ -48,7 +48,7 @@ export default class RuleSet<TRequest extends any, TResponse extends any> {
      *        the corresponding handlers.
      */
     constructor(rules: {[pattern: string]: Function}) {
-        this.execute = compileRuleSet<TRequest, TResponse>(rules);
+        this.execute = makeRuleSetHandler<TRequest, TResponse>(rules);
     }
 
 

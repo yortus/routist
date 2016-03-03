@@ -8,6 +8,7 @@ import Rule from './rule';
 
 
 
+// TODO: doc...
 export default function makeRouteHandler<TRequest, TResponse>(route: Route): Handler<TRequest, TResponse> {
 
     // TODO: specific to general...
