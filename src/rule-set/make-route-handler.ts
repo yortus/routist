@@ -84,9 +84,7 @@ function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
     );
 
     let lines = [
-        `var res = null;`,
-        `function self(req) {`,
-        `    if (req === void 0) req = request;`,
+        `function self(req, res, state) {`,
         `    switch (state) {`
     ];
     let currentState = 1;
@@ -105,7 +103,7 @@ function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
             let builtinMappings = {
                 $addr: 'address',
                 $req: 'req',
-                $next: `${previousGroupStartState ? `(state = ${previousGroupStartState}, self)` : 'no_downstream'}`
+                $next: `${previousGroupStartState ? `req => self(req === void 0 ? request : req, null, ${previousGroupStartState})` : 'no_downstream'}`
             };
 
             // TODO: ...
@@ -126,7 +124,7 @@ function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
             // TODO: ...
             if (rule !== group[group.length - 1]) {
                 lines.push(`            res = ${call};`);
-                lines.push(`            if (isPromise(res)) return res.then(val => { res = val; state = ${currentState + 1}; self(req); });`);
+                lines.push(`            if (isPromise(res)) return res.then(res => self(req, res, ${currentState + 1}));`);
                 lines.push(`            /* else fall through */`);
             }
             else {
@@ -145,8 +143,7 @@ function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
         `    }`,
         `}`,
         '',
-        `var state = ${previousGroupStartState};`,
-        `return self(request);`,
+        `return self(request, null, ${previousGroupStartState});`,
     ];
     return lines;
 }
