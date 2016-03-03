@@ -18,28 +18,22 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
     // TODO: doc...
     let handlerIds = makeHandlerIdentifiers(rules);
 
-
-
-// TODO: ...
-// let lines2 = getBodyLines2(rules, handlerIds);
-// console.log(`\n\n\n\n\n`);
-// console.log(lines2);
-
-
-
+    // TODO: doc...
+    let bodyLines = getBodyLines(rules, handlerIds);
     let lines = [
         ...rules.map((rule, i) => `var match${handlerIds.get(rule)} = rules[${i}].pattern.match;`).filter((_, i) => rules[i].pattern.captureNames.length > 0), // TODO: line too long!!!
         ...rules.map((rule, i) => `var handle${handlerIds.get(rule)} = rules[${i}].handler;`),
         '',
-        'function no_downstream(req) { return null; }',
+        'function _Ø(req) { return null; }',
+        ...bodyLines.outer,
         '',
         `return function route${handlerIds.get(rules[0])}(address, request) {`,
-        ...getBodyLines2(rules, handlerIds).map(line => `    ${line}`),
+        ...bodyLines.inner.map(line => `    ${line}`),
         '};'
     ];
-// if (rules.length > 5) {
-//     console.log(lines);
-// }
+ if (rules.length > 5) {
+     console.log(lines);
+ }
 // debugger;
 
     // TODO: review comment bwloe, originally from normalize-handler.ts...
@@ -57,7 +51,7 @@ catch (ex) {
     debugger;
 }
 //if (rules.length > 5) {
-    console.log(`\n\n\n\n\n${fn.toString()}`);
+//    console.log(`\n\n\n\n\n${fn.toString()}`);
 //}
 //debugger;
     return fn;
@@ -68,7 +62,7 @@ catch (ex) {
 
 
 // TODO: doc...
-function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
+function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: string[], outer: string[] } {
 
     // TODO: ...
     let ruleGroups = rules.reduce(
@@ -83,12 +77,11 @@ function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
         <Rule[][]>[[]]
     );
 
-    let lines = [
-        // `function self(req, res, state) {`,
-        // `    switch (state) {`
-    ];
-    let currentState = 1;
-    let previousGroupStartState = 0;
+    // TODO: ...
+    let inner: string[] = [];
+    let outer: string[] = [];
+    let currentState = 0;
+    let previousGroupStartState = -1;
 
     // TODO: ...
     ruleGroups.forEach(group => {
@@ -103,19 +96,20 @@ function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
             let builtinMappings = {
                 $addr: 'address',
                 $req: 'req',
-                $next: `${previousGroupStartState ? `self${previousGroupStartState}` : 'no_downstream'}`
+                $next: `${previousGroupStartState !== -1 ? `self${previousGroupStartState}` : '_Ø'}`
             };
             let isFirstInGroup = rule === group[0];
             let isLastInGroup = rule === group[group.length - 1];
 
             // TODO: ...
+            let lines: string[] = [];
 
             // TODO: ...
             lines.push('');
             lines.push(`function self${currentState}(req${isFirstInGroup ? '' : ', res'}) {`);
 
             // TODO: ...
-            if (isFirstInGroup) lines.push(`    if (req === void 0) req = request;`);
+            // TODO: doc this! no longer allowing decorators' 'req' param to be optional!... was... if (isFirstInGroup) lines2.push(`    if (req === void 0) req = request;`);
             if (!isFirstInGroup) lines.push(`    if (res !== null) return res;`);
 
             // TODO: ...
@@ -133,6 +127,12 @@ function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
             }
 
             lines.push('}');
+            if (rule.pattern.captureNames.length > 0) {
+                inner.push(...lines);
+            }
+            else {
+                outer.push(...lines);
+            }
             ++currentState;
         });
 
@@ -140,117 +140,12 @@ function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
     });
 
     // TODO: ...
-    lines = [
-        ...lines,
-//        `    }`,
-//        `}`,
+    inner = [
+        ...inner,
         '',
         `return self${previousGroupStartState}(request);`,
     ];
-    return lines;
-}
-
-
-
-
-
-// TODO: doc...
-function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
-
-    // TODO: ... rename all these...
-    let rules2 = rules.slice();
-    let body2 = [`var req = request, res, captures, state = 1;`, '']; // TODO: think about deopt due to 'captures' being re-used with different props...
-    let lines2: string[] = [];
-    let downstreamRule: Rule;
-
-    // TODO: Iterate over rules, from most to least specific
-    while (rules2.length > 0) {
-
-        // If the next rule is a decorator, wrap all previously generated lines (if any) into a local 'downstream' function.
-        if (rules2[0].isDecorator) {
-            if (lines2.length > 0) {
-                body2 = [
-                    ...body2,
-                    `function downstream_of${handlerIds.get(downstreamRule)}(req) {`,
-                    ...lines2.map(line => `    ${line}`),
-                    `}`,
-                    ''
-                ];
-                lines2 = [];
-            }
-        }
-
-        // How long a run of non-decorator rules are we looking at from here down?
-        let runCount = rules2.slice(1).findIndex(rule => rule.isDecorator) + 1;
-        if (runCount === 0) runCount = rules2.length;
-
-        // Slice out the next run of non-decorator rules...
-        let run = rules2.slice(0, runCount);
-        rules2 = rules2.slice(runCount);
-        let runName = handlerIds.get(run[0]);
-
-
-        // TODO: not working yet...
-        // // TODO: any handlers in run have a $req param?
-        // let runRefsReq = run.some(rule => rule.parameterNames.indexOf('$req') !== -1);
-        // if (runRefsReq) lines2.push(`    var req = req === void 0 ? request : req`);
-
-        // Enumerate over all the rules in the non-decorator run, from most to least specific.
-        for (let i = 1; i <= run.length; ++i) {
-
-            // TODO: ...
-            let rule = run[i - 1];
-            let paramNames = rule.parameterNames;
-            let captureNames = rule.pattern.captureNames;
-            let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures.${name}`, map), {});
-            let builtinMappings = {
-                $addr: 'address',
-                $req: 'req === void 0 ? request : req',
-                $next: `${downstreamRule ? `(state = 1, downstream_of${handlerIds.get(downstreamRule)})` : 'no_downstream'}`
-            };
-
-            // TODO: ...
-            if (run.length > 1) lines2.push(`case ${i}:`);
-
-            // TODO: ...
-            if (i > 1) lines2.push(`    if (res !== null) return res;`);
-
-            // TODO: ...
-            if (captureNames.length > 0) lines2.push(`captures = match${handlerIds.get(rule)}(address);`);
-            lines2.push(`    res = handle${handlerIds.get(rule)}(${paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')});`);
-
-            // TODO: ...
-            if (i < run.length) {
-                lines2.push(`    if (isPromise(res)) return res.then(val => (res = val, state = ${i + 1}, ${runName}(req)));`); // TODO: <----- NAME of self
-                lines2.push(`    /* else fall through */`);
-                lines2.push(`    `);
-            }
-            else {
-                lines2.push('    return res;');
-            }
-        }
-
-        // Run prolog and epilog...
-        if (run.length > 1) {
-            lines2 = [
-                `function ${runName}(req) {`,
-                `    switch (state) {`,
-                ...lines2.map(line => `        ${line}`),
-                `    }`,
-                `}`,
-                `return ${runName}();`
-            ];
-        }
-        else {
-            // dedent one level
-            lines2 = lines2.map(line => line.slice(4));
-        }
-
-        // TODO: explain...
-        downstreamRule = rules2[0];
-    }
-    body2 = body2.concat(lines2);
-    return body2;
+    return {inner, outer};
 }
 
 

@@ -31,7 +31,7 @@ const ruleSet = {
     '/foo': () => 'foo',
     '/bar': () => 'bar',
     '/baz': () => 'baz',
-    '/*a*': ($next) => `---${$next() || 'NONE'}---`,
+    '/*a*': ($req, $next) => `---${$next($req) || 'NONE'}---`,
 
     'a/*': () => `starts with 'a'`,
     '*/b': () => `ends with 'b'`,
