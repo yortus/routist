@@ -47,9 +47,9 @@ catch (ex) {
     console.log(lines);
     debugger;
 }
-if (rules.length > 5) {
+//if (rules.length > 5) {
     console.log(`\n\n\n\n\n${fn.toString()}`);
-}
+//}
 //debugger;
     return fn;
 }
@@ -125,7 +125,7 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
 
             // TODO: ...
             if (i < run.length) {
-                lines2.push(`    if (isPromise(res)) return res.then(val => (res = val, ${runName}(${i + 1})));`); // TODO: <----- NAME of self
+                lines2.push(`    if (isPromise(res)) return res.then(val => (res = val, ${runName}(req, ${i + 1})));`); // TODO: <----- NAME of self
                 lines2.push(`    /* fall-through */`);
                 lines2.push(`    `);
             }
@@ -137,7 +137,7 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
         // Run prolog and epilog...
         if (run.length > 1) {
             lines2 = [
-                `function ${runName}(state) {`,
+                `function ${runName}(req, state) {`,
                 `    switch (state || 1) {`,
                 ...lines2.map(line => `        ${line}`),
                 `    }`,
