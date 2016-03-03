@@ -18,6 +18,16 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
     // TODO: doc...
     let handlerIds = makeHandlerIdentifiers(rules);
 
+
+
+// TODO: ...
+// let lines2 = getBodyLines2(rules, handlerIds);
+// console.log(`\n\n\n\n\n`);
+// console.log(lines2);
+
+
+
+
     let lines = [
         ...rules.map((rule, i) => `var match${handlerIds.get(rule)} = rules[${i}].pattern.match;`).filter((_, i) => rules[i].pattern.captureNames.length > 0), // TODO: line too long!!!
         ...rules.map((rule, i) => `var handle${handlerIds.get(rule)} = rules[${i}].handler;`),
@@ -25,7 +35,7 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
         'function no_downstream(req) { return null; }',
         '',
         `return function route${handlerIds.get(rules[0])}(address, request) {`,
-        ...getBodyLines(rules, handlerIds).map(line => `    ${line}`),
+        ...getBodyLines2(rules, handlerIds).map(line => `    ${line}`),
         '};'
     ];
 // if (rules.length > 5) {
@@ -52,6 +62,91 @@ catch (ex) {
 //}
 //debugger;
     return fn;
+}
+
+
+
+
+
+// TODO: doc...
+function getBodyLines2(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
+
+    // TODO: ...
+    let ruleGroups = rules.reduce(
+        (groups, rule, i) => {
+            // Each decorator starts a new group
+            if (rule.isDecorator && i > 0) groups.push([]);
+
+            // Add the rule to the current group
+            groups[groups.length - 1].push(rule);
+            return groups;
+        },
+        <Rule[][]>[[]]
+    );
+
+    // TODO: think about deopt due to 'captures' being re-used with different props...
+    let lines = [
+        `function main(req) {`,
+        `    switch (state) {`
+    ];
+    let currentState = 1;
+    let previousGroupStartState = 0;
+
+    // TODO: ...
+    ruleGroups.forEach(group => {
+        let currentGroupStartState = currentState;
+        group.forEach((rule, ri) => {
+
+            // TODO: ...
+            let paramNames = rule.parameterNames;
+            let captureNames = rule.pattern.captureNames;
+            let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures.${name}`, map), {});
+            let builtinMappings = {
+                $addr: 'address',
+                $req: 'req === void 0 ? request : req',
+                $next: `${previousGroupStartState ? `(state = ${previousGroupStartState}, main)` : 'no_downstream'}`
+            };
+
+            // TODO: ...
+
+            // TODO: ...
+            lines.push('');
+            lines.push(`        case ${currentState}:`);
+
+            // TODO: ...
+            if (currentState !== currentGroupStartState) {
+                lines.push(`            if (res !== null) return res;`);
+            }
+
+            // TODO: ...
+            if (captureNames.length > 0) lines.push(`            captures = match${handlerIds.get(rule)}(address);`);
+            lines.push(`            res = handle${handlerIds.get(rule)}(${paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')});`);
+
+            // TODO: ...
+            if (rule !== group[group.length - 1]) {
+                lines.push(`            if (isPromise(res)) return res.then(val => (res = val, state = ${currentState + 1}, main(req)));`);
+                lines.push(`            /* else fall through */`);
+            }
+            else {
+                lines.push('            return res;');
+            }
+
+            ++currentState;
+        });
+
+        previousGroupStartState = currentGroupStartState;
+    });
+
+    // TODO: ...
+    lines = [
+        ...lines,
+        `    }`,
+        `}`,
+        '',
+        `var res, captures, state = ${previousGroupStartState};`,
+        `return main();`,
+    ];
+    return lines;
 }
 
 
@@ -126,7 +221,7 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): string[] {
             // TODO: ...
             if (i < run.length) {
                 lines2.push(`    if (isPromise(res)) return res.then(val => (res = val, state = ${i + 1}, ${runName}(req)));`); // TODO: <----- NAME of self
-                lines2.push(`    /* fall-through */`);
+                lines2.push(`    /* else fall through */`);
                 lines2.push(`    `);
             }
             else {

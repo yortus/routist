@@ -60,59 +60,51 @@ function route_apiﾉfoᕽo____(address, request) {
 
 
 function route_apiﾉfoo(address, request) {
-    var req = request, res, captures, state = 1;/***/
+    function main(req?) {
+        switch (state) {
 
-    function downstream_of_apiﾉfoo_1(req) {
-        res = handle_apiﾉfoo();
-        return res;
-    }
-
-    function downstream_of_apiﾉfoᕽ(req) {
-        function _apiﾉfoo_1(req?) {
-            switch (state/***/) {
-                case 1:
-                    res = handle_apiﾉfoo_1(req === void 0 ? request : req, /***/(state = 1, downstream_of_apiﾉfoo_1));
-                    if (isPromise(res)) return res.then(val => (res = val, /***/state = 2, _apiﾉfoo_1(req)));
-                    /* fall-through */
-
-                case 2:
-                    if (res !== null) return res;
-                    res = handle_apiﾉfoᕽo();
-                    return res;
-            }
-        }
-        return _apiﾉfoo_1();
-    }
-
-    function downstream_of_apiﾉfoᕽ_1(req) {
-        res = handle_apiﾉfoᕽ(req === void 0 ? request : req, /***/(state = 1, downstream_of_apiﾉfoᕽ));
-        return res;
-    }
-
-    function _apiﾉfoᕽ_1(req?/***/) {
-        switch (state/***/) {
             case 1:
-                res = handle_apiﾉfoᕽ_1(req === void 0 ? request : req, /***/(state = 1, downstream_of_apiﾉfoᕽ_1));
-                if (isPromise(res)) return res.then(val => (res = val, /***/state = 2, _apiﾉfoᕽ_1(req)));
-                /* fall-through */
+                res = handle_apiﾉfoo();
+                return res;
 
             case 2:
-                if (res !== null) return res;
-                res = handle_apiﾉ﹍();
-                if (isPromise(res)) return res.then(val => (res = val, /***/state = 3, _apiﾉfoᕽ_1(req)));
-                /* fall-through */
+                res = handle_apiﾉfoo_1(req === void 0 ? request : req, (state = 1, main));
+                if (isPromise(res)) return res.then(val => (res = val, state = 3, main(req)));
+                /* else fall through */
 
             case 3:
                 if (res !== null) return res;
-                res = handle_apiﾉ﹍_1();
-                if (isPromise(res)) return res.then(val => (res = val, /***/state = 4, _apiﾉfoᕽ_1(req)));
-                /* fall-through */
+                res = handle_apiﾉfoᕽo();
+                return res;
 
             case 4:
+                res = handle_apiﾉfoᕽ(req === void 0 ? request : req, (state = 2, main));
+                return res;
+
+            case 5:
+                res = handle_apiﾉfoᕽ_1(req === void 0 ? request : req, (state = 4, main));
+                if (isPromise(res)) return res.then(val => (res = val, state = 6, main(req)));
+                /* else fall through */
+
+            case 6:
+                if (res !== null) return res;
+                res = handle_apiﾉ﹍();
+                if (isPromise(res)) return res.then(val => (res = val, state = 7, main(req)));
+                /* else fall through */
+
+            case 7:
+                if (res !== null) return res;
+                res = handle_apiﾉ﹍_1();
+                if (isPromise(res)) return res.then(val => (res = val, state = 8, main(req)));
+                /* else fall through */
+
+            case 8:
                 if (res !== null) return res;
                 res = handle_﹍();
                 return res;
         }
     }
-    return _apiﾉfoᕽ_1();
+
+    var res, captures, state = 5;
+    return main();
 }
