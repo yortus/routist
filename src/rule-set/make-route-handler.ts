@@ -68,62 +68,24 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: st
     let ruleGroups = partitionRulesIntoGroups(rules);
 
     // TODO: ...
-    let inner: string[] = [];
     let outer: string[] = [];
 
     // TODO: ...
     ruleGroups.forEach((group, gi) => {
         group.forEach((rule, ri) => {
-
-            // TODO: ...
-            let hid = handlerIds.get(rule);
-            let paramNames = rule.parameterNames;
-            let captureNames = rule.pattern.captureNames;
-            let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${hid}.${name}`, map), {});
-            let builtinMappings = {
-                $addr: 'addr',
-                $req: 'req',
-                $next: `${gi === 0 ? '_Ø' : `req => ${handlerIds.get(ruleGroups[gi - 1][0])}(addr, req)`}`
-            };
-            let isFirstInGroup = ri === 0;
-            let isLastInGroup = ri === group.length - 1;
-
-            // TODO: ...
-            let lines: string[] = [];
-
-            // TODO: ...
-            lines.push('');
-            lines.push(`function ${hid}(addr, req${isFirstInGroup ? '' : ', res'}) {`);
-
-            // TODO: ...
-            // TODO: doc this! no longer allowing decorators' 'req' param to be optional!... was... if (isFirstInGroup) lines2.push(`    if (req === void 0) req = request;`);
-            if (!isFirstInGroup) lines.push(`    if (res !== null) return res;`);
-
-            // TODO: ...
-            if (captureNames.length > 0) lines.push(`    var captures${hid} = match${hid}(addr);`);
-            let call = `handle${hid}(${paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')})`;
-
-            // TODO: ...
-            if (!isLastInGroup) {
-                lines.push(`    var res = ${call};`);
-                lines.push(`    if (isPromise(res)) return res.then(res => ${handlerIds.get(group[ri + 1])}(addr, req, res));`);
-                lines.push(`    return ${handlerIds.get(group[ri + 1])}(addr, req, res);`);
-            }
-            else {
-                lines.push(`    return ${call};`);
-            }
-
-            lines.push('}');
-            outer.push(...lines);
+            if (gi === ruleGroups.length - 1 && ri === 0) return; // TODO: skip start rule
+            outer.push(...getRuleLines(ruleGroups, gi, ri, handlerIds));
         });
     });
 
     // TODO: ...
-    inner = [
-        ...inner,
-        '',
-        `return ${handlerIds.get(ruleGroups[ruleGroups.length - 1][0])}(address, request);`,
+    let inner = [
+        `var addr = address, req = request;`,
+        ...getRuleLines(ruleGroups, ruleGroups.length - 1, 0, handlerIds).slice(1, -1).map(line => line.slice(4))
+        //'',
+        //`return ${handlerIds.get(ruleGroups[ruleGroups.length - 1][0])}(address, request);`,
     ];
+
     return {inner, outer};
 }
 
@@ -151,10 +113,49 @@ function partitionRulesIntoGroups(rules: Rule[]): Rule[][] {
 
 
 // TODO: doc...
-function getRuleLines(rule: Rule) {
+function getRuleLines(ruleGroups: Rule[][], gi: number, ri: number, handlerIds: Map<Rule, string>): string[] {
 
+    // TODO: ...
+    let group = ruleGroups[gi];
+    let rule = group[ri];
+    let hid = handlerIds.get(rule);
+    let paramNames = rule.parameterNames;
+    let captureNames = rule.pattern.captureNames;
+    let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${hid}.${name}`, map), {});
+    let builtinMappings = {
+        $addr: 'addr',
+        $req: 'req',
+        $next: `${gi === 0 ? '_Ø' : `req => ${handlerIds.get(ruleGroups[gi - 1][0])}(addr, req)`}`
+    };
+    let isFirstInGroup = ri === 0;
+    let isLastInGroup = ri === group.length - 1;
 
+    // TODO: ...
+    let lines: string[] = [];
 
+    // TODO: ...
+    lines.push(`function ${hid}(addr, req${isFirstInGroup ? '' : ', res'}) {`);
+
+    // TODO: ...
+    // TODO: doc this! no longer allowing decorators' 'req' param to be optional!... was... if (isFirstInGroup) lines2.push(`    if (req === void 0) req = request;`);
+    if (!isFirstInGroup) lines.push(`    if (res !== null) return res;`);
+
+    // TODO: ...
+    if (captureNames.length > 0) lines.push(`    var captures${hid} = match${hid}(addr);`);
+    let call = `handle${hid}(${paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')})`;
+
+    // TODO: ...
+    if (!isLastInGroup) {
+        lines.push(`    var res = ${call};`);
+        lines.push(`    if (isPromise(res)) return res.then(res => ${handlerIds.get(group[ri + 1])}(addr, req, res));`);
+        lines.push(`    return ${handlerIds.get(group[ri + 1])}(addr, req, res);`);
+    }
+    else {
+        lines.push(`    return ${call};`);
+    }
+
+    lines.push('}');
+    return lines;
 }
 
 
