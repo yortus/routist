@@ -2,6 +2,8 @@
 import {async, await} from 'asyncawait';
 import {expect} from 'chai';
 import {RuleSet, util} from 'routist';
+// TODO: rename these tests in filename and describe() ? this is more about executing the RuleSet, no constructing it...
+// TODO: more ruleset tests? for other files?
 
 
 // TODO: More coverage:
@@ -19,7 +21,7 @@ let variants = [
 ];
 
 
-variants.forEach(variant => describe(`Constructing a Router instance (${variant.name})`, () => {
+variants.forEach(variant => describe(`Constructing a RuleSet instance (${variant.name})`, () => {
 
     let val = variant.val, err = variant.err;
 
