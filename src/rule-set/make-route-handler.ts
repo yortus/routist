@@ -65,17 +65,7 @@ catch (ex) {
 function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: string[], outer: string[] } {
 
     // TODO: ...
-    let ruleGroups = rules.reduce(
-        (groups, rule, i) => {
-            // Each decorator starts a new group
-            if (rule.isDecorator && i > 0) groups.push([]);
-
-            // Add the rule to the current group
-            groups[groups.length - 1].push(rule);
-            return groups;
-        },
-        <Rule[][]>[[]]
-    );
+    let ruleGroups = partitionRulesIntoGroups(rules);
 
     // TODO: ...
     let inner: string[] = [];
@@ -83,8 +73,9 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: st
     let currentState = 0;
     let previousGroupStartState = -1;
 
+
     // TODO: ...
-    ruleGroups.forEach(group => {
+    ruleGroups.forEach((group, gi) => {
         let currentGroupStartState = currentState;
         group.forEach((rule, ri) => {
 
@@ -94,9 +85,9 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: st
             let captureNames = rule.pattern.captureNames;
             let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${hid}.${name}`, map), {});
             let builtinMappings = {
-                $addr: 'address',
+                $addr: 'addr',
                 $req: 'req',
-                $next: `${previousGroupStartState !== -1 ? `${handlerIds.get(rules[previousGroupStartState])}` : '_Ø'}`
+                $next: `${previousGroupStartState === -1 ? '_Ø' : `req => ${handlerIds.get(rules[previousGroupStartState])}(addr, req)`}`
             };
             let isFirstInGroup = rule === group[0];
             let isLastInGroup = rule === group[group.length - 1];
@@ -106,33 +97,28 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: st
 
             // TODO: ...
             lines.push('');
-            lines.push(`function ${hid}(req${isFirstInGroup ? '' : ', res'}) {`);
+            lines.push(`function ${hid}(addr, req${isFirstInGroup ? '' : ', res'}) {`);
 
             // TODO: ...
             // TODO: doc this! no longer allowing decorators' 'req' param to be optional!... was... if (isFirstInGroup) lines2.push(`    if (req === void 0) req = request;`);
             if (!isFirstInGroup) lines.push(`    if (res !== null) return res;`);
 
             // TODO: ...
-            if (captureNames.length > 0) lines.push(`    var captures${hid} = match${hid}(address);`);
+            if (captureNames.length > 0) lines.push(`    var captures${hid} = match${hid}(addr);`);
             let call = `handle${hid}(${paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')})`;
 
             // TODO: ...
             if (!isLastInGroup) {
                 lines.push(`    var res = ${call};`);
-                lines.push(`    if (isPromise(res)) return res.then(res => ${handlerIds.get(rules[currentState + 1])}(req, res));`);
-                lines.push(`    return ${handlerIds.get(rules[currentState + 1])}(req, res);`);
+                lines.push(`    if (isPromise(res)) return res.then(res => ${handlerIds.get(rules[currentState + 1])}(addr, req, res));`);
+                lines.push(`    return ${handlerIds.get(rules[currentState + 1])}(addr, req, res);`);
             }
             else {
                 lines.push(`    return ${call};`);
             }
 
             lines.push('}');
-            if (rule.pattern.captureNames.length > 0) {
-                inner.push(...lines);
-            }
-            else {
-                outer.push(...lines);
-            }
+            outer.push(...lines);
             ++currentState;
         });
 
@@ -143,9 +129,39 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: st
     inner = [
         ...inner,
         '',
-        `return ${handlerIds.get(rules[previousGroupStartState])}(request);`,
+        `return ${handlerIds.get(rules[previousGroupStartState])}(address, request);`,
     ];
     return {inner, outer};
+}
+
+
+
+
+
+// TODO: doc...
+function partitionRulesIntoGroups(rules: Rule[]): Rule[][] {
+    return rules.reduce(
+        (groups, rule, i) => {
+            // Each decorator starts a new group
+            if (rule.isDecorator && i > 0) groups.push([]);
+
+            // Add the rule to the current group
+            groups[groups.length - 1].push(rule);
+            return groups;
+        },
+        <Rule[][]>[[]]
+    );
+}
+
+
+
+
+
+// TODO: doc...
+function getRuleLines(rule: Rule) {
+
+
+
 }
 
 
