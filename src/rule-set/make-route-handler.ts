@@ -15,25 +15,40 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
     // TODO: specific to general...
     let rules = route.slice().reverse();
 
+    // TODO: ...
+    let ruleGroups = partitionRulesIntoGroups(rules);
+
     // TODO: doc...
     let handlerIds = makeHandlerIdentifiers(rules);
 
+    // TODO: ...
+    let outerLines: string[] = [];
+    ruleGroups.forEach((group, gi) => {
+        group.forEach((rule, ri) => {
+            outerLines.push(...getRuleLines(ruleGroups, gi, ri, handlerIds));
+        });
+    });
+
+    // TODO: ...
+    let inner = getRuleLines(ruleGroups, ruleGroups.length - 1, 0, handlerIds).slice(1, -1).map(line => line.slice(4))
+
+    // TODO: ...
+    let startRule = ruleGroups[ruleGroups.length - 1][0];
+
     // TODO: doc...
-    let bodyLines = getBodyLines(rules, handlerIds);
     let lines = [
         ...rules.map((rule, i) => `var match${handlerIds.get(rule)} = rules[${i}].pattern.match;`).filter((_, i) => rules[i].pattern.captureNames.length > 0), // TODO: line too long!!!
         ...rules.map((rule, i) => `var handle${handlerIds.get(rule)} = rules[${i}].handler;`),
         '',
         'function _Ø(req) { return null; }',
-        ...bodyLines.outer,
+        ...outerLines,
         '',
-        `return function route${handlerIds.get(rules[0])}(addr, req) {`,
-        ...bodyLines.inner.map(line => `    ${line}`),
-        '};'
+        `return ${handlerIds.get(startRule)};`,
     ];
- if (rules.length > 5) {
+ //if (rules.length > 5) {
+     console.log('\n\n\n\n\n');
      console.log(lines);
- }
+ //}
 // debugger;
 
     // TODO: review comment bwloe, originally from normalize-handler.ts...
@@ -42,45 +57,12 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
     // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
     // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
 
-try {
-        /*let*/var fn = eval(`(() => {\n${lines.join('\n')}\n})`)(); // TODO: change var to let
-}
-catch (ex) {
-    console.log(`\n\n\n\n\n`);
-    console.log(lines);
-    debugger;
-}
+    let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();
 //if (rules.length > 5) {
 //    console.log(`\n\n\n\n\n${fn.toString()}`);
 //}
 //debugger;
     return fn;
-}
-
-
-
-
-
-// TODO: doc...
-function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: string[], outer: string[] } {
-
-    // TODO: ...
-    let ruleGroups = partitionRulesIntoGroups(rules);
-
-    // TODO: ...
-    let outer: string[] = [];
-
-    // TODO: ...
-    ruleGroups.forEach((group, gi) => {
-        group.forEach((rule, ri) => {
-            if (gi === ruleGroups.length - 1 && ri === 0) return; // TODO: skip start rule
-            outer.push(...getRuleLines(ruleGroups, gi, ri, handlerIds));
-        });
-    });
-
-    // TODO: ...
-    let inner = getRuleLines(ruleGroups, ruleGroups.length - 1, 0, handlerIds).slice(1, -1).map(line => line.slice(4))
-    return {inner, outer};
 }
 
 
