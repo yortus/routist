@@ -70,13 +70,9 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: st
     // TODO: ...
     let inner: string[] = [];
     let outer: string[] = [];
-    let currentState = 0;
-    let previousGroupStartState = -1;
-
 
     // TODO: ...
     ruleGroups.forEach((group, gi) => {
-        let currentGroupStartState = currentState;
         group.forEach((rule, ri) => {
 
             // TODO: ...
@@ -87,10 +83,10 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: st
             let builtinMappings = {
                 $addr: 'addr',
                 $req: 'req',
-                $next: `${previousGroupStartState === -1 ? '_Ø' : `req => ${handlerIds.get(rules[previousGroupStartState])}(addr, req)`}`
+                $next: `${gi === 0 ? '_Ø' : `req => ${handlerIds.get(ruleGroups[gi - 1][0])}(addr, req)`}`
             };
-            let isFirstInGroup = rule === group[0];
-            let isLastInGroup = rule === group[group.length - 1];
+            let isFirstInGroup = ri === 0;
+            let isLastInGroup = ri === group.length - 1;
 
             // TODO: ...
             let lines: string[] = [];
@@ -110,8 +106,8 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: st
             // TODO: ...
             if (!isLastInGroup) {
                 lines.push(`    var res = ${call};`);
-                lines.push(`    if (isPromise(res)) return res.then(res => ${handlerIds.get(rules[currentState + 1])}(addr, req, res));`);
-                lines.push(`    return ${handlerIds.get(rules[currentState + 1])}(addr, req, res);`);
+                lines.push(`    if (isPromise(res)) return res.then(res => ${handlerIds.get(group[ri + 1])}(addr, req, res));`);
+                lines.push(`    return ${handlerIds.get(group[ri + 1])}(addr, req, res);`);
             }
             else {
                 lines.push(`    return ${call};`);
@@ -119,17 +115,14 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: st
 
             lines.push('}');
             outer.push(...lines);
-            ++currentState;
         });
-
-        previousGroupStartState = currentGroupStartState;
     });
 
     // TODO: ...
     inner = [
         ...inner,
         '',
-        `return ${handlerIds.get(rules[previousGroupStartState])}(address, request);`,
+        `return ${handlerIds.get(ruleGroups[ruleGroups.length - 1][0])}(address, request);`,
     ];
     return {inner, outer};
 }
