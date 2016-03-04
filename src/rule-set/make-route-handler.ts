@@ -27,7 +27,7 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
         'function _Ø(req) { return null; }',
         ...bodyLines.outer,
         '',
-        `return function route${handlerIds.get(rules[0])}(address, request) {`,
+        `return function route${handlerIds.get(rules[0])}(addr, req) {`,
         ...bodyLines.inner.map(line => `    ${line}`),
         '};'
     ];
@@ -79,13 +79,7 @@ function getBodyLines(rules: Rule[], handlerIds: Map<Rule, string>): { inner: st
     });
 
     // TODO: ...
-    let inner = [
-        `var addr = address, req = request;`,
-        ...getRuleLines(ruleGroups, ruleGroups.length - 1, 0, handlerIds).slice(1, -1).map(line => line.slice(4))
-        //'',
-        //`return ${handlerIds.get(ruleGroups[ruleGroups.length - 1][0])}(address, request);`,
-    ];
-
+    let inner = getRuleLines(ruleGroups, ruleGroups.length - 1, 0, handlerIds).slice(1, -1).map(line => line.slice(4))
     return {inner, outer};
 }
 
@@ -125,7 +119,7 @@ function getRuleLines(ruleGroups: Rule[][], gi: number, ri: number, handlerIds: 
     let builtinMappings = {
         $addr: 'addr',
         $req: 'req',
-        $next: `${gi === 0 ? '_Ø' : `req => ${handlerIds.get(ruleGroups[gi - 1][0])}(addr, req)`}`
+        $next: `${gi === 0 ? '_Ø' : `rq => ${handlerIds.get(ruleGroups[gi - 1][0])}(addr, rq === void 0 ? req : rq)`}`
     };
     let isFirstInGroup = ri === 0;
     let isLastInGroup = ri === group.length - 1;
@@ -137,7 +131,6 @@ function getRuleLines(ruleGroups: Rule[][], gi: number, ri: number, handlerIds: 
     lines.push(`function ${hid}(addr, req${isFirstInGroup ? '' : ', res'}) {`);
 
     // TODO: ...
-    // TODO: doc this! no longer allowing decorators' 'req' param to be optional!... was... if (isFirstInGroup) lines2.push(`    if (req === void 0) req = request;`);
     if (!isFirstInGroup) lines.push(`    if (res !== null) return res;`);
 
     // TODO: ...
@@ -146,8 +139,8 @@ function getRuleLines(ruleGroups: Rule[][], gi: number, ri: number, handlerIds: 
 
     // TODO: ...
     if (!isLastInGroup) {
-        lines.push(`    var res = ${call};`);
-        lines.push(`    if (isPromise(res)) return res.then(res => ${handlerIds.get(group[ri + 1])}(addr, req, res));`);
+        lines.push(`    ${isFirstInGroup ? 'var ' : ''}res = ${call};`);
+        lines.push(`    if (isPromise(res)) return res.then(rs => ${handlerIds.get(group[ri + 1])}(addr, req, rs));`);
         lines.push(`    return ${handlerIds.get(group[ri + 1])}(addr, req, res);`);
     }
     else {
