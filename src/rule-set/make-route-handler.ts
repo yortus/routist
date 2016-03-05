@@ -37,11 +37,7 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
 
     // TODO: ...
     let outerLines: string[] = [];
-    partitions.forEach((partition, pi) => {
-        partition.forEach((rule, ri) => {
-            outerLines.push(...getRuleLines(partitions, pi, ri, ruleNames));
-        });
-    });
+    rules.forEach((rule, i) => outerLines.push(...getRuleLines(i, rules, ruleNames)));
 
     // TODO: ...
     let startRule = partitions[partitions.length - 1][0];
@@ -56,11 +52,11 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
         '',
         `return ${ruleNames.get(startRule)};`,
     ];
-//if (rules.length > 5) {
-//    console.log('\n\n\n\n\n');
-//    console.log(lines);
-//}
-//debugger;
+// if (rules.length > 5) {
+//     console.log('\n\n\n\n\n');
+//     console.log(lines);
+//     debugger;
+// }
 
     // TODO: review comment below, originally from normalize-handler.ts...
     // TODO: add a similar comment to make-dispatcher.ts?
@@ -101,22 +97,31 @@ function partitionRules(rules: Rule[]): Rule[][] {
 
 
 // TODO: doc...
-function getRuleLines(partitions: Rule[][], pi: number, ri: number, ruleNames: Map<Rule, string>): string[] {
+function getRuleLines(ruleIndex: number, rules: Rule[], ruleNames: Map<Rule, string>): string[] {
 
     // TODO: ...
-    let group = partitions[pi];
-    let rule = group[ri];
+    let rule = rules[ruleIndex];
     let paramNames = rule.parameterNames;
     let captureNames = rule.pattern.captureNames;
     let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${ruleNames.get(rule)}.${name}`, map), {});
-    let firstRuleInPreviousPartition = pi === 0 ? null : partitions[pi - 1][0];
+
+
+    // TODO: this logic is totally opaque... clean it up...
+    let partitionIndices = [0].concat(rules.filter((r, i) => r.isDecorator && i > 0).map(r => rules.indexOf(r)));
+    partitionIndices = partitionIndices.filter(i => i <= ruleIndex);
+    let isFirstPartition = partitionIndices.length === 1;
+    let ruleIndexOfPrevPartition = isFirstPartition ? -1 : partitionIndices[partitionIndices.length - 2];
+    let firstRuleInPreviousPartition = ruleIndexOfPrevPartition === -1 ? null : rules[ruleIndexOfPrevPartition];
+
+
     let builtinMappings = {
         $addr: 'addr',
         $req: 'req',
-        $next: `${pi === 0 ? '_Ø' : `rq => ${ruleNames.get(firstRuleInPreviousPartition)}(addr, rq === void 0 ? req : rq)`}`
+        $next: `${isFirstPartition ? '_Ø' : `rq => ${ruleNames.get(firstRuleInPreviousPartition)}(addr, rq === void 0 ? req : rq)`}`
     };
-    let isFirstInPartition = ri === 0;
-    let isLastInPartition = ri === group.length - 1;
+    let isFirstInPartition = ruleIndex === 0 || rule.isDecorator;
+    let isLastInPartition = ruleIndex === rules.length - 1 || rules[ruleIndex + 1].isDecorator;
+
 
     // TODO: ...
     let lines: string[] = [];
@@ -148,7 +153,8 @@ function getRuleLines(partitions: Rule[][], pi: number, ri: number, ruleNames: M
 
     // TODO: substitute in rule identifiers
     temp = temp.replace(/\{RULE_ID\}/g, ruleNames.get(rule));
-    temp = temp.replace(/\{NEXT_RULE_ID\}/g, ruleNames.get(group[ri + 1]));
+    //temp = temp.replace(/\{NEXT_RULE_ID\}/g, isLastInPartition ? '' : ruleNames.get(partitions[pi][ri + 1]));
+    temp = temp.replace(/\{NEXT_RULE_ID\}/g, isLastInPartition ? '' : ruleNames.get(rules[ruleIndex + 1]));
 
     // TODO: substitute in arguments for the call to the raw handler function
     temp = temp.replace(/\{HANDLER_ARGS\}/g, paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')); // TODO: shorted to <120 chars...
