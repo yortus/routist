@@ -126,24 +126,30 @@ function getRuleLines(ruleIndex: number, rules: Rule[], ruleNames: Map<Rule, str
     // TODO: ...
     let lines: string[] = [];
 
-    let temp = `
-        L0  function {RULE_ID}(addr, req, res?) {
-        L1      if (res !== null) return res;
-        L2      var captures{RULE_ID} = match{RULE_ID}(addr);
-        L3      var res = handle{RULE_ID}({HANDLER_ARGS});
-        L4      if (isPromise(res)) return res.then(rs => {NEXT_RULE_ID}(addr, req, rs));
-        L5      return {NEXT_RULE_ID}(addr, req, res);
-        L6      return handle{RULE_ID}({HANDLER_ARGS});
-        L7  }
-    `;
-    var removeLines = (first: number, count?: number) => {
-        let x = temp.split('\n');
-        x.splice(first, count || 1);
-        temp = x.join('\n');
-    };
 
+    const RULE_ID = ruleNames.get(rule);
+    const NEXT_RULE_ID = isLastInPartition ? '' : ruleNames.get(rules[ruleIndex + 1]);
+    const HANDLER_ARGS = paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ');
+
+
+    let temp = `
+        function ${RULE_ID}(addr, req, res?) {
+            if (res !== null) return res;                                               #if ${!isFirstInPartition}
+            var captures${RULE_ID} = match${RULE_ID}(addr);                             #if ${captureNames.length > 0}
+            var res = handle${RULE_ID}(${HANDLER_ARGS});                                #if ${!isLastInPartition}
+            if (isPromise(res)) return res.then(rs => ${NEXT_RULE_ID}(addr, req, rs));  #if ${!isLastInPartition}
+            return ${NEXT_RULE_ID}(addr, req, res);                                     #if ${!isLastInPartition}
+            return handle${RULE_ID}(${HANDLER_ARGS});                                   #if ${isLastInPartition}
+        }
+    `;
+
+    // TODO...
     temp = temp.split(/[\r\n]+/).slice(1, -1).join('\n');
-    temp = temp.replace(/^[ ]+L[0-9]  /gm, '');
+    let indent = temp.match(/^[ ]+/)[0].length;
+    temp = temp.split('\n').map(line => line.slice(indent)).join('\n');
+
+    // TODO...
+    temp = temp.replace(/^(.*?)([ ]+#if true)$/gm, '$1').replace(/\n.*?[ ]+#if false/g, '');
 
     // TODO: non-decorators have the 'res' parameter, decorators/FIRST don't
     temp = temp.replace(', res?', isFirstInPartition ? '' : ', res');
@@ -151,19 +157,6 @@ function getRuleLines(ruleIndex: number, rules: Rule[], ruleNames: Map<Rule, str
     // TODO: if 'res' is a parameter, then it doesn't need re-declaration in the body
     temp = temp.replace('var res', isFirstInPartition ? 'var res' : 'res');
 
-    // TODO: substitute in rule identifiers
-    temp = temp.replace(/\{RULE_ID\}/g, ruleNames.get(rule));
-    //temp = temp.replace(/\{NEXT_RULE_ID\}/g, isLastInPartition ? '' : ruleNames.get(partitions[pi][ri + 1]));
-    temp = temp.replace(/\{NEXT_RULE_ID\}/g, isLastInPartition ? '' : ruleNames.get(rules[ruleIndex + 1]));
-
-    // TODO: substitute in arguments for the call to the raw handler function
-    temp = temp.replace(/\{HANDLER_ARGS\}/g, paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')); // TODO: shorted to <120 chars...
-
-    // TODO: Remove unnecessary lines. Start from the bottom so that subsequent line numbers still match those in the annotated source above.
-    if (!isLastInPartition) removeLines(6);
-    if (isLastInPartition) removeLines(3, 3);
-    if (captureNames.length === 0) removeLines(2); // Don't need to run the match function if rule has no named captures
-    if (isFirstInPartition) removeLines(1); // Don't need to check 'res' in decorators/FIRST
     return temp.split('\n');
 }
 
