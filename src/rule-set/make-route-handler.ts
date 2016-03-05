@@ -9,49 +9,60 @@ let isPromise = util.isPromise; // TODO: explain why this... (eval and TS module
 
 
 
+/**
+ * In the absence of decorators, the logic of executing a route is fairly simple: execute the handler for each rule in
+ * turn, from the most to least specific, until one produces a response. With decorators, the logic becomes more
+ * complex, because a decorator must run *before* its more specfic handlers, with those more specific handlers being
+ * wrapped into a callback function and passed to the decorator. To account for this, we perform an order-preserving
+ * partitioning of a route's rules into a number of sublists, with each decorator starting a new partition. Within each
+ * partition, the simple cascading logic outlined in the first sentence above is performed. However each partition is
+ * executed in reverse-order (least to most specific), with the next (more-specific) partition being passed as the
+ * $next parameter to the decorator starting each partition.
+ */
+
+
+
+
 // TODO: doc...
 export default function makeRouteHandler<TRequest, TResponse>(route: Route): Handler<TRequest, TResponse> {
 
-    // TODO: specific to general...
+    // List the route's rules from most- to least-specific.
     let rules = route.slice().reverse();
 
-    // TODO: ...
-    let ruleGroups = partitionRulesIntoGroups(rules);
+    // Generate a unique pretty name for each rule, suitable for use in generated code.
+    let ruleNames = generateRuleNames(rules);
 
-    // TODO: doc...
-    let handlerIds = makeHandlerIdentifiers(rules);
+    // Partition the rules into sublists as described in the JSDoc comments above.
+    let partitions = partitionRules(rules);
 
     // TODO: ...
     let outerLines: string[] = [];
-    ruleGroups.forEach((group, gi) => {
-        group.forEach((rule, ri) => {
-            outerLines.push(...getRuleLines(ruleGroups, gi, ri, handlerIds));
+    partitions.forEach((partition, pi) => {
+        partition.forEach((rule, ri) => {
+            outerLines.push(...getRuleLines(partitions, pi, ri, ruleNames));
         });
     });
 
     // TODO: ...
-    let inner = getRuleLines(ruleGroups, ruleGroups.length - 1, 0, handlerIds).slice(1, -1).map(line => line.slice(4))
-
-    // TODO: ...
-    let startRule = ruleGroups[ruleGroups.length - 1][0];
+    let startRule = partitions[partitions.length - 1][0];
 
     // TODO: doc...
     let lines = [
-        ...rules.map((rule, i) => `var match${handlerIds.get(rule)} = rules[${i}].pattern.match;`).filter((_, i) => rules[i].pattern.captureNames.length > 0), // TODO: line too long!!!
-        ...rules.map((rule, i) => `var handle${handlerIds.get(rule)} = rules[${i}].handler;`),
+        ...rules.map((rule, i) => `var match${ruleNames.get(rule)} = rules[${i}].pattern.match;`),
+        ...rules.map((rule, i) => `var handle${ruleNames.get(rule)} = rules[${i}].handler;`),
         '',
         'function _Ø(req) { return null; }',
         ...outerLines,
         '',
-        `return ${handlerIds.get(startRule)};`,
+        `return ${ruleNames.get(startRule)};`,
     ];
- //if (rules.length > 5) {
-     console.log('\n\n\n\n\n');
-     console.log(lines);
- //}
-// debugger;
+//if (rules.length > 5) {
+//    console.log('\n\n\n\n\n');
+//    console.log(lines);
+//}
+//debugger;
 
-    // TODO: review comment bwloe, originally from normalize-handler.ts...
+    // TODO: review comment below, originally from normalize-handler.ts...
     // TODO: add a similar comment to make-dispatcher.ts?
     // Evaluate the source code into a function, and return it. This use of eval here is safe. In particular, the
     // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
@@ -69,8 +80,9 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
 
 
 
+
 // TODO: doc...
-function partitionRulesIntoGroups(rules: Rule[]): Rule[][] {
+function partitionRules(rules: Rule[]): Rule[][] {
     return rules.reduce(
         (groups, rule, i) => {
             // Each decorator starts a new group
@@ -89,56 +101,72 @@ function partitionRulesIntoGroups(rules: Rule[]): Rule[][] {
 
 
 // TODO: doc...
-function getRuleLines(ruleGroups: Rule[][], gi: number, ri: number, handlerIds: Map<Rule, string>): string[] {
+function getRuleLines(partitions: Rule[][], pi: number, ri: number, ruleNames: Map<Rule, string>): string[] {
 
     // TODO: ...
-    let group = ruleGroups[gi];
+    let group = partitions[pi];
     let rule = group[ri];
-    let hid = handlerIds.get(rule);
     let paramNames = rule.parameterNames;
     let captureNames = rule.pattern.captureNames;
-    let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${hid}.${name}`, map), {});
+    let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${ruleNames.get(rule)}.${name}`, map), {});
+    let firstRuleInPreviousPartition = pi === 0 ? null : partitions[pi - 1][0];
     let builtinMappings = {
         $addr: 'addr',
         $req: 'req',
-        $next: `${gi === 0 ? '_Ø' : `rq => ${handlerIds.get(ruleGroups[gi - 1][0])}(addr, rq === void 0 ? req : rq)`}`
+        $next: `${pi === 0 ? '_Ø' : `rq => ${ruleNames.get(firstRuleInPreviousPartition)}(addr, rq === void 0 ? req : rq)`}`
     };
-    let isFirstInGroup = ri === 0;
-    let isLastInGroup = ri === group.length - 1;
+    let isFirstInPartition = ri === 0;
+    let isLastInPartition = ri === group.length - 1;
 
     // TODO: ...
     let lines: string[] = [];
 
-    // TODO: ...
-    lines.push(`function ${hid}(addr, req${isFirstInGroup ? '' : ', res'}) {`);
+    let temp = `
+        L0  function {RULE_ID}(addr, req, res?) {
+        L1      if (res !== null) return res;
+        L2      var captures{RULE_ID} = match{RULE_ID}(addr);
+        L3      var res = handle{RULE_ID}({HANDLER_ARGS});
+        L4      if (isPromise(res)) return res.then(rs => {NEXT_RULE_ID}(addr, req, rs));
+        L5      return {NEXT_RULE_ID}(addr, req, res);
+        L6      return handle{RULE_ID}({HANDLER_ARGS});
+        L7  }
+    `;
+    var removeLines = (first: number, count?: number) => {
+        let x = temp.split('\n');
+        x.splice(first, count || 1);
+        temp = x.join('\n');
+    };
 
-    // TODO: ...
-    if (!isFirstInGroup) lines.push(`    if (res !== null) return res;`);
+    temp = temp.split(/[\r\n]+/).slice(1, -1).join('\n');
+    temp = temp.replace(/^[ ]+L[0-9]  /gm, '');
 
-    // TODO: ...
-    if (captureNames.length > 0) lines.push(`    var captures${hid} = match${hid}(addr);`);
-    let call = `handle${hid}(${paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')})`;
+    // TODO: non-decorators have the 'res' parameter, decorators/FIRST don't
+    temp = temp.replace(', res?', isFirstInPartition ? '' : ', res');
 
-    // TODO: ...
-    if (!isLastInGroup) {
-        lines.push(`    ${isFirstInGroup ? 'var ' : ''}res = ${call};`);
-        lines.push(`    if (isPromise(res)) return res.then(rs => ${handlerIds.get(group[ri + 1])}(addr, req, rs));`);
-        lines.push(`    return ${handlerIds.get(group[ri + 1])}(addr, req, res);`);
-    }
-    else {
-        lines.push(`    return ${call};`);
-    }
+    // TODO: if 'res' is a parameter, then it doesn't need re-declaration in the body
+    temp = temp.replace('var res', isFirstInPartition ? 'var res' : 'res');
 
-    lines.push('}');
-    return lines;
+    // TODO: substitute in rule identifiers
+    temp = temp.replace(/\{RULE_ID\}/g, ruleNames.get(rule));
+    temp = temp.replace(/\{NEXT_RULE_ID\}/g, ruleNames.get(group[ri + 1]));
+
+    // TODO: substitute in arguments for the call to the raw handler function
+    temp = temp.replace(/\{HANDLER_ARGS\}/g, paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ')); // TODO: shorted to <120 chars...
+
+    // TODO: Remove unnecessary lines. Start from the bottom so that subsequent line numbers still match those in the annotated source above.
+    if (!isLastInPartition) removeLines(6);
+    if (isLastInPartition) removeLines(3, 3);
+    if (captureNames.length === 0) removeLines(2); // Don't need to run the match function if rule has no named captures
+    if (isFirstInPartition) removeLines(1); // Don't need to check 'res' in decorators/FIRST
+    return temp.split('\n');
 }
 
 
 
 
 
-// TODO: doc...
-function makeHandlerIdentifiers(rules: Rule[]) {
+// TODO: doc... explain possibility of two rules having the same name and how this is avoided
+function generateRuleNames(rules: Rule[]) {
     let reservedIds = new Set<string>();
     let result = rules.reduce(
         (map, rule) => {
