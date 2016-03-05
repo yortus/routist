@@ -12,6 +12,7 @@ import {RuleSet, util} from 'routist';
 // ====================================================================================================================
 // DATE         MACHINE     RESULT                                                              NOTES
 // --------------------------------------------------------------------------------------------------------------------
+// 2016-03-05   LAJESTIC    Dispatched 1000000 requests in 0.748 seconds   (~1337000 req/sec)   After adding async handler support (ie handlers may return Promises)
 // 2016-02-26   LAJESTIC    Dispatched 1000000 requests in 0.669 seconds   (~1495000 req/sec)   After project restructure, but no significant codegen diff from prev
 // 2016-02-25   LAJESTIC    Dispatched 1000000 requests in 0.826 seconds   (~1211000 req/sec)   More % time spent executing compiled routes
 // 2016-02-25   LAJESTIC    Dispatched 1000 requests in 0.015 seconds   (~67000 req/sec)        More % time spent executing route setup
