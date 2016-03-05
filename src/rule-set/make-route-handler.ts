@@ -17,7 +17,7 @@ let isPromise = util.isPromise; // TODO: explain why this... (eval and TS module
  * partitioning of a route's rules into a number of sublists, with each decorator starting a new partition. Within each
  * partition, the simple cascading logic outlined in the first sentence above is performed. However each partition is
  * executed in reverse-order (least to most specific), with the next (more-specific) partition being passed as the
- * $next parameter to the decorator starting each partition.
+ * $next parameter to the decorator starting previous (less-specific) partition.
  */
 
 
@@ -105,6 +105,7 @@ function getRuleLines(ruleIndex: number, rules: Rule[], ruleNames: Map<Rule, str
     let captureNames = rule.pattern.captureNames;
     let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${ruleNames.get(rule)}.${name}`, map), {});
 
+    let hasNamedCaptures = captureNames.length > 0;
 
     // TODO: this logic is totally opaque... clean it up...
     let partitionIndices = [0].concat(rules.filter((r, i) => r.isDecorator && i > 0).map(r => rules.indexOf(r)));
@@ -127,37 +128,36 @@ function getRuleLines(ruleIndex: number, rules: Rule[], ruleNames: Map<Rule, str
     let lines: string[] = [];
 
 
-    const RULE_ID = ruleNames.get(rule);
-    const NEXT_RULE_ID = isLastInPartition ? '' : ruleNames.get(rules[ruleIndex + 1]);
+    const RULE_NAME = ruleNames.get(rule);
+    const NEXT_RULE_NAME = isLastInPartition ? '' : ruleNames.get(rules[ruleIndex + 1]);
     const HANDLER_ARGS = paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ');
 
 
-    let temp = `
-        function ${RULE_ID}(addr, req, res?) {
-            if (res !== null) return res;                                               #if ${!isFirstInPartition}
-            var captures${RULE_ID} = match${RULE_ID}(addr);                             #if ${captureNames.length > 0}
-            var res = handle${RULE_ID}(${HANDLER_ARGS});                                #if ${!isLastInPartition}
-            if (isPromise(res)) return res.then(rs => ${NEXT_RULE_ID}(addr, req, rs));  #if ${!isLastInPartition}
-            return ${NEXT_RULE_ID}(addr, req, res);                                     #if ${!isLastInPartition}
-            return handle${RULE_ID}(${HANDLER_ARGS});                                   #if ${isLastInPartition}
+    let src = `
+        function ${RULE_NAME}(addr, req, res?) {
+            if (res !== null) return res;                                                   #if ${!isFirstInPartition}
+            var captures${RULE_NAME} = match${RULE_NAME}(addr);                             #if ${hasNamedCaptures}
+            var res = handle${RULE_NAME}(${HANDLER_ARGS});                                  #if ${!isLastInPartition}
+            if (isPromise(res)) return res.then(rs => ${NEXT_RULE_NAME}(addr, req, rs));    #if ${!isLastInPartition}
+            return ${NEXT_RULE_NAME}(addr, req, res);                                       #if ${!isLastInPartition}
+            return handle${RULE_NAME}(${HANDLER_ARGS});                                     #if ${isLastInPartition}
         }
     `;
 
-    // TODO...
-    temp = temp.split(/[\r\n]+/).slice(1, -1).join('\n');
-    let indent = temp.match(/^[ ]+/)[0].length;
-    temp = temp.split('\n').map(line => line.slice(indent)).join('\n');
+    // Strip off superfluous lines and indentation.
+    src = src.split(/[\r\n]+/).slice(1, -1).join('\n');
+    let indent = src.match(/^[ ]+/)[0].length;
+    src = src.split('\n').map(line => line.slice(indent)).join('\n');
 
-    // TODO...
-    temp = temp.replace(/^(.*?)([ ]+#if true)$/gm, '$1').replace(/\n.*?[ ]+#if false/g, '');
+    // Conditionally keep/discard whole lines according to #if directives.
+    src = src.replace(/^(.*?)([ ]+#if true)$/gm, '$1').replace(/\n.*?[ ]+#if false/g, '');
 
-    // TODO: non-decorators have the 'res' parameter, decorators/FIRST don't
-    temp = temp.replace(', res?', isFirstInPartition ? '' : ', res');
+    // The first rule in each partition doesn't have a 'res' parameter. Adjust accordingly.
+    src = src.replace(', res?', isFirstInPartition ? '' : ', res');
+    src = src.replace('var res', isFirstInPartition ? 'var res' : 'res');
 
-    // TODO: if 'res' is a parameter, then it doesn't need re-declaration in the body
-    temp = temp.replace('var res', isFirstInPartition ? 'var res' : 'res');
-
-    return temp.split('\n');
+    // TODO: return the lines...
+    return src.split('\n');
 }
 
 
