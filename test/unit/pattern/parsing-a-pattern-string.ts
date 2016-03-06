@@ -6,6 +6,7 @@ import {parsePatternSource, PatternAST} from 'routist';
 describe('Parsing a pattern string', () => {
 
     let tests = [
+        '∅ ==> {signature: "∅", captures: []}',
         '/api/foo ==> {signature: "/api/foo", captures: []}',
         '/api/foo/BAR ==> {signature: "/api/foo/BAR", captures: []}',
         '/api/foo… ==> {signature: "/api/foo…", captures: ["?"]}',
@@ -24,6 +25,8 @@ describe('Parsing a pattern string', () => {
         '{...__} ==> {signature: "…", captures: ["__"]}',
         '.... ==> {signature: "….", captures: ["?"]}',
 
+        '/∅ ==> ERROR',
+        '∅… ==> ERROR',
         '/*** ==> ERROR',
         '/*… ==> ERROR',
         '/foo/{...rest}* ==> ERROR',

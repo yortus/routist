@@ -6,6 +6,7 @@ import {Pattern} from 'routist';
 describe('Constructing a Pattern instance', () => {
 
     let tests = [
+        '∅ ==> ∅ WITH []',
         '/api/foo ==> /api/foo WITH []',
         '/api/foo/BAR ==> /api/foo/BAR WITH []',
         '/api/foo… ==> /api/foo… WITH []',
@@ -18,6 +19,7 @@ describe('Constructing a Pattern instance', () => {
         '/.../{name}.{ext} ==> /…/*.* WITH ["name", "ext"]',
         '/{...aPath}/{name}.{ext} ==> /…/*.* WITH ["aPath", "name", "ext"]',
         '/-/./- ==> /-/./-',
+        '/∅ ==> ERROR',
         '/*** ==> ERROR',
         '/*… ==> ERROR',
         '/foo/{...rest}* ==> ERROR',

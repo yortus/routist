@@ -6,6 +6,7 @@ import {Pattern} from 'routist';
 describe('Making a pattern identifier', () => {
 
     let tests = [
+        '∅ ==> Ø',
         '/api/foo ==> ﾉapiﾉfoo',
         '/api/foo/BAR ==> ﾉapiﾉfooﾉBAR',
         '/api/foo… ==> ﾉapiﾉfoo﹍',
@@ -21,7 +22,7 @@ describe('Making a pattern identifier', () => {
         '/foo// ==> ﾉfooﾉﾉ',
         '// ==> ﾉﾉ',
         '{$} ==> ᕽ',
-        '{…__} ==> ﹍',
+        '{…__} ==> ﹍'
     ];
 
     tests.forEach(test => {

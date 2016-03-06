@@ -116,6 +116,7 @@ export default class Pattern {
                 if (c === ' ') return 'ㆍ'; // (U+318D)
                 if (c === '…') return '﹍'; // (U+FE4D)
                 if (c === '*') return 'ᕽ'; // (U+157D)
+                if (c === '∅') return 'Ø' // (U+00F8)
                 throw new Error(`Unrecognized character '${c}' in pattern '${this}'`); // sanity check
             })
             .join('');

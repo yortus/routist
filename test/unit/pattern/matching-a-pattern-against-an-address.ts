@@ -6,6 +6,7 @@ import {Pattern} from 'routist';
 describe('Matching a pattern against an address', () => {
 
     let tests = [
+        '∅ DOES NOT MATCH ',
         '* MATCHES abc',
         '* DOES NOT MATCH abc/def',
         '… MATCHES abc',
