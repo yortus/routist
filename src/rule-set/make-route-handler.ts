@@ -37,7 +37,17 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
 
     // TODO: ...
     let outerLines: string[] = [];
-    rules.forEach((rule, i) => outerLines.push(...getRuleLines(i, rules, ruleNames)));
+    let downstreamRule = null, firstRuleInPartition = null;
+    rules.forEach((rule, i) => {
+        let isFirstInPartition = i === 0 || rule.isDecorator;
+        if (isFirstInPartition) {
+            // TODO: shunt...
+            downstreamRule = firstRuleInPartition;
+            firstRuleInPartition = rule;
+        }
+        let nextRuleInPartition = i < rules.length - 1 && !rules[i + 1].isDecorator ? rules[i + 1] : null;
+        outerLines.push(...getRuleLines(rule, isFirstInPartition, nextRuleInPartition, downstreamRule, ruleNames));
+    });
 
     // TODO: ...
     let startRule = partitions[partitions.length - 1][0];
@@ -97,31 +107,17 @@ function partitionRules(rules: Rule[]): Rule[][] {
 
 
 // TODO: doc...
-function getRuleLines(ruleIndex: number, rules: Rule[], ruleNames: Map<Rule, string>): string[] {
+function getRuleLines(rule: Rule, isFirstInPartition: boolean, nextRuleInPartition: Rule, downstreamRule: Rule, ruleNames: Map<Rule, string>): string[] {
 
     // TODO: ...
-    let rule = rules[ruleIndex];
+    //let rule = rules[ruleIndex];
     let paramNames = rule.parameterNames;
     let captureNames = rule.pattern.captureNames;
     let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${ruleNames.get(rule)}.${name}`, map), {});
-
     let hasNamedCaptures = captureNames.length > 0;
-
-    // TODO: this logic is totally opaque... clean it up...
-    let partitionIndices = [0].concat(rules.filter((r, i) => r.isDecorator && i > 0).map(r => rules.indexOf(r)));
-    partitionIndices = partitionIndices.filter(i => i <= ruleIndex);
-    let isFirstPartition = partitionIndices.length === 1;
-    let ruleIndexOfPrevPartition = isFirstPartition ? -1 : partitionIndices[partitionIndices.length - 2];
-    let firstRuleInPreviousPartition = ruleIndexOfPrevPartition === -1 ? null : rules[ruleIndexOfPrevPartition];
-
-
-    let builtinMappings = {
-        $addr: 'addr',
-        $req: 'req',
-        $next: `${isFirstPartition ? '_Ø' : `rq => ${ruleNames.get(firstRuleInPreviousPartition)}(addr, rq === void 0 ? req : rq)`}`
-    };
-    let isFirstInPartition = ruleIndex === 0 || rule.isDecorator;
-    let isLastInPartition = ruleIndex === rules.length - 1 || rules[ruleIndex + 1].isDecorator;
+    let downstreamRuleName = downstreamRule ? ruleNames.get(downstreamRule) : '_Ø';
+    let builtinMappings = { $addr: 'addr', $req: 'req', $next: `rq => ${downstreamRuleName}(addr, rq === void 0 ? req : rq)` };
+    let isLastInPartition = nextRuleInPartition === null;
 
 
     // TODO: ...
@@ -129,7 +125,7 @@ function getRuleLines(ruleIndex: number, rules: Rule[], ruleNames: Map<Rule, str
 
 
     const RULE_NAME = ruleNames.get(rule);
-    const NEXT_RULE_NAME = isLastInPartition ? '' : ruleNames.get(rules[ruleIndex + 1]);
+    const NEXT_RULE_NAME = isLastInPartition ? '' : ruleNames.get(nextRuleInPartition);
     const HANDLER_ARGS = paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ');
 
 
