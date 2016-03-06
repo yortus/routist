@@ -30,14 +30,14 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
     let rules = route.slice().reverse();
 
     // Generate a unique pretty name for each rule, suitable for use in generated code.
-    let ruleNames = generateRuleNames(rules);
+    let ruleNames = generateRuleNames(rules.concat(emptyRule)); // TODO: explain adding emptyRule here...
 
     // Partition the rules into sublists as described in the JSDoc comments above.
     let partitions = partitionRules(rules);
 
     // TODO: ...
     let outerLines: string[] = [];
-    let downstreamRule = null, firstRuleInPartition = null;
+    let downstreamRule = null, firstRuleInPartition = emptyRule;
     rules.forEach((rule, i) => {
         let isFirstInPartition = i === 0 || rule.isDecorator;
         if (isFirstInPartition) {
@@ -46,7 +46,7 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
             firstRuleInPartition = rule;
         }
         let nextRuleInPartition = i < rules.length - 1 && !rules[i + 1].isDecorator ? rules[i + 1] : null;
-        outerLines.push(...getRuleLines(rule, isFirstInPartition, nextRuleInPartition, downstreamRule, ruleNames));
+        outerLines.push(...getRuleLines(rule, isFirstInPartition, nextRuleInPartition, ruleNames.get(downstreamRule), ruleNames));
     });
 
     // TODO: ...
@@ -86,6 +86,13 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
 
 
 
+// TODO: doc...
+let emptyRule = new Rule('∅', () => null);
+
+
+
+
+
 
 // TODO: doc...
 function partitionRules(rules: Rule[]): Rule[][] {
@@ -107,36 +114,34 @@ function partitionRules(rules: Rule[]): Rule[][] {
 
 
 // TODO: doc...
-function getRuleLines(rule: Rule, isFirstInPartition: boolean, nextRuleInPartition: Rule, downstreamRule: Rule, ruleNames: Map<Rule, string>): string[] {
+function getRuleLines(rule: Rule, isFirstInPartition: boolean, nextRuleInPartition: Rule, downstreamFuncName: string, ruleNames: Map<Rule, string>): string[] {
 
     // TODO: ...
-    //let rule = rules[ruleIndex];
-    let paramNames = rule.parameterNames;
-    let captureNames = rule.pattern.captureNames;
-    let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${ruleNames.get(rule)}.${name}`, map), {});
-    let hasNamedCaptures = captureNames.length > 0;
-    let downstreamRuleName = downstreamRule ? ruleNames.get(downstreamRule) : '_Ø';
-    let builtinMappings = { $addr: 'addr', $req: 'req', $next: `rq => ${downstreamRuleName}(addr, rq === void 0 ? req : rq)` };
+    let ruleName = ruleNames.get(rule);
+    let nextRuleName = ruleNames.get(nextRuleInPartition);
     let isLastInPartition = nextRuleInPartition === null;
 
+    // TODO: ...
+    let paramNames = rule.parameterNames;
+    let captureNames = rule.pattern.captureNames;
+    let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${ruleName}.${name}`, map), {});
+    let builtinMappings = { $addr: 'addr', $req: 'req', $next: `rq => ${downstreamFuncName}(addr, rq === void 0 ? req : rq)` };
+    const handlerArgs = paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ');
+
+
+
+
+
 
     // TODO: ...
-    let lines: string[] = [];
-
-
-    const RULE_NAME = ruleNames.get(rule);
-    const NEXT_RULE_NAME = isLastInPartition ? '' : ruleNames.get(nextRuleInPartition);
-    const HANDLER_ARGS = paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ');
-
-
     let src = `
-        function ${RULE_NAME}(addr, req, res?) {
-            if (res !== null) return res;                                                   #if ${!isFirstInPartition}
-            var captures${RULE_NAME} = match${RULE_NAME}(addr);                             #if ${hasNamedCaptures}
-            var res = handle${RULE_NAME}(${HANDLER_ARGS});                                  #if ${!isLastInPartition}
-            if (isPromise(res)) return res.then(rs => ${NEXT_RULE_NAME}(addr, req, rs));    #if ${!isLastInPartition}
-            return ${NEXT_RULE_NAME}(addr, req, res);                                       #if ${!isLastInPartition}
-            return handle${RULE_NAME}(${HANDLER_ARGS});                                     #if ${isLastInPartition}
+        function ${ruleName}(addr, req, res?) {
+            if (res !== null) return res;                                               #if ${!isFirstInPartition}
+            var captures${ruleName} = match${ruleName}(addr);                           #if ${captureNames.length > 0}
+            var res = handle${ruleName}(${handlerArgs});                                #if ${!isLastInPartition}
+            if (isPromise(res)) return res.then(rs => ${nextRuleName}(addr, req, rs));  #if ${!isLastInPartition}
+            return ${nextRuleName}(addr, req, res);                                     #if ${!isLastInPartition}
+            return handle${ruleName}(${handlerArgs});                                   #if ${isLastInPartition}
         }
     `;
 
