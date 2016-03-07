@@ -39,26 +39,13 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
     // TODO: fix comments below...
     // List the route's rules from most- to least-specific.
     // Generate a unique pretty name for each rule, suitable for use in generated code.
+    // Partition the rules into sublists as described in the JSDoc comments above.
     // TODO: explain augmentation/partitioning...
     let rules = augmentRules(route.slice().reverse());
 
-    // Partition the rules into sublists as described in the JSDoc comments above.
-    let partitions = partitionRules(rules);
-
     // TODO: ...
-    let outerLines: string[] = [];
-    let downstreamRule = null, firstRuleInPartition = emptyRule;
-    rules.forEach((rule, i) => {
-        if (rule.startsPartition) {
-            // TODO: shunt...
-            downstreamRule = firstRuleInPartition;
-            firstRuleInPartition = rule;
-        }
-        outerLines.push(...getRuleLines(rule, rules[i + 1] || <any>{}, downstreamRule)); // TODO: fix ||<any> hack...
-    });
-
-    // TODO: ...
-    let startRule: RuleEx = partitions[partitions.length - 1][0];
+    let outerLines: string[] = [].concat(...rules.map(getRuleLines));
+    let startRule = rules.filter(r => r.startsPartition).reverse()[0];
 
     // TODO: doc...
     let lines = [
@@ -131,26 +118,11 @@ function augmentRules(rules: Rule[]): RuleEx[] {
 
 
 // TODO: doc...
-function partitionRules(rules: RuleEx[]): RuleEx[][] {
-    return rules.reduce(
-        (groups, rule, i) => {
-            // Each decorator starts a new group
-            if (rule.isDecorator && i > 0) groups.push([]);
+function getRuleLines(rule: RuleEx, index: number, rules: RuleEx[]): string[] {
 
-            // Add the rule to the current group
-            groups[groups.length - 1].push(rule);
-            return groups;
-        },
-        <RuleEx[][]>[[]]
-    );
-}
-
-
-
-
-
-// TODO: doc...
-function getRuleLines(rule: RuleEx, nextRule: RuleEx, downstreamRule: RuleEx): string[] {
+    // TODO: fix these messes...
+    let nextRule = rules[index + 1] || <any>{};
+    let downstreamRule = rules.filter((r, i) => r.startsPartition && i <= index).reverse()[1] || emptyRule;
 
     // TODO: ...
     let paramNames = rule.parameterNames;
