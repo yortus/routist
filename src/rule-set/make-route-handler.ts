@@ -9,16 +9,6 @@ let isPromise = util.isPromise; // TODO: explain why this... (eval and TS module
 
 
 
-// TODO: doc...
-interface RuleEx extends Rule {
-    name: string;
-    startsPartition: boolean;
-    endsPartition: boolean;
-}
-
-
-
-
 /**
  * In the absence of decorators, the logic of executing a route is fairly simple: execute the handler for each rule in
  * turn, from the most to least specific, until one produces a response. With decorators, the logic becomes more
@@ -33,6 +23,7 @@ interface RuleEx extends Rule {
 
 
 
+
 // TODO: doc...
 export default function makeRouteHandler<TRequest, TResponse>(route: Route): Handler<TRequest, TResponse> {
 
@@ -43,23 +34,18 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
     // TODO: explain augmentation/partitioning...
     let rules = augmentRules(route.slice().reverse());
 
-    // TODO: ...
-    let outerLines: string[] = [].concat(...rules.map(getRuleLines));
-    let startRule = rules.filter(r => r.startsPartition).reverse()[0];
-
     // TODO: doc...
     let lines = [
         ...rules.map((rule, i) => `var match${rule.name} = rules[${i}].pattern.match;`),
         ...rules.map((rule, i) => `var handle${rule.name} = rules[${i}].handler;`),
-        '',
-        'function _Ø(req) { return null; }',
-        ...outerLines,
-        '',
-        `return ${startRule.name};`,
+        'function _Ø(addr, req) {\n    return null;\n}',
+        ...rules.map(generateRuleHandlerSource),
+        `return ${rules.filter(r => r.startsPartition).reverse()[0].name};`,
     ];
+
 // if (rules.length > 5) {
 //     console.log('\n\n\n\n\n');
-//     console.log(lines);
+//     console.log(lines.join('\n').split('\n'));
 //     debugger;
 // }
 
@@ -76,15 +62,6 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
 //debugger;
     return fn;
 }
-
-
-
-
-
-// TODO: doc... fix... unclear...
-let emptyRule: RuleEx;
-emptyRule = <any> new Rule('∅', () => null);
-emptyRule.name = '_Ø';
 
 
 
@@ -118,43 +95,54 @@ function augmentRules(rules: Rule[]): RuleEx[] {
 
 
 // TODO: doc...
-function getRuleLines(rule: RuleEx, index: number, rules: RuleEx[]): string[] {
+function generateRuleHandlerSource(rule: RuleEx, index: number, rules: RuleEx[]): string {
 
-    // TODO: fix these messes...
-    let nextRule = rules[index + 1] || <any>{};
-    let downstreamRule = rules.filter((r, i) => r.startsPartition && i <= index).reverse()[1] || emptyRule;
+    // TODO: fix these messes... explain 'fallback' and 'downstream'
+    let nextRuleName = index < rules.length - 1 ? rules[index + 1].name : '';
+    let downstreamRuleName = (rules.filter((r, i) => r.startsPartition && i <= index).reverse()[1] || {name:'_Ø'}).name;
 
     // TODO: ...
     let paramNames = rule.parameterNames;
     let captureNames = rule.pattern.captureNames;
     let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${rule.name}.${name}`, map), {});
-    let builtinMappings = { $addr: 'addr', $req: 'req', $next: `rq => ${downstreamRule.name}(addr, rq === void 0 ? req : rq)` };
+    let builtinMappings = { $addr: 'addr', $req: 'req', $next: `rq => ${downstreamRuleName}(addr, rq === void 0 ? req : rq)` };
     const handlerArgs = paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ');
 
     // TODO: ...
-    let src = `
+    let source = `
         function ${rule.name}(addr, req, res?) {
             if (res !== null) return res;                                               #if ${!rule.startsPartition}
             var captures${rule.name} = match${rule.name}(addr);                         #if ${captureNames.length > 0}
             var res = handle${rule.name}(${handlerArgs});                               #if ${!rule.endsPartition}
-            if (isPromise(res)) return res.then(rs => ${nextRule.name}(addr, req, rs)); #if ${!rule.endsPartition}
-            return ${nextRule.name}(addr, req, res);                                    #if ${!rule.endsPartition}
+            if (isPromise(res)) return res.then(rs => ${nextRuleName}(addr, req, rs));  #if ${!rule.endsPartition}
+            return ${nextRuleName}(addr, req, res);                                     #if ${!rule.endsPartition}
             return handle${rule.name}(${handlerArgs});                                  #if ${rule.endsPartition}
         }
     `;
 
     // Strip off superfluous lines and indentation.
-    src = src.split(/[\r\n]+/).slice(1, -1).join('\n');
-    let indent = src.match(/^[ ]+/)[0].length;
-    src = src.split('\n').map(line => line.slice(indent)).join('\n');
+    source = source.split(/[\r\n]+/).slice(1, -1).join('\n');
+    let indent = source.match(/^[ ]+/)[0].length;
+    source = source.split('\n').map(line => line.slice(indent)).join('\n');
 
     // Conditionally keep/discard whole lines according to #if directives.
-    src = src.replace(/^(.*?)([ ]+#if true)$/gm, '$1').replace(/\n.*?[ ]+#if false/g, '');
+    source = source.replace(/^(.*?)([ ]+#if true)$/gm, '$1').replace(/\n.*?[ ]+#if false/g, '');
 
     // The first rule in each partition doesn't have a 'res' parameter. Adjust accordingly.
-    src = src.replace(', res?', rule.startsPartition ? '' : ', res');
-    src = src.replace('var res', rule.startsPartition ? 'var res' : 'res');
+    source = source.replace(', res?', rule.startsPartition ? '' : ', res');
+    source = source.replace('var res', rule.startsPartition ? 'var res' : 'res');
 
     // TODO: return the lines...
-    return src.split('\n');
+    return source;
+}
+
+
+
+
+
+// TODO: doc...
+interface RuleEx extends Rule {
+    name: string;
+    startsPartition: boolean;
+    endsPartition: boolean;
 }
