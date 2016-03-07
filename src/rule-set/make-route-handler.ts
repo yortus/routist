@@ -9,6 +9,14 @@ let isPromise = util.isPromise; // TODO: explain why this... (eval and TS module
 
 
 
+// TODO: doc...
+interface RuleEx extends Rule {
+    name: string;
+}
+
+
+
+
 /**
  * In the absence of decorators, the logic of executing a route is fairly simple: execute the handler for each rule in
  * turn, from the most to least specific, until one produces a response. With decorators, the logic becomes more
@@ -26,11 +34,11 @@ let isPromise = util.isPromise; // TODO: explain why this... (eval and TS module
 // TODO: doc...
 export default function makeRouteHandler<TRequest, TResponse>(route: Route): Handler<TRequest, TResponse> {
 
+    // TODO: fix comments below...
     // List the route's rules from most- to least-specific.
-    let rules = route.slice().reverse();
-
     // Generate a unique pretty name for each rule, suitable for use in generated code.
-    let ruleNames = generateRuleNames(rules.concat(emptyRule)); // TODO: explain adding emptyRule here...
+    // TODO: explain augmentation/partitioning...
+    let rules = augmentRules(route.slice().reverse());
 
     // Partition the rules into sublists as described in the JSDoc comments above.
     let partitions = partitionRules(rules);
@@ -46,21 +54,21 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
             firstRuleInPartition = rule;
         }
         let nextRuleInPartition = i < rules.length - 1 && !rules[i + 1].isDecorator ? rules[i + 1] : null;
-        outerLines.push(...getRuleLines(rule, isFirstInPartition, nextRuleInPartition, ruleNames.get(downstreamRule), ruleNames));
+        outerLines.push(...getRuleLines(rule, isFirstInPartition, nextRuleInPartition, downstreamRule));
     });
 
     // TODO: ...
-    let startRule = partitions[partitions.length - 1][0];
+    let startRule: RuleEx = partitions[partitions.length - 1][0];
 
     // TODO: doc...
     let lines = [
-        ...rules.map((rule, i) => `var match${ruleNames.get(rule)} = rules[${i}].pattern.match;`),
-        ...rules.map((rule, i) => `var handle${ruleNames.get(rule)} = rules[${i}].handler;`),
+        ...rules.map((rule, i) => `var match${rule.name} = rules[${i}].pattern.match;`),
+        ...rules.map((rule, i) => `var handle${rule.name} = rules[${i}].handler;`),
         '',
         'function _Ø(req) { return null; }',
         ...outerLines,
         '',
-        `return ${ruleNames.get(startRule)};`,
+        `return ${startRule.name};`,
     ];
 // if (rules.length > 5) {
 //     console.log('\n\n\n\n\n');
@@ -86,16 +94,40 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
 
 
 
+// TODO: doc... fix... unclear...
+let emptyRule: RuleEx;
+emptyRule = <any> new Rule('∅', () => null);
+emptyRule.name = '_Ø';
+
+
+
+
+
+// TODO: doc... explain possibility of two rules having the same name and how this is avoided
+function augmentRules(rules: Rule[]): RuleEx[] {
+    let reservedIds = new Set<string>();
+    return rules.map((rule: RuleEx) => {
+
+        // TODO: ...
+        let base = rule.pattern.toIdentifierParts();
+        for (let isReserved = true, index = 0; isReserved; ++index) {
+            var id = `_${base}${index ? `_${index}` : ''}`;
+            isReserved = reservedIds.has(id);
+        }
+
+        // TODO: ...
+        reservedIds.add(id);
+        rule.name = id;
+        return rule;
+    });
+}
+
+
+
+
+
 // TODO: doc...
-let emptyRule = new Rule('∅', () => null);
-
-
-
-
-
-
-// TODO: doc...
-function partitionRules(rules: Rule[]): Rule[][] {
+function partitionRules(rules: RuleEx[]): RuleEx[][] {
     return rules.reduce(
         (groups, rule, i) => {
             // Each decorator starts a new group
@@ -105,7 +137,7 @@ function partitionRules(rules: Rule[]): Rule[][] {
             groups[groups.length - 1].push(rule);
             return groups;
         },
-        <Rule[][]>[[]]
+        <RuleEx[][]>[[]]
     );
 }
 
@@ -114,18 +146,18 @@ function partitionRules(rules: Rule[]): Rule[][] {
 
 
 // TODO: doc...
-function getRuleLines(rule: Rule, isFirstInPartition: boolean, nextRuleInPartition: Rule, downstreamFuncName: string, ruleNames: Map<Rule, string>): string[] {
+function getRuleLines(rule: RuleEx, isFirstInPartition: boolean, nextRuleInPartition: RuleEx, downstreamRule: RuleEx): string[] {
 
     // TODO: ...
-    let ruleName = ruleNames.get(rule);
-    let nextRuleName = ruleNames.get(nextRuleInPartition);
+    let ruleName = rule.name;
+    let nextRuleName = (nextRuleInPartition || {})['name']; // TODO: yuk! fix...
     let isLastInPartition = nextRuleInPartition === null;
 
     // TODO: ...
     let paramNames = rule.parameterNames;
     let captureNames = rule.pattern.captureNames;
     let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${ruleName}.${name}`, map), {});
-    let builtinMappings = { $addr: 'addr', $req: 'req', $next: `rq => ${downstreamFuncName}(addr, rq === void 0 ? req : rq)` };
+    let builtinMappings = { $addr: 'addr', $req: 'req', $next: `rq => ${downstreamRule.name}(addr, rq === void 0 ? req : rq)` };
     const handlerArgs = paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ');
 
 
@@ -159,30 +191,4 @@ function getRuleLines(rule: Rule, isFirstInPartition: boolean, nextRuleInPartiti
 
     // TODO: return the lines...
     return src.split('\n');
-}
-
-
-
-
-
-// TODO: doc... explain possibility of two rules having the same name and how this is avoided
-function generateRuleNames(rules: Rule[]) {
-    let reservedIds = new Set<string>();
-    let result = rules.reduce(
-        (map, rule) => {
-
-            // TODO: ...
-            let base = rule.pattern.toIdentifierParts();
-            for (let isReserved = true, index = 0; isReserved; ++index) {
-                var id = `_${base}${index ? `_${index}` : ''}`;
-                isReserved = reservedIds.has(id);
-            }
-            
-            // TODO: ...
-            reservedIds.add(id);
-            return map.set(rule, id);
-        },
-        new Map<Rule, string>()
-    );
-    return result;
 }
