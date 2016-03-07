@@ -12,6 +12,8 @@ let isPromise = util.isPromise; // TODO: explain why this... (eval and TS module
 // TODO: doc...
 interface RuleEx extends Rule {
     name: string;
+    startsPartition: boolean;
+    endsPartition: boolean;
 }
 
 
@@ -47,14 +49,12 @@ export default function makeRouteHandler<TRequest, TResponse>(route: Route): Han
     let outerLines: string[] = [];
     let downstreamRule = null, firstRuleInPartition = emptyRule;
     rules.forEach((rule, i) => {
-        let isFirstInPartition = i === 0 || rule.isDecorator;
-        if (isFirstInPartition) {
+        if (rule.startsPartition) {
             // TODO: shunt...
             downstreamRule = firstRuleInPartition;
             firstRuleInPartition = rule;
         }
-        let nextRuleInPartition = i < rules.length - 1 && !rules[i + 1].isDecorator ? rules[i + 1] : null;
-        outerLines.push(...getRuleLines(rule, isFirstInPartition, nextRuleInPartition, downstreamRule));
+        outerLines.push(...getRuleLines(rule, rules[i + 1] || <any>{}, downstreamRule)); // TODO: fix ||<any> hack...
     });
 
     // TODO: ...
@@ -106,7 +106,11 @@ emptyRule.name = '_Ø';
 // TODO: doc... explain possibility of two rules having the same name and how this is avoided
 function augmentRules(rules: Rule[]): RuleEx[] {
     let reservedIds = new Set<string>();
-    return rules.map((rule: RuleEx) => {
+    return rules.map((rule: RuleEx, i: number) => {
+
+        // TODO: ...
+        rule.startsPartition = i === 0 || rule.isDecorator;
+        rule.endsPartition = i === rules.length - 1 || rules[i + 1].isDecorator;
 
         // TODO: ...
         let base = rule.pattern.toIdentifierParts();
@@ -146,34 +150,24 @@ function partitionRules(rules: RuleEx[]): RuleEx[][] {
 
 
 // TODO: doc...
-function getRuleLines(rule: RuleEx, isFirstInPartition: boolean, nextRuleInPartition: RuleEx, downstreamRule: RuleEx): string[] {
-
-    // TODO: ...
-    let ruleName = rule.name;
-    let nextRuleName = (nextRuleInPartition || {})['name']; // TODO: yuk! fix...
-    let isLastInPartition = nextRuleInPartition === null;
+function getRuleLines(rule: RuleEx, nextRule: RuleEx, downstreamRule: RuleEx): string[] {
 
     // TODO: ...
     let paramNames = rule.parameterNames;
     let captureNames = rule.pattern.captureNames;
-    let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${ruleName}.${name}`, map), {});
+    let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${rule.name}.${name}`, map), {});
     let builtinMappings = { $addr: 'addr', $req: 'req', $next: `rq => ${downstreamRule.name}(addr, rq === void 0 ? req : rq)` };
     const handlerArgs = paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ');
 
-
-
-
-
-
     // TODO: ...
     let src = `
-        function ${ruleName}(addr, req, res?) {
-            if (res !== null) return res;                                               #if ${!isFirstInPartition}
-            var captures${ruleName} = match${ruleName}(addr);                           #if ${captureNames.length > 0}
-            var res = handle${ruleName}(${handlerArgs});                                #if ${!isLastInPartition}
-            if (isPromise(res)) return res.then(rs => ${nextRuleName}(addr, req, rs));  #if ${!isLastInPartition}
-            return ${nextRuleName}(addr, req, res);                                     #if ${!isLastInPartition}
-            return handle${ruleName}(${handlerArgs});                                   #if ${isLastInPartition}
+        function ${rule.name}(addr, req, res?) {
+            if (res !== null) return res;                                               #if ${!rule.startsPartition}
+            var captures${rule.name} = match${rule.name}(addr);                         #if ${captureNames.length > 0}
+            var res = handle${rule.name}(${handlerArgs});                               #if ${!rule.endsPartition}
+            if (isPromise(res)) return res.then(rs => ${nextRule.name}(addr, req, rs)); #if ${!rule.endsPartition}
+            return ${nextRule.name}(addr, req, res);                                    #if ${!rule.endsPartition}
+            return handle${rule.name}(${handlerArgs});                                  #if ${rule.endsPartition}
         }
     `;
 
@@ -186,8 +180,8 @@ function getRuleLines(rule: RuleEx, isFirstInPartition: boolean, nextRuleInParti
     src = src.replace(/^(.*?)([ ]+#if true)$/gm, '$1').replace(/\n.*?[ ]+#if false/g, '');
 
     // The first rule in each partition doesn't have a 'res' parameter. Adjust accordingly.
-    src = src.replace(', res?', isFirstInPartition ? '' : ', res');
-    src = src.replace('var res', isFirstInPartition ? 'var res' : 'res');
+    src = src.replace(', res?', rule.startsPartition ? '' : ', res');
+    src = src.replace('var res', rule.startsPartition ? 'var res' : 'res');
 
     // TODO: return the lines...
     return src.split('\n');
