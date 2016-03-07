@@ -8,6 +8,7 @@ import Rule from './rule';
 
 
 // TODO: doc...
+// TODO: does this return more-to-less specific, or other way around. Check it is consistent with rule order in route (currently less-to-more specific)
 export default function disambiguateRules(candidates: Rule[]): Rule[] {
     return candidates.slice().sort(ruleComparator);
 }
