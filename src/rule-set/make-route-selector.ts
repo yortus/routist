@@ -11,7 +11,7 @@ import Taxonomy, {TaxonomyNode} from '../taxonomy';
 // TODO: ...
 // TODO: construct taxonomy from targets? ie don't need it as parameter, can calc it
 // TODO: shorten sig to < 120chars
-export default function makeRouteSelector<TRequest, TResponse>(taxonomy: Taxonomy, targetMap: Map<Pattern, Handler<TRequest, TResponse>>): (address: string) => Handler<TRequest, TResponse> {
+export default function makeRouteSelector(taxonomy: Taxonomy, targetMap: Map<Pattern, Handler>): (address: string) => Handler {
 
     // TODO: ...
     let patterns = taxonomy.allNodes.map(node => node.pattern);

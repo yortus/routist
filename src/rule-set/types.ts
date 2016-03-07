@@ -22,8 +22,9 @@ export type RuleSet = { [pattern: string]: Function };
 
 // TODO: doc...
 // TODO: temp change sig to find site needing attention...
-export type Handler<TRequest, TResponse> = (address: string, request: TRequest) => TResponse;
-
+export type Handler = (address: string, request: Request) => Response;
+export interface Request {}
+export interface Response {}
 
 
 

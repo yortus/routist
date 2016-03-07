@@ -48,7 +48,7 @@ export default class RuleSet<TRequest extends any, TResponse extends any> {
      *        the corresponding handlers.
      */
     constructor(rules: {[pattern: string]: Function}) {
-        this.execute = makeRuleSetHandler<TRequest, TResponse>(rules);
+        this.execute = <any> makeRuleSetHandler(rules);
     }
 
 

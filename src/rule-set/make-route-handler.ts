@@ -25,7 +25,7 @@ let isPromise = util.isPromise; // TODO: explain why this... (eval and TS module
 
 
 // TODO: doc...
-export default function makeRouteHandler<TRequest, TResponse>(route: Route): Handler<TRequest, TResponse> {
+export default function makeRouteHandler(route: Route): Handler {
 
     // TODO: fix comments below...
     // List the route's rules from most- to least-specific.

@@ -13,7 +13,7 @@ import Taxonomy, {TaxonomyNode} from '../taxonomy';
 
 
 /** Internal function used to generate the RuleSet#execute method. */
-export default function makeRuleSetHandler<TRequest, TResponse>(ruleSet: RuleSet): Handler<TRequest, TResponse> {
+export default function makeRuleSetHandler(ruleSet: RuleSet): Handler {
 
     // Generate a taxonomic arrangement of all the patterns that occur in the rule set.
     let taxonomy = new Taxonomy(Object.keys(ruleSet).map(src => new Pattern(src)));
@@ -23,15 +23,15 @@ export default function makeRuleSetHandler<TRequest, TResponse>(ruleSet: RuleSet
 
     // Create an aggregate handler for each distinct route through the rule set.
     let routeHandlers = Array.from(routes.keys()).reduce(
-        (map, pattern) => map.set(pattern, makeRouteHandler<TRequest, TResponse>(routes.get(pattern))),
-        new Map<Pattern, Handler<TRequest, TResponse>>()
+        (map, pattern) => map.set(pattern, makeRouteHandler(routes.get(pattern))),
+        new Map<Pattern, Handler>()
     );
 
     // Generate a function that, given an address, returns the handler for the best-matching route.
     let selectRouteHandler = makeRouteSelector(taxonomy, routeHandlers);
 
     // TODO: ...
-    return function __compiledRuleSet__(address: string, request: TRequest) {
+    return function __compiledRuleSet__(address: string, request: any) { // TODO: import Request type!
         let handleRoute = selectRouteHandler(address);
         let response = handleRoute(address, request);
         return response;
@@ -130,7 +130,7 @@ function getAllPathsFromRootToHere(node: TaxonomyNode): Pattern[][] {
 
 
 // TODO: doc...
-const nullHandler: Handler<any, any> = function __nullHandler__() { return null; };
+const nullHandler: Handler = function __nullHandler__() { return null; };
 
 
 
