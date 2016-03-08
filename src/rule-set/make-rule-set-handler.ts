@@ -1,10 +1,11 @@
 'use strict';
 import disambiguateRoutes from './disambiguate-routes';
 import disambiguateRules from './disambiguate-rules';
-import {Handler, Route, RuleSet} from './types';
+import {Handler, RuleSet} from './types';
 import makeRouteSelector from './make-route-selector';
 import makeRouteHandler from './make-route-handler';
 import Pattern from '../pattern';
+import Route from './route';
 import Rule from './rule';
 import Taxonomy, {TaxonomyNode} from '../taxonomy';
 
@@ -64,14 +65,14 @@ function findAllRoutesThroughRuleSet(taxonomy: Taxonomy, ruleSet: RuleSet): Map<
         (map, node) => {
 
             // TODO: doc...
-            let alternateRoutes = getAllPathsFromRootToHere(node)
+            let alternatePathways = getAllPathwaysFromRootToHere(node)
                 .map(path => path
                     .map(pattern => equalBestRules.get(pattern))
                     .reduce((route, rules) => route.concat(rules), [universalRule])
                 );
 
             // TODO: make a single best route. Ensure no possibility of ambiguity.
-            let singleRoute = disambiguateRoutes(node.pattern, alternateRoutes);
+            let singleRoute = disambiguateRoutes(node.pattern, alternatePathways);
             return map.set(node.pattern, singleRoute);
         },
         new Map<Pattern, Route>()
@@ -118,9 +119,9 @@ function getEqualBestRulesForPattern(pattern: Pattern, ruleSet: RuleSet): Rule[]
  * TODO: fix below....
  * @returns
  */
-function getAllPathsFromRootToHere(node: TaxonomyNode): Pattern[][] {
+function getAllPathwaysFromRootToHere(node: TaxonomyNode): Pattern[][] {
     // TODO: test/review/cleanup...
-    let allPaths = [].concat(...node.generalizations.map(getAllPathsFromRootToHere));
+    let allPaths = [].concat(...node.generalizations.map(getAllPathwaysFromRootToHere));
     if (allPaths.length === 0) allPaths = [[]]; // no parent paths - this must be the root
     return allPaths.map(path => path.concat([node.pattern]));
 }

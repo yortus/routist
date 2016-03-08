@@ -1,7 +1,8 @@
 'use strict';
 import * as assert from 'assert';
 import * as util from '../util';
-import {Handler, Route} from './types';
+import {Handler} from './types';
+import Route from './route';
 import Rule from './rule';
 let isPromise = util.isPromise; // TODO: explain why this... (eval and TS module var renaming)
 
@@ -27,12 +28,17 @@ let isPromise = util.isPromise; // TODO: explain why this... (eval and TS module
 // TODO: doc...
 export default function makeRouteHandler(route: Route): Handler {
 
+//TODO: temp testing...
+if (route.length >= 5) {
+    debugger;
+}
+
     // TODO: fix comments below...
     // List the route's rules from most- to least-specific.
     // Generate a unique pretty name for each rule, suitable for use in generated code.
     // Partition the rules into sublists as described in the JSDoc comments above.
     // TODO: explain augmentation/partitioning...
-    let rules = augmentRules(route.slice().reverse());
+    let rules = augmentRules(route);
 
     // TODO: doc...
     let lines = [

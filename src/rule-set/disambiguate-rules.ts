@@ -8,7 +8,6 @@ import Rule from './rule';
 
 
 // TODO: doc...
-// TODO: does this return more-to-less specific, or other way around. Check it is consistent with rule order in route (currently less-to-more specific)
 export default function disambiguateRules(candidates: Rule[]): Rule[] {
     return candidates.slice().sort(ruleComparator);
 }
@@ -17,13 +16,13 @@ export default function disambiguateRules(candidates: Rule[]): Rule[] {
 
 
 
-// TODO: doc...
+// TODO: doc... sorts from least- to most-specific
 // TODO: improve error message/handling in here...
 function ruleComparator(ruleA: Rule, ruleB: Rule) {
     let moreSpecificRule = tieBreakFn(ruleA, ruleB);
     assert(moreSpecificRule === ruleA || moreSpecificRule === ruleB, `ambiguous rules - which is more specific? A: ${inspect(ruleA)}, B: ${inspect(ruleB)}`); // TODO: test/improve this message
     assert.strictEqual(moreSpecificRule, tieBreakFn(ruleB, ruleA)); // consistency check
-    return moreSpecificRule === ruleA ? 1 : -1;
+    return ruleA === moreSpecificRule ? 1 : -1; // NB: sorts from least- to most-specific
 }
 
 

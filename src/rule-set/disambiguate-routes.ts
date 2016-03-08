@@ -1,7 +1,7 @@
 'use strict';
 import {getLongestCommonPrefix} from '../util';
 import Pattern from '../pattern';
-import {Route} from './types';
+import Route from './route';
 import Rule from './rule';
 
 
@@ -9,21 +9,21 @@ import Rule from './rule';
 
 
 // TODO: doc...
-export default function disambiguateRoutes(pattern: Pattern, candidates: Route[]): Route {
+export default function disambiguateRoutes(pattern: Pattern, alternatePathways: Rule[][]): Route {
 
     // TODO: ... simple case... explain...
-    if (candidates.length === 1) {
-        return candidates[0];
+    if (alternatePathways.length === 1) {
+        return new Route(...alternatePathways[0]);
     }
 
     // Find the longest common prefix and suffix of all the candidates.
-    let prefix = getLongestCommonPrefix(candidates);
-    let suffix = getLongestCommonPrefix(candidates.map(cand => cand.slice().reverse())).reverse(); // TODO: revise... inefficient copies...
+    let prefix = getLongestCommonPrefix(alternatePathways);
+    let suffix = getLongestCommonPrefix(alternatePathways.map(cand => cand.slice().reverse())).reverse(); // TODO: revise... inefficient copies...
 
     // TODO: possible for prefix and suffix to overlap? What to do?
 
     // Ensure the non-common parts contain NO decorators.
-    candidates.forEach(cand => {
+    alternatePathways.forEach(cand => {
         let choppedRules: Rule[] = cand.slice(prefix.length, -suffix.length);
         if (choppedRules.every(rule => !rule.isDecorator)) return;
         // TODO: improve error message/handling
@@ -31,7 +31,7 @@ export default function disambiguateRoutes(pattern: Pattern, candidates: Route[]
     });
 
     // Synthesize a 'crasher' rule that throws an 'ambiguous' error.
-    let ambiguousFallbacks = candidates.map(cand => cand[cand.length - suffix.length - 1]);
+    let ambiguousFallbacks = alternatePathways.map(cand => cand[cand.length - suffix.length - 1]);
     let crasher = new Rule(
         pattern.toString(),
         function crasher() {
@@ -41,6 +41,6 @@ export default function disambiguateRoutes(pattern: Pattern, candidates: Route[]
     );
 
     // final composite rule: splice of common prefix + crasher + common suffix
-    let result = [].concat(prefix, crasher, suffix);
+    let result = new Route(...[].concat(prefix, crasher, suffix));
     return result;
 }
