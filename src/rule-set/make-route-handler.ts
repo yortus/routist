@@ -28,25 +28,29 @@ let isPromise = util.isPromise; // TODO: explain why this... (eval and TS module
 // TODO: doc...
 export default function makeRouteHandler(route: Route): Handler {
 
-//TODO: temp testing...
-if (route.length >= 5) {
-    debugger;
-}
-
     // TODO: fix comments below...
     // List the route's rules from most- to least-specific.
     // Generate a unique pretty name for each rule, suitable for use in generated code.
     // Partition the rules into sublists as described in the JSDoc comments above.
     // TODO: explain augmentation/partitioning...
-    let rules = augmentRules(route);
+    //let rules = augmentRules(route);
+    let rules = route;
+
+    // TODO: doc...
+    let ruleNames: string[] = rules
+        .map(rule => `_${rule.pattern.toIdentifierParts()}`)
+        .reduce((names, name) => names.concat(`${name}${names.indexOf(name) === -1 ? '' : `_${names.length}`}`), []);
+
+    // TODO: doc...
+    let startRuleName = ruleNames.filter((_, i) => rules[i].isDecorator).pop() || ruleNames[0];
 
     // TODO: doc...
     let lines = [
-        ...rules.map((rule, i) => `var match${rule.name} = rules[${i}].pattern.match;`),
-        ...rules.map((rule, i) => `var handle${rule.name} = rules[${i}].handler;`),
+        ...ruleNames.map((name, i) => `var match${name} = rules[${i}].pattern.match;`),
+        ...ruleNames.map((name, i) => `var handle${name} = rules[${i}].handler;`),
         'function _Ø(addr, req) {\n    return null;\n}',
-        ...rules.map(generateRuleHandlerSource),
-        `return ${rules.filter(r => r.startsPartition).reverse()[0].name};`,
+        generateRuleHandlerSourceCode(rules, ruleNames),
+        `return ${startRuleName};`
     ];
 
 // if (rules.length > 5) {
@@ -62,10 +66,6 @@ if (route.length >= 5) {
     // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
 
     let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();
-//if (rules.length > 5) {
-//    console.log(`\n\n\n\n\n${fn.toString()}`);
-//}
-//debugger;
     return fn;
 }
 
@@ -73,82 +73,54 @@ if (route.length >= 5) {
 
 
 
-// TODO: doc... explain possibility of two rules having the same name and how this is avoided
-function augmentRules(rules: Rule[]): RuleEx[] {
-    let reservedIds = new Set<string>();
-    return rules.map((rule: RuleEx, i: number) => {
+// TODO: doc...
+function generateRuleHandlerSourceCode(rules: Rule[], ruleNames: string[]): string {
+
+    // TODO: doc...
+    let sources = rules.map((rule, i) => {
+
+        // TODO: fix these messes... explain 'downstream'
+        let ruleName = ruleNames[i];
+        let nextRuleName = ruleNames[i + 1];
+        let downstreamRuleName = ruleNames.filter((n, j) => (j === 0 || rules[j].isDecorator) && j < i).pop() || '_Ø';
+        let startsPartition = i === 0 || rule.isDecorator;
+        let endsPartition = i === rules.length - 1 || rules[i + 1].isDecorator;
 
         // TODO: ...
-        rule.startsPartition = i === 0 || rule.isDecorator;
-        rule.endsPartition = i === rules.length - 1 || rules[i + 1].isDecorator;
+        let paramNames = rule.parameterNames;
+        let captureNames = rule.pattern.captureNames;
+        let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${ruleName}.${name}`, map), {});
+        let builtinMappings = { $addr: 'addr', $req: 'req', $next: `rq => ${downstreamRuleName}(addr, rq === void 0 ? req : rq)` };
+        const handlerArgs = paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ');
 
         // TODO: ...
-        let base = rule.pattern.toIdentifierParts();
-        for (let isReserved = true, index = 0; isReserved; ++index) {
-            var id = `_${base}${index ? `_${index}` : ''}`;
-            isReserved = reservedIds.has(id);
-        }
+        let source = `
+            function ${ruleName}(addr, req, res?) {
+                if (res !== null) return res;                                               #if ${!startsPartition}
+                var captures${ruleName} = match${ruleName}(addr);                           #if ${!!captureNames.length}
+                var res = handle${ruleName}(${handlerArgs});                                #if ${!endsPartition}
+                if (isPromise(res)) return res.then(rs => ${nextRuleName}(addr, req, rs));  #if ${!endsPartition}
+                return ${nextRuleName}(addr, req, res);                                     #if ${!endsPartition}
+                return handle${ruleName}(${handlerArgs});                                   #if ${endsPartition}
+            }
+        `;
 
-        // TODO: ...
-        reservedIds.add(id);
-        rule.name = id;
-        return rule;
+        // Strip off superfluous lines and indentation.
+        source = source.split(/[\r\n]+/).slice(1, -1).join('\n');
+        let indent = source.match(/^[ ]+/)[0].length;
+        source = source.split('\n').map(line => line.slice(indent)).join('\n');
+
+        // Conditionally keep/discard whole lines according to #if directives.
+        source = source.replace(/^(.*?)([ ]+#if true)$/gm, '$1').replace(/\n.*?[ ]+#if false/g, '');
+
+        // The first rule in each partition doesn't have a 'res' parameter. Adjust accordingly.
+        source = source.replace(', res?', startsPartition ? '' : ', res');
+        source = source.replace('var res', startsPartition ? 'var res' : 'res');
+
+        // TODO: return the lines...
+        return source;
     });
-}
 
-
-
-
-
-// TODO: doc...
-function generateRuleHandlerSource(rule: RuleEx, index: number, rules: RuleEx[]): string {
-
-    // TODO: fix these messes... explain 'fallback' and 'downstream'
-    let nextRuleName = index < rules.length - 1 ? rules[index + 1].name : '';
-    let downstreamRuleName = (rules.filter((r, i) => r.startsPartition && i <= index).reverse()[1] || {name:'_Ø'}).name;
-
-    // TODO: ...
-    let paramNames = rule.parameterNames;
-    let captureNames = rule.pattern.captureNames;
-    let paramMappings = captureNames.reduce((map, name) => (map[name] = `captures${rule.name}.${name}`, map), {});
-    let builtinMappings = { $addr: 'addr', $req: 'req', $next: `rq => ${downstreamRuleName}(addr, rq === void 0 ? req : rq)` };
-    const handlerArgs = paramNames.map(name => paramMappings[name] || builtinMappings[name]).join(', ');
-
-    // TODO: ...
-    let source = `
-        function ${rule.name}(addr, req, res?) {
-            if (res !== null) return res;                                               #if ${!rule.startsPartition}
-            var captures${rule.name} = match${rule.name}(addr);                         #if ${captureNames.length > 0}
-            var res = handle${rule.name}(${handlerArgs});                               #if ${!rule.endsPartition}
-            if (isPromise(res)) return res.then(rs => ${nextRuleName}(addr, req, rs));  #if ${!rule.endsPartition}
-            return ${nextRuleName}(addr, req, res);                                     #if ${!rule.endsPartition}
-            return handle${rule.name}(${handlerArgs});                                  #if ${rule.endsPartition}
-        }
-    `;
-
-    // Strip off superfluous lines and indentation.
-    source = source.split(/[\r\n]+/).slice(1, -1).join('\n');
-    let indent = source.match(/^[ ]+/)[0].length;
-    source = source.split('\n').map(line => line.slice(indent)).join('\n');
-
-    // Conditionally keep/discard whole lines according to #if directives.
-    source = source.replace(/^(.*?)([ ]+#if true)$/gm, '$1').replace(/\n.*?[ ]+#if false/g, '');
-
-    // The first rule in each partition doesn't have a 'res' parameter. Adjust accordingly.
-    source = source.replace(', res?', rule.startsPartition ? '' : ', res');
-    source = source.replace('var res', rule.startsPartition ? 'var res' : 'res');
-
-    // TODO: return the lines...
-    return source;
-}
-
-
-
-
-
-// TODO: doc...
-interface RuleEx extends Rule {
-    name: string;
-    startsPartition: boolean;
-    endsPartition: boolean;
+    // TODO: doc...
+    return sources.join('\n');
 }
