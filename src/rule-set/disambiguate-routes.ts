@@ -1,7 +1,6 @@
 'use strict';
 import {getLongestCommonPrefix} from '../util';
 import Pattern from '../pattern';
-import Route from './route';
 import Rule from './rule';
 
 
@@ -9,11 +8,11 @@ import Rule from './rule';
 
 
 // TODO: doc...
-export default function disambiguateRoutes(pattern: Pattern, alternatePathways: Rule[][]): Route {
+export default function disambiguateRoutes(pattern: Pattern, alternatePathways: Rule[][]): Rule[] {
 
     // TODO: ... simple case... explain...
     if (alternatePathways.length === 1) {
-        return new Route(...alternatePathways[0]);
+        return alternatePathways[0];
     }
 
     // Find the longest common prefix and suffix of all the candidates.
@@ -41,6 +40,6 @@ export default function disambiguateRoutes(pattern: Pattern, alternatePathways: 
     );
 
     // final composite rule: splice of common prefix + crasher + common suffix
-    let result = new Route(...[].concat(prefix, crasher, suffix));
+    let result = [].concat(prefix, crasher, suffix);
     return result;
 }

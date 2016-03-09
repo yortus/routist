@@ -2,7 +2,6 @@
 import * as assert from 'assert';
 import * as util from '../util';
 import {Handler} from './types';
-import Route from './route';
 import Rule from './rule';
 let isPromise = util.isPromise; // TODO: explain why this... (eval and TS module var renaming)
 
@@ -26,7 +25,7 @@ let isPromise = util.isPromise; // TODO: explain why this... (eval and TS module
 
 
 // TODO: doc...
-export default function makeRouteHandler(route: Route): Handler {
+export default function makeRouteHandler(route: Rule[]): Handler {
 
     // TODO: fix comments below...
     // List the route's rules from most- to least-specific.
@@ -34,7 +33,7 @@ export default function makeRouteHandler(route: Route): Handler {
     // Partition the rules into sublists as described in the JSDoc comments above.
     // TODO: explain augmentation/partitioning...
     //let rules = augmentRules(route);
-    let rules = route;
+    let rules = route.slice().reverse();
 
     // TODO: doc...
     let ruleNames: string[] = rules

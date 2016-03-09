@@ -5,7 +5,6 @@ import {Handler, RuleSet} from './types';
 import makeRouteSelector from './make-route-selector';
 import makeRouteHandler from './make-route-handler';
 import Pattern from '../pattern';
-import Route from './route';
 import Rule from './rule';
 import Taxonomy, {TaxonomyNode} from '../taxonomy';
 
@@ -44,7 +43,7 @@ export default function makeRuleSetHandler(ruleSet: RuleSet): Handler {
 
 
 // TODO: ...
-function findAllRoutesThroughRuleSet(taxonomy: Taxonomy, ruleSet: RuleSet): Map<Pattern, Route> {
+function findAllRoutesThroughRuleSet(taxonomy: Taxonomy, ruleSet: RuleSet): Map<Pattern, Rule[]> {
 
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
     // TODO: explain sort... all rules are equal by pattern signature, but we need an unambiguous ordering.
@@ -75,7 +74,7 @@ function findAllRoutesThroughRuleSet(taxonomy: Taxonomy, ruleSet: RuleSet): Map<
             let singleRoute = disambiguateRoutes(node.pattern, alternatePathways);
             return map.set(node.pattern, singleRoute);
         },
-        new Map<Pattern, Route>()
+        new Map<Pattern, Rule[]>()
     );
 }
 
