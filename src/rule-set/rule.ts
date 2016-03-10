@@ -2,47 +2,60 @@
 import * as assert from 'assert';
 import {getFunctionParameterNames} from '../util';
 import Pattern from '../pattern';
-// TODO: review all jsdocs below after reshuffle between files...
 
 
 
 
 
-// TODO: doc...
+/**
+ * A Rule consists of a pattern and a handler, and represents a single element in a rule set.
+ * See the RuleSet documentation for additional information.
+ */
 export default class Rule {
 
 
-    // TODO: doc...
-    constructor(rawPattern: string, rawHandler: Function) {
+    /**
+     * Constructs a Rule instance.
+     * @param {string} patternSource - The source string for the pattern recognised by this rule.
+     * @param {Function} handler - a function providing processing logic for producing a reponse from a given request.
+     *        It may be invoked when the RuleSet containing this rule is executed against an address and request. Each
+     *        of the `handler` function's formal parameter names must match either a capture name from the pattern, or
+     *        a builtin name such as `$req` or `$next`. Capture values and/or builtin values are passed as the actual
+     *        parameters to the `handler` function upon invocation. Any non-null return value from `handler` is
+     *        interpreted as a response. A null return value signifies that the handler declined to respond to the given
+     *        request, even if the pattern matched the request's address.
+     */
+    constructor(patternSource: string, handler: Function) {
 
-        // TODO: ...
-        let pattern = this.pattern = new Pattern(rawPattern); // NB: may throw...
-        let paramNames = this.parameterNames = getFunctionParameterNames(rawHandler);
+        // Construct the pattern instance, and assign the pattern and handler properties.
+        let pattern = this.pattern = new Pattern(patternSource); // NB: may throw
+        this.handler = handler;
 
-        // Assert the mutual validity of `pattern` and `paramNames`. This allows the body of
-        // the 'execute' function to be simpler, as it can safely forego some extra checks.
-        validateNames(pattern, paramNames); // NB: may throw...
+        // Get the handler function's formal parameter names.
+        let paramNames = this.parameterNames = getFunctionParameterNames(handler);
 
-        // TODO: ...
-        // If the handler function has a formal parameter named '$next', that signifies this rule as a decorator.
-        this.handler = rawHandler;
+        // Assert the mutual validity of `pattern` and `paramNames`. This catches some errors early, and allows
+        // composite handling logic to be simpler, since it can safely forego the checks already made here.
+        validateNames(pattern, paramNames); // NB: may throw
+
+        // If the handler function has a formal parameter named '$next', that signifies this rule is a decorator.
         this.isDecorator = paramNames.indexOf('$next') !== -1;
     }
 
 
-    // TODO: doc...
+    /** The pattern associated with this Rule instance. */
     pattern: Pattern;
 
 
-    // TODO: doc...
+    /** The handler associated with this Rule instance, exactly as it was provided to the constructor. */
     handler: Function;
 
 
-    // TODO: doc...
+    /** The names of the handler function's formal parameters. */
     parameterNames: string[];
 
 
-    // TODO: doc...
+    /** Indicates whether the handler function represents a decorator. Decorators have a '$next' formal parameter */
     isDecorator: boolean;
 }
 
@@ -51,22 +64,22 @@ export default class Rule {
 
 
 /**
- * Lists the names of builtins with special meanings when they
- * are used as formal parameter names in handler functions.
- * '$req': injects the current request into the action function.
- * '$yield': marks the action function as a decorator. Injects the
- *           standard `executeDownstreamHandlers` callback into it.
+ * Lists the names of builtins with special meanings when the are used as formal parameter names in handler functions:
+ * '$addr': injects the current address string into the handler function.
+ * '$req': injects the current request object into the handler function.
+ * '$next': marks the handler function as a decorator, and injects a composite
+ *          handler for all 'downstream' rules into the decorator function.
  */
-const builtinNames = ['$addr', '$req', '$next']; // TODO: temp testing remove $addr!
+const builtinNames = ['$addr', '$req', '$next'];
 
 
 
 
 
 /**
- * Asserts the mutual validity of a pattern's capture names with an action's parameter names:
+ * Asserts the mutual validity of a pattern's capture names with a handlers's formal parameter names:
  * - Every parameter name must match either a capture name or a builtin name.
- * - Every capture name in the pattern must also be present among the action's parameter names.
+ * - Every capture name in the pattern must also be present among the handler's parameter names.
  * - None of the pattern's capture names may match a builtin name.
  */
 function validateNames(pattern: Pattern, paramNames: string[]) {
@@ -89,63 +102,3 @@ function validateNames(pattern: Pattern, paramNames: string[]) {
     ok = excessParams.length === 0;
     assert(ok, `Handler parameter(s) '${excessParams.join("', '")}' not captured by pattern '${pattern}'`);
 }
-
-
-
-
-
-// TODO: for review... comments originally from normalize-handler.ts...
-
-
-
-
-
-// /**
-//  * A handler provides a standarized means for transforming a request to a response,
-//  * according to the particulars of the pattern/action pair it was constructed with.
-//  */
-
-
-
-
-
-/**
- * Constructs a Rule instance.
- * @param {string} patternSource - the pattern recognized by this handler.
- * @param {Function} handler - a function providing processing logic for producing
- *        a reponse from a given request. The `action` function may be invoked when
- *        the `Handler#execute` method is called. Each of the `action` function's
- *        formal parameter names must match either a capture name from `pattern`, or
- *        a builtin name such as `$req` or `$yield`. Capture values and/or builtin
- *        values are passed to the matching parameters of `action` upon invocation.
- *        A non-null return value from `action` is interpreted as a response. A null
- *        return value from `action` signifies that the action declined to respond to
- *        the given request, even if the pattern matched the request's address.
- */
-
-
-
-
-
-/**
- * Executes the rule. There are two modes of execution depending on whether or not
- * the rule is a decorator:
- * (1) A decorator has control over downstream execution. Its handler's $next' parameter
- * is bound to the `executeDownstreamHandlers` callback passed to `execute`. A decorator
- * may perform arbitrary steps before downstream execution, including modifying the
- * request. It may also perform arbitrary steps after downstream execution, including
- * modifying the response.
- * (2) A non-decorator rule always perform downstream execution first, and then only
- * executes its handler if the downsteam handlers did not produce a response.
- * @param {Request} request - an object containing all information relevant to producing
- *        a response, including the address from which capture name/value pairs are bound
- *        to handler function parameters.
- * @param {(request?: Request) => Response} executeDownstreamHandlers - a callback that
- *        executes all downsteam handlers and returns their collective response. The
- *        callback is already bound to the current request, and passes it to downstream
- *        handlers if invoked with no argument. A modified or alternative request may be
- *        passed to downstream handlers by passing it to this callback.
- * @returns {Response} - the response object returned by the handler. The handler may
- *        return null to indicate that it declined to produce a response. Processing
- *        proceeds upstream until a handler responds are all decorators have run.
- */

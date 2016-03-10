@@ -11,9 +11,9 @@ import Taxonomy, {TaxonomyNode} from '../taxonomy';
  * Generates a function that, given an address, returns the best-matching route handler from the given list of
  * candidates. The returned selector function is generated for maximum readability and efficiency, using conditional
  * constructs that follow the branches of the given `taxonomy`.
- * param {Taxonomy} taxonomy - The arrangement of patterns on which to base the returned selector function.
- * param {Map<Pattern, RouteHandler>} candidates - The route handlers for each pattern in the given `taxonomy`.
- * returns {(address: string) => RouteHandler} The generated route selector function.
+ * @param {Taxonomy} taxonomy - The arrangement of patterns on which to base the returned selector function.
+ * @param {Map<Pattern, RouteHandler>} candidates - The route handlers for each pattern in the given `taxonomy`.
+ * @returns {(address: string) => RouteHandler} The generated route selector function.
  */
 export default function makeRouteSelector(taxonomy: Taxonomy, candidates: Map<Pattern, RouteHandler>): RouteSelector {
 
