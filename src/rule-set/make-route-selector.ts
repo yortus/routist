@@ -2,48 +2,44 @@
 import {RouteHandler} from './types';
 import Pattern from '../pattern';
 import Taxonomy, {TaxonomyNode} from '../taxonomy';
-// TODO: factor/reduce repeated .toIdentifierParts() calls...
 
 
 
 
 
-// TODO: ...
-// TODO: construct taxonomy from targets? ie don't need it as parameter, can calc it
-// TODO: shorten sig to < 120chars
-export default function makeRouteSelector(taxonomy: Taxonomy, targetMap: Map<Pattern, RouteHandler>): (address: string) => RouteHandler {
+/**
+ * Generates a function that, given an address, returns the best-matching route handler from the given list of
+ * candidates. The returned selector function is generated for maximum readability and efficiency, using conditional
+ * constructs that follow the branches of the given `taxonomy`.
+ * param {Taxonomy} taxonomy - The arrangement of patterns on which to base the returned selector function.
+ * param {Map<Pattern, RouteHandler>} candidates - The route handlers for each pattern in the given `taxonomy`.
+ * returns {(address: string) => RouteHandler} The generated route selector function.
+ */
+export default function makeRouteSelector(taxonomy: Taxonomy, candidates: Map<Pattern, RouteHandler>): RouteSelector {
 
-    // TODO: ...
+    // Get all the patterns in the taxomony as a list, and their corresponding handlers in a parallel list.
     let patterns = taxonomy.allNodes.map(node => node.pattern);
-    let targets = patterns.map(pat => targetMap.get(pat));
+    let handlers = patterns.map(pat => candidates.get(pat));
 
-    // TODO: doc...
+    // Generate a unique pretty name for each pattern, suitable for use in the generated source code.
+    let patternNames = patterns.map(generatePatternName);
+
+    // Generate the combined source code for selecting the best route handler. This includes local variable declarations
+    // for all the match functions and all the candidate route handler functions, as well as the dispatcher function
+    // housing all the conditional logic for selecting the best route handler based on address matching.
     let lines = [
-        ...patterns.map((pat, i) => `var matches_${pat.toIdentifierParts()} = patterns[${i}].match;`),
-        ...patterns.map((pat, i) => `var _${pat.toIdentifierParts()} = targets[${i}];`),
-        '',
+        ...patternNames.map((name, i) => `var matches${name} = patterns[${i}].match;`),
+        ...patternNames.map((name, i) => `var ${name} = handlers[${i}];`),
         'return function dispatch(address) {',
-        ...getBodyLines(taxonomy.rootNode.specializations, Pattern.UNIVERSAL, 1),
+        ...generateDispatchSourceCode(taxonomy.rootNode.specializations, Pattern.UNIVERSAL, 1),
         '};'
     ];
-// console.log(lines);
-// debugger;
 
-    // TODO: temp testing... capture unmangled Pattern id... remove/fix this!!!
-    // TODO: review comment below, copied from make-route-handler.ts...
-    // Evaluate the source code into a function, and return it. This use of eval here is safe. In particular, the
-    // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
-    // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
-    // -or-
-    // Evaluate the source code, and return its result, which is the composite route handler function. The use of eval
-    // here is safe. There are no untrusted inputs substituted into the source. The client-provided rule handler
-    // functions can do anything (so may be considered untrusted), but that has nothing to do with the use of 'eval'
-    // here, since they would need to be called by the route handler whether or not eval was used. More importantly,
-    // the use of eval here allows for route handler code that is both more readable and more efficient, since it is
-    // tailored specifically to the route being evaluated, rather than having to be generalized for all possible cases.
+    // Evaluate the source code, and return its result, which is the route selector function. The use of eval here is
+    // safe. There are no untrusted inputs substituted into the source. More importantly, the use of eval here allows
+    // for route selection code that is both more readable and more efficient, since it is tailored specifically to the
+    // give taxonomy of patterns, rather than having to be generalized for all possible cases.
     let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();
-// console.log(fn.toString());
-// debugger;
     return fn;
 }
 
@@ -51,22 +47,44 @@ export default function makeRouteSelector(taxonomy: Taxonomy, targetMap: Map<Pat
 
 
 
-// TODO: doc...
-function getBodyLines(specializations: TaxonomyNode[], fallback: Pattern, nestDepth: number) {
+/** A RouteSelector function takes an address string and returns the best-matching route handler for it. */
+export type RouteSelector = (address: string) => RouteHandler;
+
+
+
+
+
+/** Helper function to generate source code for part of the dispatcher function used for route selection. */
+function generateDispatchSourceCode(specializations: TaxonomyNode[], fallback: Pattern, nestDepth: number) {
+
+    // Make the indenting string corresponding to the given `nestDepth`.
     let indent = '    '.repeat(nestDepth);
+
+    // Recursively generate the conditional logic block to select among the given patterns.
     let lines: string[] = [];
     specializations.forEach((node, i) => {
-        let id = node.pattern.toIdentifierParts();
-        let condition = `${indent}${i > 0 ? 'else ' : ''}if (matches_${id}(address)) `;
+        let patternName = generatePatternName(node.pattern);
+        let condition = `${indent}${i > 0 ? 'else ' : ''}if (matches${patternName}(address)) `;
         let nextLevel = node.specializations;
-        if (nextLevel.length === 0) return lines.push(`${condition}return _${id};`);
+        if (nextLevel.length === 0) return lines.push(`${condition}return ${patternName};`);
         lines = [
             ...lines,
             `${condition}{`,
-            ...getBodyLines(nextLevel, node.pattern, nestDepth + 1),
+            ...generateDispatchSourceCode(nextLevel, node.pattern, nestDepth + 1),
             `${indent}}`
         ];
     });
-    lines.push(`${indent}return _${fallback.toIdentifierParts()};`);
+
+    // Add a line to select the fallback pattern if none of the more specialised patterns matched the address.
+    lines.push(`${indent}return ${generatePatternName(fallback)};`);
     return lines;
+}
+
+
+
+
+
+/** Helper function to return a human-readable JavaScript identifier for the given `pattern`. */
+function generatePatternName(pattern: Pattern): string {
+    return `_${pattern.toIdentifierParts()}`;
 }

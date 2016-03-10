@@ -25,7 +25,7 @@ export default function makeRouteHandler(rules: Rule[]): RouteHandler {
     // Obtain a reversed copy of the rule list, ordered from most- to least-specific. This simplifies logic below.
     rules = rules.slice().reverse();
 
-    // Generate a unique pretty name for each rule, suitable for use in generated code.
+    // Generate a unique pretty name for each rule, suitable for use in the generated source code.
     let ruleNames: string[] = rules
         .map(rule => `_${rule.pattern.toIdentifierParts()}`)
         .reduce((names, name) => names.concat(`${name}${names.indexOf(name) === -1 ? '' : `_${names.length}`}`), []);
