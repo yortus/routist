@@ -1,5 +1,5 @@
 'use strict';
-import {Handler} from './types';
+import {RouteHandler} from './types';
 import Pattern from '../pattern';
 import Taxonomy, {TaxonomyNode} from '../taxonomy';
 // TODO: factor/reduce repeated .toIdentifierParts() calls...
@@ -11,7 +11,7 @@ import Taxonomy, {TaxonomyNode} from '../taxonomy';
 // TODO: ...
 // TODO: construct taxonomy from targets? ie don't need it as parameter, can calc it
 // TODO: shorten sig to < 120chars
-export default function makeRouteSelector(taxonomy: Taxonomy, targetMap: Map<Pattern, Handler>): (address: string) => Handler {
+export default function makeRouteSelector(taxonomy: Taxonomy, targetMap: Map<Pattern, RouteHandler>): (address: string) => RouteHandler {
 
     // TODO: ...
     let patterns = taxonomy.allNodes.map(node => node.pattern);
@@ -30,6 +30,17 @@ export default function makeRouteSelector(taxonomy: Taxonomy, targetMap: Map<Pat
 // debugger;
 
     // TODO: temp testing... capture unmangled Pattern id... remove/fix this!!!
+    // TODO: review comment below, copied from make-route-handler.ts...
+    // Evaluate the source code into a function, and return it. This use of eval here is safe. In particular, the
+    // values in `paramNames` and `paramMappings`, which originate from client code, have been effectively sanitised
+    // through the assertions made by `validateNames`. The evaled function is fast and suitable for use on a hot path.
+    // -or-
+    // Evaluate the source code, and return its result, which is the composite route handler function. The use of eval
+    // here is safe. There are no untrusted inputs substituted into the source. The client-provided rule handler
+    // functions can do anything (so may be considered untrusted), but that has nothing to do with the use of 'eval'
+    // here, since they would need to be called by the route handler whether or not eval was used. More importantly,
+    // the use of eval here allows for route handler code that is both more readable and more efficient, since it is
+    // tailored specifically to the route being evaluated, rather than having to be generalized for all possible cases.
     let fn = eval(`(() => {\n${lines.join('\n')}\n})`)();
 // console.log(fn.toString());
 // debugger;

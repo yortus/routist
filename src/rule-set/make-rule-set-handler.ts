@@ -1,7 +1,7 @@
 'use strict';
 import disambiguateRoutes from './disambiguate-routes';
 import disambiguateRules from './disambiguate-rules';
-import {Handler, RuleSet} from './types';
+import {RouteHandler, RuleSet} from './types';
 import makeRouteSelector from './make-route-selector';
 import makeRouteHandler from './make-route-handler';
 import Pattern from '../pattern';
@@ -13,7 +13,7 @@ import Taxonomy, {TaxonomyNode} from '../taxonomy';
 
 
 /** Internal function used to generate the RuleSet#execute method. */
-export default function makeRuleSetHandler(ruleSet: RuleSet): Handler {
+export default function makeRuleSetHandler(ruleSet: RuleSet): RouteHandler {
 
     // Generate a taxonomic arrangement of all the patterns that occur in the rule set.
     let taxonomy = new Taxonomy(Object.keys(ruleSet).map(src => new Pattern(src)));
@@ -24,7 +24,7 @@ export default function makeRuleSetHandler(ruleSet: RuleSet): Handler {
     // Create an aggregate handler for each distinct route through the rule set.
     let routeHandlers = Array.from(routes.keys()).reduce(
         (map, pattern) => map.set(pattern, makeRouteHandler(routes.get(pattern))),
-        new Map<Pattern, Handler>()
+        new Map<Pattern, RouteHandler>()
     );
 
     // Generate a function that, given an address, returns the handler for the best-matching route.
@@ -130,7 +130,7 @@ function getAllPathwaysFromRootToHere(node: TaxonomyNode): Pattern[][] {
 
 
 // TODO: doc...
-const nullHandler: Handler = function __nullHandler__() { return null; };
+const nullHandler: RouteHandler = function __nullHandler__() { return null; };
 
 
 

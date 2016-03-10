@@ -1,6 +1,6 @@
 'use strict';
 import * as util from '../util';
-import {Handler} from './types';
+import {RouteHandler} from './types';
 import Rule from './rule';
 
 
@@ -20,7 +20,7 @@ import Rule from './rule';
  * @param {Rule[]} rules - the list of rules comprising the route, ordered from least- to most-specific.
  * @returns {Handler} the composite handler function for the route.
  */
-export default function makeRouteHandler(rules: Rule[]): Handler {
+export default function makeRouteHandler(rules: Rule[]): RouteHandler {
 
     // Obtain a reversed copy of the rule list, ordered from most- to least-specific. This simplifies logic below.
     rules = rules.slice().reverse();
