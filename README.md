@@ -12,8 +12,8 @@
 - [x] add Pattern#intersect, update all call sites (just make-taxonomy)
 - [x] create Taxonomy class and/or add /src/taxonomy/index.ts
 - [x] improve taxonomy test coverage
-- [ ] asyncify Handler#execute
-- [ ] still need `isPromise`? If not, remove it :( Otherwise find a use for it.
+- [x] asyncify Handler#execute
+- [x] still need `isPromise`? If not, remove it :( Otherwise find a use for it.
 - [x] add npmignore
 - [ ] for 'file' responses, harden againt rel paths in address eg '../../../sys/passwords.txt'
 

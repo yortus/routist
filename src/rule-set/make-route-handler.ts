@@ -122,6 +122,6 @@ function generateRuleHandlerSourceCode(rules: Rule[], ruleNames: string[]): stri
 
 
 // Declare isPromise in local scope, so the eval'ed route handlers can reference it. NB: the source code for eval
-// cannot safely refer directly to the expression `util.isPromise`, since the `util` identifier may not appear in
+// cannot safely refer directly to the expression `util.isPromiseLike`, since the `util` identifier may not appear in
 // the transpiled JavaScript for this module (TypeScript may rename modules to try to preserve ES6 module semantics).
-let isPromise = util.isPromise;
+let isPromise = util.isPromiseLike;

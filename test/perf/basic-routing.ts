@@ -111,7 +111,7 @@ const tests = [
     for (let i = 0; i < COUNT; ++i) {
         let index = Math.floor(Math.random() * tests.length);
         let actualResponse = ruleSetHandler(addresses[index], requests[index]);
-        if (util.isPromise(actualResponse)) actualResponse = await (actualResponse);
+        if (util.isPromiseLike(actualResponse)) actualResponse = await (actualResponse);
         assert.equal(actualResponse, responses[index]);
     }
 

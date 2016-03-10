@@ -3,7 +3,7 @@ import {expect} from 'chai';
 import {util} from 'routist';
 
 
-describe('Identifying a Promise instance', () => {
+describe('Identifying a Promise-like object', () => {
 
     let tests = [
         `T: new Promise(res => {})`,
@@ -28,7 +28,7 @@ describe('Identifying a Promise instance', () => {
         it(test, () => {
             let testVal = eval(`(${test.slice(3)})`);
             let expected = test[0] === 'T' ? true : false;
-            let actual = util.isPromise(testVal);
+            let actual = util.isPromiseLike(testVal);
             expect(actual).equals(expected);
         });
     });

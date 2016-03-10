@@ -100,7 +100,7 @@ variants.forEach(variant => describe(`Constructing a RuleSet instance (${variant
         let actual: string;
         try {
             let res = <string | Promise<string>> ruleSetHandler(address, request);
-            actual = util.isPromise(res) ? await (res) : res;
+            actual = util.isPromiseLike(res) ? await (res) : res;
         }
         catch (ex) {
             actual = 'ERROR: ' + ex.message;
