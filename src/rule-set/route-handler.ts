@@ -4,17 +4,8 @@
 
 
 
-// /**
-//  * A handler provides a standarized means for transforming a request to a response,
-//  * according to the particulars of the pattern/action pair it was constructed with.
-//  */
-
-
-
-
-
-// TODO: doc...
-export default RouteHandler;
+/** A route handler provides a standarized means for transforming an address/request pair to a response. */
 type RouteHandler = (address: string, request: Request) => Response;
+export default RouteHandler;
 export interface Request {}
 export interface Response {}
