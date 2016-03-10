@@ -90,7 +90,7 @@ variants.forEach(variant => describe(`Constructing a RuleSet instance (${variant
         `zzz/./{whatever} ==> forty-two`
     ];
 
-    let ruleSetHandler = new RuleSet(ruleSet).execute;
+    let ruleSetHandler = new RuleSet<{address:string}, string>(ruleSet).execute;
 
     tests.forEach(test => it(test, async.cps(() => {
         let address = test.split(' ==> ')[0];
@@ -99,7 +99,7 @@ variants.forEach(variant => describe(`Constructing a RuleSet instance (${variant
         if (expected === 'UNHANDLED') expected = null;
         let actual: string;
         try {
-            let res = <string | Promise<string>> ruleSetHandler(address, request);
+            let res = ruleSetHandler(address, request);
             actual = util.isPromiseLike(res) ? await (res) : res;
         }
         catch (ex) {

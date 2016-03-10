@@ -61,5 +61,5 @@ export default class RuleSet<TRequest extends any, TResponse extends any> {
      * @returns {TResponse} the response generated for the given address/request according to the
      *        rules with which this RuleSet was constructed.
      */
-    execute: (address: string, request: TRequest) => TResponse;
+    execute: (address: string, request: TRequest) => TResponse | PromiseLike<TResponse>;
 }

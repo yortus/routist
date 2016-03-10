@@ -1,7 +1,7 @@
 'use strict';
 import {expect} from 'chai';
 import {Rule} from 'routist';
-// TODO: add paramNames
+// TODO: add some asynchronous cases (with results, null, errors)...
 
 
 describe('Constructing a Rule instance', () => {

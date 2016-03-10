@@ -96,7 +96,7 @@ const tests = [
 
     // Set up the tests.
     console.log(`Running perf test: basic routing...`);
-    let ruleSetHandler = new RuleSet(ruleSet).execute;
+    let ruleSetHandler = new RuleSet<{address: string}, string>(ruleSet).execute;
     let addresses = tests.map(test => test.split(' ==> ')[0]);
     let requests = addresses.map(address => ({address}));
     let responses = tests.map(test => test.split(' ==> ')[1]);
@@ -110,8 +110,8 @@ const tests = [
     // Loop over the tests.
     for (let i = 0; i < COUNT; ++i) {
         let index = Math.floor(Math.random() * tests.length);
-        let actualResponse = ruleSetHandler(addresses[index], requests[index]);
-        if (util.isPromiseLike(actualResponse)) actualResponse = await (actualResponse);
+        let res = ruleSetHandler(addresses[index], requests[index]);
+        let actualResponse = util.isPromiseLike(res) ? await (res) : res;
         assert.equal(actualResponse, responses[index]);
     }
 

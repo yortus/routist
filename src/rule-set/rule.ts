@@ -21,9 +21,11 @@ export default class Rule {
      *        It may be invoked when the RuleSet containing this rule is executed against an address and request. Each
      *        of the `handler` function's formal parameter names must match either a capture name from the pattern, or
      *        a builtin name such as `$req` or `$next`. Capture values and/or builtin values are passed as the actual
-     *        parameters to the `handler` function upon invocation. Any non-null return value from `handler` is
-     *        interpreted as a response. A null return value signifies that the handler declined to respond to the given
-     *        request, even if the pattern matched the request's address.
+     *        parameters to the `handler` function upon invocation. The handler may return its result synchronously or
+     *        asynchronously. An asynchronous handler must return a Promises/A+ instance whose eventual value holds
+     *        the handler's response. Any non-null (eventual) return value from `handler` is interpreted as a response.
+     *        A null (eventual) return value signifies that the handler declined to respond to the given request, even
+     *        if the pattern matched the request's address.
      */
     constructor(patternSource: string, handler: Function) {
 
