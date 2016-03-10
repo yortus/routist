@@ -1,6 +1,6 @@
 'use strict';
-import {RouteHandler} from './types';
 import Pattern from '../pattern';
+import RouteHandler from './route-handler';
 import Taxonomy, {TaxonomyNode} from '../taxonomy';
 
 

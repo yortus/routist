@@ -1,10 +1,10 @@
 'use strict';
 import disambiguateRoutes from './disambiguate-routes';
 import disambiguateRules from './disambiguate-rules';
-import {RouteHandler, RuleSet} from './types';
 import makeRouteSelector from './make-route-selector';
 import makeRouteHandler from './make-route-handler';
 import Pattern from '../pattern';
+import RouteHandler from './route-handler';
 import Rule from './rule';
 import Taxonomy, {TaxonomyNode} from '../taxonomy';
 
@@ -13,13 +13,13 @@ import Taxonomy, {TaxonomyNode} from '../taxonomy';
 
 
 /** Internal function used to generate the RuleSet#execute method. */
-export default function makeRuleSetHandler(ruleSet: RuleSet): RouteHandler {
+export default function makeRuleSetHandler(rules: {[pattern: string]: Function}): RouteHandler {
 
     // Generate a taxonomic arrangement of all the patterns that occur in the rule set.
-    let taxonomy = new Taxonomy(Object.keys(ruleSet).map(src => new Pattern(src)));
+    let taxonomy = new Taxonomy(Object.keys(rules).map(src => new Pattern(src)));
 
     // Find all functionally-distinct routes that an address can take through the rule set.
-    let routes = findAllRoutesThroughRuleSet(taxonomy, ruleSet);
+    let routes = findAllRoutesThroughRuleSet(taxonomy, rules);
 
     // Create an aggregate handler for each distinct route through the rule set.
     let routeHandlers = Array.from(routes.keys()).reduce(
@@ -43,16 +43,16 @@ export default function makeRuleSetHandler(ruleSet: RuleSet): RouteHandler {
 
 
 // TODO: ...
-function findAllRoutesThroughRuleSet(taxonomy: Taxonomy, ruleSet: RuleSet): Map<Pattern, Rule[]> {
+function findAllRoutesThroughRuleSet(taxonomy: Taxonomy, rules: {[pattern: string]: Function}): Map<Pattern, Rule[]> {
 
     // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
     // TODO: explain sort... all rules are equal by pattern signature, but we need an unambiguous ordering.
     // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
     let equalBestRules = taxonomy.allNodes.reduce(
         (map, node) => {
-            let rules = getEqualBestRulesForPattern(node.pattern, ruleSet);
-            rules = disambiguateRules(rules); // NB: may throw
-            map.set(node.pattern, rules);
+            let bestRules = getEqualBestRulesForPattern(node.pattern, rules);
+            bestRules = disambiguateRules(bestRules); // NB: may throw
+            map.set(node.pattern, bestRules);
             return map;
         },
         new Map<Pattern, Rule[]>()
@@ -89,18 +89,18 @@ function findAllRoutesThroughRuleSet(taxonomy: Taxonomy, ruleSet: RuleSet): Map<
 // > // well as patterns synthesized at the intersection of overlapping patterns in the ruleset.
 
 // TODO: add comment about Rule order in result (using tiebreak function).
-function getEqualBestRulesForPattern(pattern: Pattern, ruleSet: RuleSet): Rule[] {
+function getEqualBestRulesForPattern(pattern: Pattern, rules: {[pattern: string]: Function}): Rule[] {
 
     // Compile the rule list for this pattern from the ruleset entries.
-    let rules = Object.keys(ruleSet)
+    let bestRules = Object.keys(rules)
         .map(key => new Pattern(key))
         .filter(pat => pat.normalized === pattern.normalized)
         .map(pat => pat.toString())
-        .map(key => new Rule(key, ruleSet[key]));
+        .map(key => new Rule(key, rules[key]));
         //TODO:...was...remove?... .map<Rule>(pat => ({ pattern: pat, handler: normalizeHandler(pat, ruleSet[pat.toString()]) }));
 
     // TODO: ...
-    return rules;
+    return bestRules;
 }
 
 
