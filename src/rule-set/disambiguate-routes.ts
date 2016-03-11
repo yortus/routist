@@ -34,7 +34,7 @@ export default function disambiguateRoutes(pattern: Pattern, alternateRuleLists:
 
     // Synthesize a 'crasher' rule that throws an 'ambiguous' error.
     let ambiguousFallbacks = alternateRuleLists.map(cand => cand[cand.length - suffix.length - 1]);
-    let ambiguousError = new Error(`Multiple possible fallbacks from '${pattern}: ${ambiguousFallbacks}`);
+    let ambiguousError = new Error(`Multiple possible fallbacks from '${pattern}: ${ambiguousFallbacks}`); // TODO: what does this print? use 'inspect' like in disambiguate-rules.ts?
     function _ambiguous() { throw ambiguousError; }
     let crasher = new Rule(pattern.toString(), _ambiguous);
 

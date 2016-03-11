@@ -27,7 +27,8 @@ export default function disambiguateRules(candidates: Rule[]): Rule[] {
 /** Performs pairwise sorting of two rules, using the convention of Array#sort's `compareFn` parameter. */
 function ruleComparator(ruleA: Rule, ruleB: Rule) {
     let moreSpecificRule = tieBreakFn(ruleA, ruleB);
-    assert(moreSpecificRule === ruleA || moreSpecificRule === ruleB, `ambiguous rules - which is more specific? A: ${inspect(ruleA)}, B: ${inspect(ruleB)}`); // TODO: test/improve this message
+    let message = `ambiguous rules - which is more specific? A: ${inspect(ruleA)}, B: ${inspect(ruleB)}`;
+    assert(moreSpecificRule === ruleA || moreSpecificRule === ruleB, message);
     assert.strictEqual(moreSpecificRule, tieBreakFn(ruleB, ruleA)); // consistency check
     return ruleA === moreSpecificRule ? 1 : -1; // NB: sorts from least- to most-specific
 }
