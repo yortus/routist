@@ -19,7 +19,7 @@ import makeRuleSetHandler from './make-rule-set-handler';
  * The process of generating a response for a given address/request may be outlined as follows:
  * (1) The rule set's `execute` method is called with an address and a request.
  * (2) A shortlist consisting of only those rules whose patterns match the address is generated.
- * (3) The rule shortlist is sorted by relative match strength, from most- to least- specific.
+ * (3) The rule shortlist is sorted by relative match strength, from most- to least-specific.
  *     Rule A is a more specific match than Rule B if A's pattern matches a subset of the addresses
  *     matched by B's pattern. No ambiguity is permitted in this ordering step [1].
  * (4) The handlers for each shortlisted rule are attempted in order. Returning `null` from a
@@ -36,7 +36,7 @@ import makeRuleSetHandler from './make-rule-set-handler';
  *     returning it.
  *
  * NB: Requests and responses are treated as opaque values by the RuleSet class, which requires no
- *     knowledge or their internal structure to perform its function.
+ *     knowledge of their internal structure to perform its function.
  *     
  */
 export default class RuleSet<TRequest extends any, TResponse extends any> {
@@ -44,8 +44,8 @@ export default class RuleSet<TRequest extends any, TResponse extends any> {
 
     /**
      * Constructs a RuleSet instance from the given hash of pattern/handler pairs.
-     * @param {Object} rules - an associative array whose keys are patterns and whose values are
-     *        the corresponding handlers.
+     * @param {Object} rules - an associative array whose keys are pattern sources
+     *        and whose values are the corresponding handlers.
      */
     constructor(rules: {[pattern: string]: Function}) {
         this.execute = <any> makeRuleSetHandler(rules);
@@ -54,12 +54,13 @@ export default class RuleSet<TRequest extends any, TResponse extends any> {
 
     /**
      * Generates the appropriate response for the given address and request, according to the rules
-     * with which this RuleSet was constructed.
+     * with which this RuleSet was constructed. The response may be generated asynchronously, in which
+     * case the return value will be a promise of the response.
      * @param {string} address - the address associated with the incoming request, used to determine
-     *        which handlers to apply to this request.
+     *        which rule handlers to apply to this request.
      * @param {TRequest} request - the request for which a response is to be generated.
-     * @returns {TResponse} the response generated for the given address/request according to the
-     *        rules with which this RuleSet was constructed.
+     * @returns {TResponse|PromiseLike<TResponse>} the response generated for the given address/request
+     *          according to the rules with which this RuleSet was constructed. It may be a promise.
      */
     execute: (address: string, request: TRequest) => TResponse | PromiseLike<TResponse>;
 }

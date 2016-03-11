@@ -21,7 +21,7 @@ export default function makeRuleSetHandler(rules: {[pattern: string]: Function})
     // Find all functionally-distinct routes that an address can take through the rule set.
     let routes = findAllRoutesThroughRuleSet(taxonomy, rules);
 
-    // Create an aggregate handler for each distinct route through the rule set.
+    // Create an composite handler for each distinct route through the rule set.
     let routeHandlers = Array.from(routes.keys()).reduce(
         (map, pattern) => map.set(pattern, makeRouteHandler(routes.get(pattern))),
         new Map<Pattern, RouteHandler>()
@@ -30,8 +30,8 @@ export default function makeRuleSetHandler(rules: {[pattern: string]: Function})
     // Generate a function that, given an address, returns the handler for the best-matching route.
     let selectRouteHandler = makeRouteSelector(taxonomy, routeHandlers);
 
-    // TODO: ...
-    return function __compiledRuleSet__(address: string, request: any) { // TODO: import Request type!
+    // Return a composite handler representing this entire rule set.
+    return function _compiledRuleSet(address: string, request: any) {
         let handleRoute = selectRouteHandler(address);
         let response = handleRoute(address, request);
         return response;
@@ -42,12 +42,23 @@ export default function makeRuleSetHandler(rules: {[pattern: string]: Function})
 
 
 
-// TODO: ...
+/**
+ * Returns a mapping of every possible route through the given taxonomy, keyed by pattern. There is one route for each
+ * node in the taxonomy. A route is simply a list of rules, ordered from least- to most-specific, that all match the set
+ * of addresses matched by the corresponding taxonomy node's pattern. Routes are an important internal concept, because
+ * each route represents the best list of rule handlers to apply to any address that is best matched by the pattern
+ * associated with the route.
+ */
 function findAllRoutesThroughRuleSet(taxonomy: Taxonomy, rules: {[pattern: string]: Function}): Map<Pattern, Rule[]> {
 
-    // TODO: ... NB: clarify ordering of best rules (ie least to most specific)
-    // TODO: explain sort... all rules are equal by pattern signature, but we need an unambiguous ordering.
-    // TODO: sort the rules using special tie-break function(s). Fail if any ambiguities are encountered.
+    // Every route begins with this universal rule. It matches all addresses,
+    // and its handler returns the 'unhandled' sentinel value.
+    const universalRule = new Rule(Pattern.UNIVERSAL.toString(), function _unhandled() { return null; });
+
+    // Find the equal-best rules corresponding to each pattern in the taxonomy, sorted least- to most-specific in each
+    // case. Since the rules are 'equal best', there is no inherent way to recognise their relative specificity. This is
+    // where the client-supplied 'tiebreak' function is used. It must provide an unambiguous order in all cases where
+    // rules are otherwise of equivalent specificity.
     let equalBestRules = taxonomy.allNodes.reduce(
         (map, node) => {
             let bestRules = getEqualBestRulesForPattern(node.pattern, rules);
@@ -58,20 +69,30 @@ function findAllRoutesThroughRuleSet(taxonomy: Taxonomy, rules: {[pattern: strin
         new Map<Pattern, Rule[]>()
     );
 
-
-    // TODO: doc...
+    // Every node in the taxonomy represents the best-matching pattern for some set of addresses. Therefore, the set of
+    // all possible addresses may be thought of as being partitioned by a taxonomy into one partition per node, where
+    // for each partition, that partition's node holds the most-specific pattern that matches that partition's
+    // addresses. For each such partition, we can concatenate the 'equal best' rules for all the nodes along the pathways
+    // from the root node to the most-specific node in the partition, thus getting a rule list for each partition,
+    // ordered from least- to most-specific, of all the rules that match all the partition's addresses. One complication
+    // here is that there may be multiple pathways from the root to a node in the taxonomy, since it is a DAG and may
+    // therefore contain 'diamonds'. Since we tolerate no ambiguity, these multiple pathways must be effectively
+    // collapsed down to a single unambiguous pathway. The details of this are in the disambiguateRoutes() function.
     return taxonomy.allNodes.reduce(
         (map, node) => {
 
-            // TODO: doc...
-            let alternatePathways = getAllPathwaysFromRootToHere(node)
+            // Get all pathways through the taxonomy from the root to `node`.
+            let alternatePathways = getAllPathwaysFromRootToNode(node);
+
+            // Obtain the full rule list corresponding to each pathway, ordered from least- to most-specific.
+            let alternateRuleLists = alternatePathways
                 .map(path => path
                     .map(pattern => equalBestRules.get(pattern))
                     .reduce((route, rules) => route.concat(rules), [universalRule])
                 );
 
-            // TODO: make a single best route. Ensure no possibility of ambiguity.
-            let singleRoute = disambiguateRoutes(node.pattern, alternatePathways);
+            // Make a single best route. Ensure no possibility of ambiguity.
+            let singleRoute = disambiguateRoutes(node.pattern, alternateRuleLists);
             return map.set(node.pattern, singleRoute);
         },
         new Map<Pattern, Rule[]>()
@@ -82,59 +103,31 @@ function findAllRoutesThroughRuleSet(taxonomy: Taxonomy, rules: {[pattern: strin
 
 
 
-// TODO:  make jsdoc...
-// Associate each distinct pattern (ie unique by signature) with the set of rules from the ruleset that *exactly* match
-// it. Some patterns may have no such rules. Because:
-// > // `taxonomy` may include some patterns that are not in the ruleset, such as the always-present root pattern '…', as
-// > // well as patterns synthesized at the intersection of overlapping patterns in the ruleset.
-
-// TODO: add comment about Rule order in result (using tiebreak function).
+/**
+ * Get all the rules in the rule set whose normalized form matches that of the given `pattern`. NB: some patterns may
+ * have no such rules, because the taxonomy of patterns may include some that are not in the ruleset, such as:
+ * - the always-present root pattern '…'
+ * - patterns synthesized at the intersection of overlapping patterns in the ruleset.
+ */
 function getEqualBestRulesForPattern(pattern: Pattern, rules: {[pattern: string]: Function}): Rule[] {
-
-    // Compile the rule list for this pattern from the ruleset entries.
-    let bestRules = Object.keys(rules)
+    return Object.keys(rules)
         .map(key => new Pattern(key))
         .filter(pat => pat.normalized === pattern.normalized)
         .map(pat => pat.toString())
         .map(key => new Rule(key, rules[key]));
-        //TODO:...was...remove?... .map<Rule>(pat => ({ pattern: pat, handler: normalizeHandler(pat, ruleSet[pat.toString()]) }));
-
-    // TODO: ...
-    return bestRules;
 }
 
 
 
 
 
-// TODO: review doc...
-// TODO: badly named...
 /**
- * Enumerates every possible walk[1] in the `taxonomy` DAG that begins at the this Pattern
- * and ends at any Pattern reachable from the this one. Each walk is a Pattern array,
- * whose elements are arranged in walk-order (i.e., from the root to the descendent).
+ * Enumerates every possible walk[1] in the taxonomy from the root to the given `node`. Each walk is represented as a
+ * list of patterns arranged in walk-order (i.e., from the root to the descendent).
  * [1] See: https://en.wikipedia.org/wiki/Glossary_of_graph_theory#Walks
- * @param {Taxonomy} taxonomy - the pattern DAG to be walked.
- * TODO: fix below....
- * @returns
  */
-function getAllPathwaysFromRootToHere(node: TaxonomyNode): Pattern[][] {
-    // TODO: test/review/cleanup...
-    let allPaths = [].concat(...node.generalizations.map(getAllPathwaysFromRootToHere));
+function getAllPathwaysFromRootToNode(node: TaxonomyNode): Pattern[][] {
+    let allPaths = [].concat(...node.generalizations.map(getAllPathwaysFromRootToNode));
     if (allPaths.length === 0) allPaths = [[]]; // no parent paths - this must be the root
     return allPaths.map(path => path.concat([node.pattern]));
 }
-
-
-
-
-
-// TODO: doc...
-const nullHandler: RouteHandler = function __nullHandler__() { return null; };
-
-
-
-
-
-// TODO: doc...
-const universalRule = new Rule(Pattern.UNIVERSAL.toString(), nullHandler);

@@ -3,6 +3,10 @@
 
 ## To Do List
 
+- [ ] RuleSet: implement mechanism for providing a RuleSet with a custom 'tiebreak' function to disambiguate rules
+- [ ] RuleSet: change to UNHANDLED sentinel value instead of null (this can be another RuleSet option)
+- [ ] Transport: for 'file' responses, harden againt rel paths in address eg '../../../sys/passwords.txt'
+- [ ] docs: some code comments are almost impossible to grasp (eg see comments in findAllRoutesThroughRuleSet). Need step-by-step explanations of concepts in separate .md file(s), code can refer reader to these docs for more explanation. Code comments should then be reduced to simpler statements.
 - [x] transpile to /dist or /built directory and npmignore src/
 - [x] more pegjs to devDeps and make PEG compilation a build step
 - [x] change {...rest} to {**rest} / {…rest} for consistency?
@@ -15,7 +19,6 @@
 - [x] asyncify Handler#execute
 - [x] still need `isPromise`? If not, remove it :( Otherwise find a use for it.
 - [x] add npmignore
-- [ ] for 'file' responses, harden againt rel paths in address eg '../../../sys/passwords.txt'
 
 
 ## The Pattern DSL
