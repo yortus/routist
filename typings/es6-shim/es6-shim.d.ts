@@ -3,6 +3,9 @@
 // Definitions by: Ron Buckton <http://github.com/rbuckton>
 // Definitions: https://github.com/borisyankov/DefinitelyTyped
 
+// TG added:
+declare function Symbol(description?: string): symbol;
+
 //declare type PropertyKey = string | number | symbol;
 
 interface IteratorResult<T> {

@@ -2,6 +2,7 @@
 import * as util from '../util';
 import RouteHandler from './route-handler';
 import Rule from './rule';
+import * as unhandled from './unhandled';
 
 
 
@@ -40,7 +41,7 @@ export default function makeRouteHandler(rules: Rule[]): RouteHandler {
     let lines = [
         ...ruleNames.map((name, i) => `var match${name} = rules[${i}].pattern.match;`),
         ...ruleNames.map((name, i) => `var handle${name} = rules[${i}].handler;`),
-        'function _Ø(addr, req) {\n    return null;\n}',
+        'function _Ø(addr, req) {\n    return UNHANDLED;\n}',
         generateRuleHandlerSourceCode(rules, ruleNames),
         `return ${startRuleName};`
     ];
@@ -70,7 +71,7 @@ function generateRuleHandlerSourceCode(rules: Rule[], ruleNames: string[]): stri
 
         // For each rule, we reuse the source code template below. But first we need to compute a number of
         // values for substitution into the template. A few notes on these substitutions:
-        // - `nextRuleName` is used for cascading evaluation - it's called when the current rule handler returns null.
+        // - `nextRuleName` is used for cascading evaluation, i.e. when the current rule handler returns UNHANDLED.
         // - `downstreamRuleName` refers to the first rule in the next more-specific partition (see JSDoc notes at top
         //   of this file). It is substituted in as the value of `$next` when a decorator rule's handler is called.
         // - `handlerArgs` is a hash keyed by all possible parameter names a rule's raw handler may use, and whose
@@ -90,7 +91,7 @@ function generateRuleHandlerSourceCode(rules: Rule[], ruleNames: string[]): stri
         // Generate the initial source code, substituting in the values computed above. The code is tweaked more below.
         let source = `
             function ${ruleName}(addr, req, res?) {
-                if (res !== null) return res;                                               #if ${!startsPartition}
+                if (res !== UNHANDLED) return res;                                          #if ${!startsPartition}
                 var captures${ruleName} = match${ruleName}(addr);                           #if ${!!captureNames.length}
                 var res = handle${ruleName}(${handlerArgs});                                #if ${!endsPartition}
                 if (isPromise(res)) return res.then(rs => ${nextRuleName}(addr, req, rs));  #if ${!endsPartition}
@@ -121,7 +122,9 @@ function generateRuleHandlerSourceCode(rules: Rule[], ruleNames: string[]): stri
 
 
 
-// Declare isPromise in local scope, so the eval'ed route handlers can reference it. NB: the source code for eval
-// cannot safely refer directly to the expression `util.isPromiseLike`, since the `util` identifier may not appear in
-// the transpiled JavaScript for this module (TypeScript may rename modules to try to preserve ES6 module semantics).
+// Declare isPromise and UNHANDLED in local scope, so the eval'ed route handlers can reference them. NB: the source code
+// for eval cannot safely refer directly to expressions like `util.isPromiseLike`, since the `util` identifier may not
+// appear in the transpiled JavaScript for this module. This is because TypeScript may rename modules to try to preserve
+// ES6 module semantics.
 let isPromise = util.isPromiseLike;
+let UNHANDLED = unhandled.default;

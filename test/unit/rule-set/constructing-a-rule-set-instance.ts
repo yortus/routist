@@ -1,7 +1,7 @@
 'use strict';
 import {async, await} from 'asyncawait';
 import {expect} from 'chai';
-import {RuleSet, util} from 'routist';
+import {RuleSet, UNHANDLED, util} from 'routist';
 // TODO: rename these tests in filename and describe() ? this is more about executing the RuleSet, no constructing it...
 // TODO: more ruleset tests? for other files?
 
@@ -30,7 +30,7 @@ variants.forEach(variant => describe(`Constructing a RuleSet instance (${variant
         '/foo': () => val('foo'),
         '/bar': () => val('bar'),
         '/baz': () => val('baz'),
-        '/*a*': ($next) => val(`---${await($next()) || await(err('no downstream!'))}---`),
+        '/*a*': ($next) => val(`---${ifUnhandled(await($next()), () => await(err('no downstream!')))}---`),
 
         'a/*': () => val(`starts with 'a'`),
         '*/b': () => val(`ends with 'b'`),
@@ -38,20 +38,20 @@ variants.forEach(variant => describe(`Constructing a RuleSet instance (${variant
 
         'c/*': () => val(`starts with 'c'`),
         '*/d': () => err(`don't end with 'd'!`),
-        'c/d': () => val(null),
+        'c/d': () => val(UNHANDLED),
 
         'api/... #a': () => val(`fallback`),
         'api/... #b': () => val(`fallback`), // TODO: temp testing, remove this...
-        'api/fo*o': () => val(null),
-        'api/fo* #2': ($req, $next) => val(`fo2-(${await($next($req)) || 'NONE'})`),
-        'api/fo* #1': ($req, $next) => val(`fo1-(${await($next($req)) || 'NONE'})`),
-        'api/foo ': ($req, $next) => val(`${await($next($req)) || 'NONE'}!`),
+        'api/fo*o': () => val(UNHANDLED),
+        'api/fo* #2': ($req, $next) => val(`fo2-(${ifUnhandled(await($next($req)), 'NONE')})`),
+        'api/fo* #1': ($req, $next) => val(`fo1-(${ifUnhandled(await($next($req)), 'NONE')})`),
+        'api/foo ': ($req, $next) => val(`${ifUnhandled(await($next($req)), 'NONE')}!`),
         'api/foo': () => val('FOO'),
         'api/foot': () => val('FOOt'),
         'api/fooo': () => val('fooo'),
-        'api/bar': () => val(null),
+        'api/bar': () => val(UNHANDLED),
 
-        'zzz/{...rest}': ($next, rest) => val(`${await($next({address: rest.split('').reverse().join('')})) || 'NONE'}`),
+        'zzz/{...rest}': ($next, rest) => val(`${ifUnhandled(await($next({address: rest.split('').reverse().join('')})), 'NONE')}`),
         'zzz/b*z': ($req) => val(`${$req.address}`),
         'zzz/./*': () => val('forty-two')
     };
@@ -96,7 +96,7 @@ variants.forEach(variant => describe(`Constructing a RuleSet instance (${variant
         let address = test.split(' ==> ')[0];
         let request = {address};
         let expected = test.split(' ==> ')[1];
-        if (expected === 'UNHANDLED') expected = null;
+        if (expected === 'UNHANDLED') expected = <any> UNHANDLED;
         let actual: string;
         try {
             let res = ruleSetHandler(address, request);
@@ -111,6 +111,14 @@ variants.forEach(variant => describe(`Constructing a RuleSet instance (${variant
         expect(actual).equals(expected);
     })));
 }));
+
+
+// TODO: doc helper...
+function ifUnhandled(lhs, rhs) {
+    if (lhs !== UNHANDLED) return lhs;
+    if (typeof rhs === 'function') rhs = rhs();
+    return rhs;
+}
 
 
 // TODO: doc helpers...

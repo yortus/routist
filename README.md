@@ -3,8 +3,9 @@
 
 ## To Do List
 
-- [ ] RuleSet: implement mechanism for providing a RuleSet with a custom 'tiebreak' function to disambiguate rules
-- [ ] RuleSet: change to UNHANDLED sentinel value instead of null (this can be another RuleSet option)
+- [x] RuleSet: change to UNHANDLED sentinel value instead of null
+- [ ] RuleSet: allow UNHANDLED value to be specified as an option
+- [ ] RuleSet: allow custom 'tiebreak' function to be specified as an option
 - [ ] Transport: for 'file' responses, harden againt rel paths in address eg '../../../sys/passwords.txt'
 - [ ] docs: some code comments are almost impossible to grasp (eg see comments in findAllRoutesThroughRuleSet). Need step-by-step explanations of concepts in separate .md file(s), code can refer reader to these docs for more explanation. Code comments should then be reduced to simpler statements.
 - [x] transpile to /dist or /built directory and npmignore src/

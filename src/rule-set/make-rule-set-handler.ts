@@ -7,6 +7,7 @@ import Pattern from '../pattern';
 import RouteHandler from './route-handler';
 import Rule from './rule';
 import Taxonomy, {TaxonomyNode} from '../taxonomy';
+import UNHANDLED from './unhandled';
 
 
 
@@ -53,7 +54,7 @@ function findAllRoutesThroughRuleSet(taxonomy: Taxonomy, rules: {[pattern: strin
 
     // Every route begins with this universal rule. It matches all addresses,
     // and its handler returns the 'unhandled' sentinel value.
-    const universalRule = new Rule(Pattern.UNIVERSAL.toString(), function _unhandled() { return null; });
+    const universalRule = new Rule(Pattern.UNIVERSAL.toString(), function _unhandled() { return UNHANDLED; });
 
     // Find the equal-best rules corresponding to each pattern in the taxonomy, sorted least- to most-specific in each
     // case. Since the rules are 'equal best', there is no inherent way to recognise their relative specificity. This is

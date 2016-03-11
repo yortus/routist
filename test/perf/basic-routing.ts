@@ -1,7 +1,7 @@
 'use strict';
 import * as assert from 'assert';
 import {async, await} from 'asyncawait';
-import {RuleSet, util} from 'routist';
+import {RuleSet, UNHANDLED, util} from 'routist';
 // TODO: perf testing... write this up properly.
 
 
@@ -28,11 +28,10 @@ const COUNT = 1000000;
 
 // Declare the test rule set.
 const ruleSet = {
-    //...: () => null, // no-op catch-all rule (this would be implicitly present even if not listed here)
     '/foo': () => 'foo',
     '/bar': () => 'bar',
     '/baz': () => 'baz',
-    '/*a*': ($req, $next) => `---${$next($req) || 'NONE'}---`,
+    '/*a*': ($req, $next) => `---${ifUnhandled($next($req), 'NONE')}---`,
 
     'a/*': () => `starts with 'a'`,
     '*/b': () => `ends with 'b'`,
@@ -40,20 +39,20 @@ const ruleSet = {
 
     'c/*': () => `starts with 'c'`,
     '*/d': () => `ends with 'd'`,
-    'c/d': () => null,
+    'c/d': () => UNHANDLED,
 
     'api/... #a': () => `fallback`,
     'api/... #b': () => `fallback`,
-    'api/fo*o': () => null,
-    'api/fo* #2': ($req, $next) => `fo2-(${$next($req) || 'NONE'})`,
-    'api/fo* #1': ($req, $next) => `fo1-(${$next($req) || 'NONE'})`,
-    'api/foo ': ($req, $next) => `${$next($req) || 'NONE'}!`,
+    'api/fo*o': () => UNHANDLED,
+    'api/fo* #2': ($req, $next) => `fo2-(${ifUnhandled($next($req), 'NONE')})`,
+    'api/fo* #1': ($req, $next) => `fo1-(${ifUnhandled($next($req), 'NONE')})`,
+    'api/foo ': ($req, $next) => `${ifUnhandled($next($req), 'NONE')}!`,
     'api/foo': () => 'FOO',
     'api/foot': () => 'FOOt',
     'api/fooo': () => 'fooo',
-    'api/bar': () => null,
+    'api/bar': () => UNHANDLED,
 
-    'zzz/{...rest}': ($next, rest) => `${$next({address: rest.split('').reverse().join('')}) || 'NONE'}`,
+    'zzz/{...rest}': ($next, rest) => `${ifUnhandled($next({address: rest.split('').reverse().join('')}), 'NONE')}`,
     'zzz/b*z': ($req) => `${$req.address}`,
     'zzz/./*': () => 'forty-two'
 };
@@ -100,7 +99,7 @@ const tests = [
     let addresses = tests.map(test => test.split(' ==> ')[0]);
     let requests = addresses.map(address => ({address}));
     let responses = tests.map(test => test.split(' ==> ')[1]);
-    responses.forEach((res, i) => { if (res === 'UNHANDLED') responses[i] = null; });
+    responses.forEach((res, i) => { if (res === 'UNHANDLED') responses[i] = <any> UNHANDLED; });
 
 
     // Start timer.
@@ -125,3 +124,9 @@ const tests = [
     let rate = Math.round(0.001 * COUNT / sec) * 1000;
     console.log(`Dispatched ${COUNT} requests in ${sec} seconds   (~${rate} req/sec)`);
 }))().catch(console.log);
+
+
+// TODO: doc helper...
+function ifUnhandled(lhs, rhs) {
+    return lhs === UNHANDLED ? rhs : lhs;
+}
