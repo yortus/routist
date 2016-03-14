@@ -8,6 +8,9 @@
 - [ ] RuleSet: allow custom 'tiebreak' function to be specified as an option
 - [ ] Transport: for 'file' responses, harden againt rel paths in address eg '../../../sys/passwords.txt'
 - [ ] docs: some code comments are almost impossible to grasp (eg see comments in findAllRoutesThroughRuleSet). Need step-by-step explanations of concepts in separate .md file(s), code can refer reader to these docs for more explanation. Code comments should then be reduced to simpler statements.
+- [ ] make runnable client-side
+  - [ ] isolate/replace rule-set deps: node (assert, util)
+  - [ ] isolate transport deps: node (http/s), node-static
 - [x] transpile to /dist or /built directory and npmignore src/
 - [x] more pegjs to devDeps and make PEG compilation a build step
 - [x] change {...rest} to {**rest} / {…rest} for consistency?
