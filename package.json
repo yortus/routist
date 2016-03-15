@@ -11,6 +11,7 @@
     "prepublish": "npm run self-ref && npm run build",
     "test": "node ./scripts/run-unit-tests",
     "perf": "node ./scripts/run-perf-tests",
+    "srvr": "node ./scripts/run-web-server",
     "self-ref": "node ./scripts/enable-self-reference"
   },
   "repository": {
