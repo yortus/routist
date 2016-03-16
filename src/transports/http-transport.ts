@@ -91,8 +91,7 @@ export function makeHttpListener(ruleSet: RuleSet<Request, Response>) {
         let method = httpReq.method;
         let urlParts = url.parse(httpReq.url, true);
         let pathname = urlParts.pathname;
-        let address = `${pathname}`;
-        //TODO: was... restore... let address = `${method} ${pathname}`;
+        let address = `${method} ${pathname}`;
         let session = sessionCookie.loadFromRequest(httpReq, httpRes);
         let originalSession = _.cloneDeep(session);
 
