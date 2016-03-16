@@ -7,9 +7,11 @@ import {makeHttpListener, RuleSet} from 'routist';
 
 
 let ruleSet = new RuleSet({
-    '/foo': () => 'foo',
-    '/bar': () => 'bar',
-    '...': () => 'fallback'
+    '/foo': () => ({html: 'foo'}),
+    '/bar': () => ({json: {bar: 'bar'}}),
+    '/lodash.js': () => ({file: `V:/oss/routist/node_modules/lodash/lodash.js`}),
+    '/lodash-all.js': () => ({bundle: `V:/oss/routist/node_modules/lodash/_*.js`}),
+    '...': () => ({html: 'fallback'})
 });
 let httpListener = makeHttpListener(ruleSet);
 

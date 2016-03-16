@@ -33,7 +33,16 @@
     "url": "https://github.com/yortus/routist/issues"
   },
   "homepage": "https://github.com/yortus/routist#readme",
-  "dependencies": {},
+  "dependencies": {
+    "body": "^5.1.0",
+    "cookies": "^0.6.1",
+    "find-root": "^1.0.0",
+    "glob": "^7.0.3",
+    "lodash": "^4.6.1",
+    "mkdirp": "^0.5.1",
+    "node-static": "^0.7.7",
+    "type-is": "^1.6.12"
+  },
   "devDependencies": {
     "asyncawait": "^1.0.3",
     "chai": "^3.2.0",
