@@ -27,7 +27,7 @@
 A valid pattern string conforms to the following rules:
 - Patterns are case-sensitive.
 - A pattern consists of an alternating sequence of captures and literals.
-- A literal consists of one or more adjacent characters from the set `[A-Za-z0-9/._-]`.
+- A literal consists of one or more adjacent characters from the set `[A-Za-z0-9 /._-]`.
 - Literals must exactly match a corresponding portion of an address.
 - A capture represents an operator that matches zero or more characters of an address.
 - There are two types of captures: globstars and wildcards.

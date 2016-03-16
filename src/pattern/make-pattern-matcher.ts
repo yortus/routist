@@ -130,7 +130,7 @@ function makeAddressRecogniser(patternAST: PatternAST) {
             let isAnonymous = patternAST.captures[captureIndex++] === '?';
             return isAnonymous ? '.*' : '(.*)';
         }
-        if ('/._-'.indexOf(c) !== -1) {
+        if (' /._-'.indexOf(c) !== -1) {
             return `\\${c}`;
         }
         return c;

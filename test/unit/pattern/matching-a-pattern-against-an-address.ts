@@ -37,7 +37,18 @@ describe('Matching a pattern against an address', () => {
         '*bbb* DOES NOT MATCH bb/baaabb',
         '/{lhs}/bbb/{...rhs} MATCHES /aaa/bbb/ccc/ddd WITH {lhs: "aaa", rhs: "ccc/ddd"}',
         '{lhs}/bbb/{...rhs} DOES NOT MATCH /aaa/bbb/ccc/ddd',
-        '/f*o/bar/{baz}z/{...rest}.html MATCHES /foo/bar/baz/some/more/stuff.html WITH { baz: "ba", rest: "some/more/stuff" }'
+        '/f*o/bar/{baz}z/{...rest}.html MATCHES /foo/bar/baz/some/more/stuff.html WITH { baz: "ba", rest: "some/more/stuff" }',
+        '{first} {...rest} MATCHES a b c d WITH { first: "a b c", rest: "d" }',
+        '{first} {...rest} DOES NOT MATCH abcd',
+        '{first} {rest} DOES NOT MATCH abcd',
+        '{first} {rest} MATCHES a b c d WITH { first: "a b c", rest: "d" }',
+        '{...first} {...rest} MATCHES a/b c/d e/f WITH { first: "a/b c/d", rest: "e/f" }',
+        '{first} {...rest} DOES NOT MATCH a/b c/d e/f',
+        '{first} {...rest} MATCHES a / b c / d e / f WITH { first: "a", rest: "/ b c / d e / f" }',
+        '  {first}    {...rest}   MATCHES   a    b   WITH { first: "a", rest: "b  " }',
+        '  {first}    {...rest}   MATCHES   a    b WITH { first: "a", rest: "b" }',
+        '  {first}    {...rest}   MATCHES   a      b WITH { first: "a  ", rest: "b" }',
+        '  {first}  /  {...rest}   MATCHES     a  /      b WITH { first: "  a", rest: "    b" }'
     ];
 
     tests.forEach(test => {

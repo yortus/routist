@@ -24,7 +24,11 @@ describe('Parsing a pattern string', () => {
         '{$} ==> {signature: "*", captures: ["$"]}',
         '{...__} ==> {signature: "…", captures: ["__"]}',
         '.... ==> {signature: "….", captures: ["?"]}',
-
+        'GET /foo ==> {signature: "GET /foo", captures: []}',
+        '{method} {...path} ==> {signature: "* …", captures: ["method", "path"]}',
+        'GET   /foo ==> {signature: "GET   /foo", captures: []}',
+        '   GET /foo ==> {signature: "   GET /foo", captures: []}',
+        '   /    ==> {signature: "   /", captures: []}',
         '/∅ ==> ERROR',
         '∅… ==> ERROR',
         '/*** ==> ERROR',

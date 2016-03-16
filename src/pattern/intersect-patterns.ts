@@ -141,7 +141,7 @@ function makeSubsetRecogniser(pattern: string) {
     let re = pattern.split('').map(c => {
         if (c === '*') return '[^\\/…]*';
         if (c === '…') return '.*';
-        if (['/._-'].indexOf(c) !== -1) return `\\${c}`;
+        if (' /._-'.indexOf(c) !== -1) return `\\${c}`;
         return c;
     }).join('');
     return new RegExp(`^${re}$`);
