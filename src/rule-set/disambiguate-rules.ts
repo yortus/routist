@@ -44,7 +44,7 @@ function tieBreakFn(a: Rule, b: Rule): Rule {
     if (!a.isDecorator && b.isDecorator) return a;
     if (!b.isDecorator && a.isDecorator) return b;
 
-    // All else being equal, localeCompare of pattern comments provides the rule order (comes before == more specific).
-    if (a.pattern.comment.localeCompare(b.pattern.comment) < 0) return a;
-    if (b.pattern.comment.localeCompare(a.pattern.comment) < 0) return b;
+    // All else being equal, localeCompare of pattern comments provides the rule order (comes later == more specific).
+    if (a.pattern.comment.localeCompare(b.pattern.comment) > 0) return a;
+    if (b.pattern.comment.localeCompare(a.pattern.comment) > 0) return b;
 }
