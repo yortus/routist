@@ -85,6 +85,12 @@ export function html(str: string) {
 export function bundle(x) {
     return ($next) => {
         let res = $next();
-        return res === UNHANDLED ? {json: [x]} : {json: [x].concat(res.json)};
+
+        if (res === UNHANDLED) {
+            return {bundle: [x]};
+        }
+
+        assert(Array.isArray(res.bundle));
+        return {bundle: [x].concat(res.bundle)};
     };
 }

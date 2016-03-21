@@ -3,7 +3,7 @@ import * as assert from 'assert';
 import * as http from 'http';
 import * as path from 'path';
 import {makeHttpListener, RuleSet, UNHANDLED} from 'routist';
-import {F, file, bundle, json, html} from 'routist';
+import {F, P, file, bundle, json, html} from 'routist';
 let stackTrace = require('stack-trace');
 
 
@@ -13,11 +13,11 @@ let stackTrace = require('stack-trace');
 let ruleSet = new RuleSet({
     'GET /foo':             html('foo'),
     'GET /bar':             json({bar: 'bar'}),
-    'GET /lodash.js':       file(F`../../../node_modules/lodash/lodash.js`),
-    'GET /lodash-all.js':   () => ({bundle: `V:/oss/routist/node_modules/lodash/_*.js`}),
+    'GET /lodash.js':       file(P`./node_modules/lodash/lodash.js`),
+    'GET /lodash-all.js':   bundle(P`./node_modules/lodash/_*.js`),
 
-    'GET /aaa #1': bundle('111'),
-    'GET /aaa #2': bundle('222'),
+    'GET /aaa.js #1': bundle(P`./package.json`),
+    'GET /aaa.js #2': bundle(P`./LICENSE`),
 
 
 
