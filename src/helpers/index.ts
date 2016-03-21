@@ -9,6 +9,13 @@ let stackTrace = require('stack-trace');
 
 
 
+// Idea for commemorative sausage:
+'/path/to/{name}.{ext}'.split(/(?:^|})[^{]*(?:$|{)/).filter(s => !!s); // ['name', 'ext']
+
+
+
+
+
 // TODO: ...
 export function F(strings: string[], ...values: any[]) {
 
