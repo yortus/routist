@@ -3,51 +3,8 @@ import * as assert from 'assert';
 import * as http from 'http';
 import * as path from 'path';
 import {makeHttpListener, RuleSet, UNHANDLED} from 'routist';
+import {F, file, bundle, json, html} from 'routist';
 let stackTrace = require('stack-trace');
-
-
-
-
-
-function F(strings: string[], ...values: any[]) {
-
-    // TODO: temp just for now... implement more general approach...    
-    assert(strings.length === 1);
-    assert(values.length === 0);
-
-    // TODO: ...
-    let relPath = strings[0];
-    if (relPath.charAt(0) !== '.') return relPath;
-
-    // TODO: ...
-    let callerFilename = stackTrace.get()[1].getFileName();
-    let callerDirname = path.dirname(callerFilename);
-    let absPath = path.join(callerDirname, relPath);
-    return absPath;
-}
-
-
-
-
-
-// TODO: ...
-function file(absPath: string) {
-    return () => ({file: absPath});
-}
-function json(obj: any) {
-    return () => ({json: obj});
-}
-function html(str: string) {
-    return () => ({html: str});
-}
-function bundle(x) {
-    return ($next) => {
-        debugger;
-
-        let res = $next();
-        return res === UNHANDLED ? {json: [x]} : {json: [x].concat(res.json)};
-    };
-}
 
 
 
