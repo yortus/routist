@@ -1,5 +1,5 @@
 
-export {F, P, file, bundle, json, html} from './helpers';
+export {file, bundle, json, html} from './helpers';
 export {default as Pattern, parsePatternSource, PatternAST} from './pattern';
 export {default as RuleSet, Rule, UNHANDLED} from './rule-set';
 export {default as Taxonomy, TaxonomyNode} from './taxonomy';

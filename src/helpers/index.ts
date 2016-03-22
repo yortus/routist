@@ -1,70 +1,30 @@
 'use strict';
 import * as assert from 'assert';
+import * as fs from 'fs';
 import * as path from 'path';
 import {UNHANDLED} from '../rule-set';
-let findRoot = require('find-root');
 let stackTrace = require('stack-trace');
 
 
 
 
 
-// Idea for commemorative sausage:
-'/path/to/{name}.{ext}'.split(/(?:^|})[^{]*(?:$|{)/).filter(s => !!s); // ['name', 'ext']
+// TODO: ... remove?
+// export function F(strings: string[], ...values: any[]) {
 
+//     // Make up the final string.
+//     let str = strings.reduce((final, s, i) => final + s + (i < values.length ? values[i] : ''), '');
 
+//     // TODO: ...
+//     let relPath = str;
+//     if (relPath.charAt(0) !== '.') return relPath;
 
-
-
-// TODO: ...
-export function F(strings: string[], ...values: any[]) {
-
-    // TODO: temp just for now... implement more general approach...    
-    assert(strings.length === 1);
-    assert(values.length === 0);
-
-    // TODO: ...
-    let relPath = strings[0];
-    if (relPath.charAt(0) !== '.') return relPath;
-
-    // TODO: ...
-    let callerFilename = stackTrace.get()[1].getFileName();
-    let callerDirname = path.dirname(callerFilename);
-    let absPath = path.join(callerDirname, relPath);
-    return absPath;
-}
-
-
-
-
-
-// TODO: ...
-export function P(strings: string[], ...values: any[]) {
-
-    // TODO: temp just for now... implement more general approach...    
-    assert(strings.length === 1);
-    assert(values.length === 0);
-
-    // TODO: ...
-    let relPath = strings[0];
-    assert(relPath.charAt(0) === '.');
-
-    // TODO: ...
-    let callerFilename = stackTrace.get()[1].getFileName();
-    let callerDirname = path.dirname(callerFilename);
-    let packageDirname = findRoot(callerDirname);
-    let absPath = path.join(packageDirname, relPath);
-    return absPath;
-}
-
-
-
-
-
-// TODO: ...
-export function file(absPath: string) {
-    return () => ({file: absPath});
-}
+//     // TODO: ...
+//     let callerFilename = stackTrace.get()[1].getFileName();
+//     let callerDirname = path.dirname(callerFilename);
+//     let absPath = path.join(callerDirname, relPath);
+//     return absPath;
+// }
 
 
 
@@ -89,15 +49,101 @@ export function html(str: string) {
 
 
 // TODO: ...
-export function bundle(x) {
-    return ($next) => {
-        let res = $next();
+export function file(absOrRelPath: string) {
+    return fileOrBundle('file', absOrRelPath, getDirnameOfCaller());
+}
 
-        if (res === UNHANDLED) {
-            return {bundle: [x]};
+
+
+
+
+// TODO: ...
+export function bundle(absOrRelPath: string) {
+    return fileOrBundle('bundle', absOrRelPath, getDirnameOfCaller());
+}
+
+
+
+
+
+// TODO: ...
+export function fileOrBundle(type: 'file' | 'bundle', absOrRelPath: string, callerDirname: string) {
+
+    // TODO: ...
+    let absPath: string;
+    if (absOrRelPath[0] === '.') {
+        absPath = path.join(callerDirname, absOrRelPath);
+    }
+    else {
+        let moduleId = absOrRelPath.split(/\/|\\/)[0];
+        if (isJsIdentifier(moduleId)) {
+            let packagePath = findPackagePath(moduleId, callerDirname);
+            absPath = path.join(packagePath, '..', absOrRelPath);
+        }
+        else {
+            absPath = absOrRelPath;
+        }
+    }
+
+    // TODO: ensure captureNames are valid JS indentifiers
+    let captureNames = absPath.split(/(?:^|})[^{]*(?:$|{)/).filter(s => !!s);
+
+    // TODO: ...
+    let UNH = UNHANDLED; // local alias (UNHANDLED as a module export so be renamed locally by TS)
+    let template = JSON.stringify(absPath).slice(1, -1).replace(/{/g, '${');
+    let source = `(${['$next'].concat(captureNames)}) => {
+        let res = $next();
+        if (res === UNH) return {[type]: [\`${template}\`]};
+        assert(type in res); // all responses must be of the same 'type'
+        return {[type]: [\`${template}\`].concat(res[type])};
+    }`;
+    let handler = eval(`(${source})`);
+    return handler;
+}
+
+
+
+
+
+// TODO: temp testing...
+function findPackagePath(moduleId: string, fromPath: string) {
+
+    while (true) {
+        let pkgPath = path.join(fromPath, 'package.json');
+        let pkg = null;
+        try {
+            pkg = require(pkgPath);
+        }
+        catch (ex) {}
+
+        if (pkg) {
+            assert(pkg.name === moduleId, 'module name mismatch');
+            return fromPath;
         }
 
-        assert(Array.isArray(res.bundle));
-        return {bundle: [x].concat(res.bundle)};
-    };
+        let parentPath = path.join(fromPath, '..');
+        assert(parentPath !== fromPath, 'module not found');
+        fromPath = parentPath;
+    }
+}
+
+
+
+
+
+// TODO: temp testing...
+function getDirnameOfCaller() {
+    // from here, it's the caller's caller
+    let callerFilename = stackTrace.get()[2].getFileName();
+    let callerDirname = path.dirname(callerFilename);
+    return callerDirname;
+}
+
+
+
+
+
+// TODO: temp testing...
+function isJsIdentifier(id: string) {
+    return /^[a-z$_][a-z$_0-9]*$/.test(id);
 }

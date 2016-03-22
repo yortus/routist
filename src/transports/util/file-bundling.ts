@@ -4,7 +4,6 @@ import * as path from 'path';
 import * as fs from './fs';
 import {async, await} from 'asyncawait';
 import promisedTempPath from './promised-temp-path';
-var findRoot = require('find-root');
 
 
 

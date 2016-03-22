@@ -17,7 +17,6 @@ let jsonBody = <(req) => Promise<any>> promisify(require('body/json'));
 let formBody = <(req) => Promise<any>> promisify(require('body/form'));
 let textBody = <(req) => Promise<any>> promisify(require('body'));
 let is = require('type-is');
-let findRoot = require('find-root');
 let nodeStatic = require('node-static');
 let gzip = <(text: string) => Promise<Buffer>> promisify(zlib.gzip);
 
@@ -173,8 +172,8 @@ function emitResponse(response: Response, httpReq: http.IncomingMessage, httpRes
     // Handle file responses.
     else if (response.file) {
         let paths = (<string[]> (_.isArray(response.file) ? response.file : [response.file])).map(path.normalize);
-        let absPath = _.findLast(paths, path => await (fs.exists(path)));
-        if (!absPath) throw new Error('404 Not found'); // TODO: handle properly!!
+        let absPath = _.find(paths, path => await (fs.exists(path)));
+        if (!absPath) return UNHANDLED;
         respondWithGzippedFile(absPath, response.headers, httpReq, httpRes);
     }
 
