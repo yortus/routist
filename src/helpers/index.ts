@@ -67,6 +67,13 @@ export function bundle(absOrRelPath: string) {
 
 
 // TODO: ...
+// TODO: make lookup of the `absOrRelPath` file closely follow node's module lookup algorithm, but additionally
+//       able to resolve this-package-relative module IDs. E.g., if the current module is called 'mylib', and jquery' is
+//       installed as a dependency, and the current file is mylib/src/foo/bar.js, then any of the following module IDs
+//       would resolve to the same filename:
+//       1. '../../node_modules/jquery/dist/jquery.min.js'
+//       2. 'mylib/node_modules/jquery/dist/jquery.min.js'
+//       3. 'jquery/dist/jquery.min.js'
 export function fileOrBundle(type: 'file' | 'bundle', absOrRelPath: string, callerDirname: string) {
 
     // TODO: ...
