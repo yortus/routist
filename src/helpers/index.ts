@@ -83,7 +83,7 @@ export function fileOrBundle(type: 'file' | 'bundle', absOrRelPath: string, call
     }
     else {
         let moduleId = absOrRelPath.split(/\/|\\/)[0];
-        if (isJsIdentifier(moduleId)) {
+        if (isNpmModuleIdentifier(moduleId)) {
             let packagePath = findPackagePath(moduleId, callerDirname);
             absPath = path.join(packagePath, '..', absOrRelPath);
         }
@@ -151,6 +151,6 @@ function getDirnameOfCaller() {
 
 
 // TODO: temp testing...
-function isJsIdentifier(id: string) {
-    return /^[a-z$_][a-z$_0-9]*$/.test(id);
+function isNpmModuleIdentifier(id: string) {
+    return /^[a-z0-9-][a-z0-9_-]*$/.test(id);
 }
