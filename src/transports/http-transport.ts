@@ -53,6 +53,10 @@ export interface Request {
 
     // TODO: ...
     session: any;
+
+
+    // TODO: ...
+    body: Promise<any>;
 }
 
 
@@ -102,9 +106,21 @@ export function makeHttpListener(ruleSet: RuleSet<Request, Response>) {
             pathname,
             query: <any> urlParts.query,
             headers: httpReq.headers,
-            session
+            session,
+            body: Promise.resolve(void 0) // TODO: may be modified below...
         };
 
+
+        // TODO: temp testing...
+        if (method === 'POST') {
+            Object.defineProperty(request, 'body', {
+                get: () => {
+                    // TODO: ...
+                    return getRequestBody(httpReq);
+                }
+            });
+        }
+        
 
         // TODO: generate response...
         // TODO: what if promise?
@@ -127,6 +143,24 @@ export function makeHttpListener(ruleSet: RuleSet<Request, Response>) {
             emitResponse(response, httpReq, httpRes);
         }
     });
+}
+
+
+
+
+
+// TODO: ... helper...
+function getRequestBody(httpReq: http.IncomingMessage): Promise<any> {
+
+    // TODO: add support for multipart encoded body... eg see formidable or dicer on npm
+    if (is(httpReq, ['multipart'])) {
+        return Promise.reject(new Error('HTTPExchange: multipart encoding is not currently supported'));
+    }
+
+    // TODO: convert www-form-urlencoded to JSON? How?
+    if (is(httpReq, ['urlencoded'])) return formBody(httpReq);
+    if (is(httpReq, ['json'])) return jsonBody(httpReq);
+    return textBody(httpReq);
 }
 
 
