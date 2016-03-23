@@ -54,7 +54,7 @@ export function saveToResponse(request: http.IncomingMessage, response: http.Ser
 function decode(cookie: string) {
     try {
         let parts = JSON.parse(cookie);
-        if (!_.isArray(parts) || parts.length !== 2) return {};
+        if (!_.isArray(parts) || parts.length !== 1) return {};
         return parts[0];
     }
     catch (err) {
