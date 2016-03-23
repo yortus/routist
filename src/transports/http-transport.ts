@@ -72,6 +72,7 @@ export interface Response {
     json?: any;
     file?: string | string[];
     bundle?: string | string[];
+    fileOrBundle?: Array<{type: 'file'|'bundle'; glob: string;}>;
     error?: Error | { message: string; };
     statusCode?: number;
     headers?: { [name: string]: string; };
@@ -216,6 +217,40 @@ function emitResponse(response: Response, httpReq: http.IncomingMessage, httpRes
         let globs = (<string[]> (_.isArray(response.bundle) ? response.bundle : [response.bundle])).map(path.normalize);
         let absPath = await (getBundleFilename(globs));
         respondWithGzippedFile(absPath, response.headers, httpReq, httpRes);
+    }
+
+    // TODO: temp testing clean this up...
+    else if (response.fileOrBundle) {
+        let items = response.fileOrBundle; // NB: ordered least- to most-specific
+        items.forEach(item => item.glob = path.normalize(item.glob));
+
+        while (items.length > 0) {
+            let item = items.pop(); // most-specific
+
+            if (item.type === 'file') {
+                if (!await (fs.exists(item.glob))) continue; // skip to next item
+                respondWithGzippedFile(item.glob, response.headers, httpReq, httpRes);
+                return;
+            }
+            else { // 'bundle'
+                let globs = [item.glob];
+
+                // any more items in bundle?
+                while (items.length > 0) {
+                    let item = items.pop();
+                    if (item.type !== 'bundle') break;
+                    globs.push(item.glob);
+                }            
+
+                let absPath = await (getBundleFilename(globs));
+                respondWithGzippedFile(absPath, response.headers, httpReq, httpRes);
+                return;
+            }
+        }
+
+        // TODO: send 404...
+        let res = {error:new Error('Not found'), statusCode: 404};
+        emitResponse(res, httpReq, httpRes);
     }
 
     else {

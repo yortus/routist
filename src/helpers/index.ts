@@ -97,13 +97,39 @@ export function fileOrBundle(type: 'file' | 'bundle', absOrRelPath: string, call
 
     // TODO: ...
     let UNH = UNHANDLED; // local alias (UNHANDLED as a module export so be renamed locally by TS)
-    let template = JSON.stringify(absPath).slice(1, -1).replace(/{/g, '${');
-    let source = `(${['$next'].concat(captureNames)}) => {
-        let res = $next();
-        if (res === UNH) return {[type]: [\`${template}\`]};
-        assert(type in res); // all responses must be of the same 'type'
-        return {[type]: [\`${template}\`].concat(res[type])};
-    }`;
+    let template = '`' + JSON.stringify(absPath).slice(1, -1).replace(/{/g, '${') + '`';
+let $template;//TODO:...
+
+    let handler2 = function($next, $captureNames) {
+        return Promise.resolve($next())
+        .then(res => {
+
+            //TODO:...
+            if (res === UNH) {
+                return {fileOrBundle: [{type, glob: $template}]};
+            }
+            else {
+                assert('fileOrBundle' in res); // all responses must be of type 'fileOrBundle'
+                return {fileOrBundle: [{type, glob: $template}].concat(res.fileOrBundle)};
+            }
+        })
+        .catch(err => {
+            //TODO:...
+            debugger;
+            throw err;
+        });
+    }
+
+    let source = handler2.toString()
+        .replace(/, \$captureNames/g, captureNames.map(cn => ', ' + cn).join(''))
+        .replace(/\$template/g, template);
+
+    // let source = `(${['$next'].concat(captureNames)}) => {
+    //     let res = $next();
+    //     if (res === UNH) return {[type]: [\`${template}\`]};
+    //     assert(type in res); // all responses must be of the same 'type'
+    //     return {[type]: [\`${template}\`].concat(res[type])};
+    // }`;
     let handler = eval(`(${source})`);
     return handler;
 }
