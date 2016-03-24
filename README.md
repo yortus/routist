@@ -11,6 +11,8 @@
 - [ ] make runnable client-side
   - [ ] isolate/replace rule-set deps: node (assert, util)
   - [ ] isolate transport deps: node (http/s), node-static
+- [ ] investigate N-way multiple dispatch
+  - [ ] RuleSet becomes Dispatcher and ctor takes params for: ruleSet, arg->addr mapper(s), options
 - [x] transpile to /dist or /built directory and npmignore src/
 - [x] more pegjs to devDeps and make PEG compilation a build step
 - [x] change {...rest} to {**rest} / {…rest} for consistency?
