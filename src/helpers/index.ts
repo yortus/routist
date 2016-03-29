@@ -2,6 +2,7 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
+import {inspect} from 'util';
 import {UNHANDLED} from '../rule-set';
 let stackTrace = require('stack-trace');
 
@@ -108,8 +109,10 @@ let $template;//TODO:...
             if (res === UNH) {
                 return {fileOrBundle: [{type, glob: $template}]};
             }
+            else if (!('fileOrBundle' in res)) {
+                return res;
+            }
             else {
-                assert('fileOrBundle' in res); // all responses must be of type 'fileOrBundle'
                 return {fileOrBundle: [{type, glob: $template}].concat(res.fileOrBundle)};
             }
         })
