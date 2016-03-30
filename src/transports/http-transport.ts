@@ -85,7 +85,6 @@ export interface Response {
 export function makeHttpListener(ruleSet: RuleSet<Request, Response>) {
 
     return <any> async ((httpReq: http.IncomingMessage, httpRes: http.ServerResponse) => {
-        console.log('request received'); // TODO: remove...
 
         // TODO: make address...
         // - method
