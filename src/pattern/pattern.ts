@@ -112,7 +112,7 @@ export default class Pattern {
                 if (/[a-zA-Z0-9_]/.test(c)) return c;
                 if (c === '/') return 'ﾉ'; // (U+FF89)
                 if (c === '.') return 'ˌ'; // (U+02CC)
-                if (c === '-') return 'ー'; // (U+30FC)
+                if (c === '-') return 'ￚ'; // (U+FFDA)
                 if (c === ' ') return 'ㆍ'; // (U+318D)
                 if (c === '…') return '﹍'; // (U+FE4D)
                 if (c === '*') return 'ᕽ'; // (U+157D)

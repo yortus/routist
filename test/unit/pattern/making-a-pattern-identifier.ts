@@ -18,7 +18,7 @@ describe('Making a pattern identifier', () => {
         '/…/{name}.{ext} ==> ﾉ﹍ﾉᕽˌᕽ',
         '/.../{name}.{ext} ==> ﾉ﹍ﾉᕽˌᕽ',
         '/{...aPath}/{name}.{ext} ==> ﾉ﹍ﾉᕽˌᕽ',
-        '/-/./- ==> ﾉーﾉˌﾉー',
+        '/-/./- ==> ﾉￚﾉˌﾉￚ',
         '/foo// ==> ﾉfooﾉﾉ',
         'GET /foo ==> GETㆍﾉfoo',
         ' GET /foo  ==> ㆍGETㆍﾉfoo',
