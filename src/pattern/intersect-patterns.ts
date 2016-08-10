@@ -21,7 +21,8 @@ export default function intersectPatterns(a: Pattern, b: Pattern): Pattern {
     let distinctIntersections = getDistinctPatterns(allIntersections);
     if (distinctIntersections.length === 0) return Pattern.EMPTY;
     if (distinctIntersections.length === 1) return new Pattern(distinctIntersections[0]);
-    throw new Error(`Intersection of ${a} and ${b} cannot be expressed as a single pattern`);
+    let cands = distinctIntersections.join(', ');
+    throw new Error(`Intersection of ${a} and ${b} cannot be expressed as a single pattern. Candidates are: ${cands}`);
 }
 
 
