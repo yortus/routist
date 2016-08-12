@@ -19,6 +19,17 @@ export default function makeRuleSetHandler(rules: {[pattern: string]: Function})
     // Generate a taxonomic arrangement of all the patterns that occur in the rule set.
     let taxonomy = new Taxonomy(Object.keys(rules).map(src => new Pattern(src)));
 
+// TODO: temp testing...
+    // Detect synthesized patterns in the taxonomy (i.e., ones with no exactly-matching handlers in the rule set)
+    // TODO: make this behaviour switchable via an option
+    let normalizedPatterns = Object.keys(rules).map(p => new Pattern(p).normalized);
+    let unhandledPatterns = taxonomy.allNodes.map(n => n.pattern).filter(p => normalizedPatterns.indexOf(p) === -1);
+    if (unhandledPatterns.length > 0) {
+        throw new Error(`RuleSet implies unhandled patterns: ${unhandledPatterns.map(p => p.toString()).join(', ')}`);
+    }
+
+
+
     // Find all functionally-distinct routes that an address can take through the rule set.
     let routes = findAllRoutesThroughRuleSet(taxonomy, rules);
 
