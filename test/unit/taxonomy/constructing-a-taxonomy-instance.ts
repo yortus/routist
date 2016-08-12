@@ -32,7 +32,21 @@ describe('Constructing a Taxonomy instance', () => {
                 'a*',
                 '*a',
             ],
-            taxonomy: 'ERROR: Intersection of *a and a* cannot be expressed as a single pattern...'
+
+            // TODO: temp testing...
+            taxonomy: {
+                'a*': {
+                    'a': {},
+                    'a*a': {}
+                },
+                '*a': {
+                    'a': {},
+                    'a*a': {}
+                }
+            }
+
+            // TODO: was...
+            // taxonomy: 'ERROR: Intersection of *a and a* cannot be expressed as a single pattern...'
         },
         {
             // ======================================== 3. ========================================

@@ -20,11 +20,18 @@ import TaxonomyNode from './taxonomy-node';
 export default function insertAsDescendent(insertee: TaxonomyNode, ancestor: TaxonomyNode, nodeFor: (pattern: Pattern) => TaxonomyNode) {
 
     // Determine the set relationship between `insertee` and each of the `ancestor` node's existing children.
-    // Subsequent steps only need to know about those children of `ancester` that are non-disjoint with `insertee`.
+    // Subsequent steps only need to know about those children of `ancestor` that are non-disjoint with `insertee`.
     let nonDisjointComparands = ancestor.specializations.reduce(
         (comparands, node) => {
-            let intersection = insertee.pattern.intersect(node.pattern);
-            if (intersection !== Pattern.EMPTY) comparands.push({node, intersection: nodeFor(intersection)});
+            let intersections = insertee.pattern.intersect(node.pattern);
+
+            // TODO: temp testing...
+            intersections.forEach(i => comparands.push({node, intersection: nodeFor(i)}));
+
+            // TODO: was...
+            //if (intersection !== Pattern.EMPTY) comparands.push({node, intersection: nodeFor(intersection)});
+
+
             return comparands;
         },
         <{node: TaxonomyNode; intersection: TaxonomyNode}[]> []

@@ -16,13 +16,20 @@ import Pattern from './pattern';
  * @returns {Pattern} - a normalized pattern representing the set of addresses S,
  *        such that R ∈ S iff R ∈ `a` and R ∈ `b`.
  */
-export default function intersectPatterns(a: Pattern, b: Pattern): Pattern {
+export default function intersectPatterns(a: Pattern, b: Pattern): Pattern[] {
     let allIntersections = getAllIntersections(a.normalized.toString(), b.normalized.toString());
     let distinctIntersections = getDistinctPatterns(allIntersections);
-    if (distinctIntersections.length === 0) return Pattern.EMPTY;
-    if (distinctIntersections.length === 1) return new Pattern(distinctIntersections[0]);
-    let cands = distinctIntersections.join(', ');
-    throw new Error(`Intersection of ${a} and ${b} cannot be expressed as a single pattern. Candidates are: ${cands}`);
+
+
+    // TODO: temp testing...
+    return distinctIntersections.map(p => new Pattern(p));
+
+
+    // TODO: was...
+    // if (distinctIntersections.length === 0) return Pattern.EMPTY;
+    // if (distinctIntersections.length === 1) return new Pattern(distinctIntersections[0]);
+    // let cands = distinctIntersections.join(', ');
+    // throw new Error(`Intersection of ${a} and ${b} cannot be expressed as a single pattern. Candidates are: ${cands}`);
 }
 
 

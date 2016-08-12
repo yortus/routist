@@ -83,7 +83,20 @@ describe('Intersecting two patterns', () => {
             let actual: string, expected = rhs;
             try {
                 actual = 'ERROR';
-                actual = new Pattern(lhsA).intersect(new Pattern(lhsB)).toString();
+                let intersections = new Pattern(lhsA).intersect(new Pattern(lhsB));
+
+                if (intersections.length === 0) {
+                    actual = Pattern.EMPTY.toString();
+                }
+                else if (intersections.length === 1) {
+                    actual = intersections[0].toString();
+                }
+                else {
+                    throw new Error(`Intersection cannot be expressed as a single pattern.`);
+                }
+
+                // TODO: was...
+                // actual = intersections[0];
             }
             catch(ex) { }
             expect(actual).equals(expected);

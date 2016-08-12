@@ -11,6 +11,12 @@ let stackTrace = require('stack-trace');
 
 
 let ruleSet = new RuleSet({
+
+    'GET /*.js': html('*.js'), // catch all .js files
+    'GET /test.*': html('test.*'), // catch all test files
+    'GET /test.js': html('test.js'), // cover the overlap, but it doesn't cover the overlap b/c there's also test.*.js matching both prev patterns
+
+
     'GET /foo':             html('foo'),
     'GET /bar':             json({bar: 'bar'}),
     'GET /lodash.js':       file('routist/node_modules/lodash/lodash.js'),

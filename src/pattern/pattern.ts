@@ -92,7 +92,7 @@ export default class Pattern {
      * @returns {Pattern} - a normalized pattern representing the set of addresses S,
      *        such that R ∈ S iff R ∈ `this` and R ∈ `other`.
      */
-    intersect(other: Pattern): Pattern {
+    intersect(other: Pattern): Pattern[] {
         return intersectPatterns(this, other);
     }
 

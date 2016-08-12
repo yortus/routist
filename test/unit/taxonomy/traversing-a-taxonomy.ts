@@ -28,7 +28,10 @@ describe('Traversing a taxonomy', () => {
 
             // Every child node's pattern matches a subset of the addresses matched by its parent node's pattern.
             let edges = getAllEdges(taxonomy.rootNode);
-            expect(edges.every(edge => edge.parent.pattern.intersect(edge.child.pattern) === edge.child.pattern)).to.be.true;
+            expect(edges.every(edge => {
+                let intersections = edge.parent.pattern.intersect(edge.child.pattern);
+                return intersections.length === 1 && intersections[0] === edge.child.pattern
+            })).to.be.true;
         });
     });
 });
