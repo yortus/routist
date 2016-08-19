@@ -1,4 +1,3 @@
-'use strict';
 import disambiguateRoutes from './disambiguate-routes';
 import disambiguateRules from './disambiguate-rules';
 import makeRouteSelector from './make-route-selector';

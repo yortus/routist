@@ -1,4 +1,3 @@
-'use strict';
 import Pattern from '../pattern';
 import TaxonomyNode from './taxonomy-node';
 

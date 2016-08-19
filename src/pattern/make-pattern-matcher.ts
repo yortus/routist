@@ -1,4 +1,3 @@
-'use strict';
 import {PatternAST} from './parse-pattern-source';
 
 

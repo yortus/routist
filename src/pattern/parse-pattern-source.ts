@@ -1,4 +1,3 @@
-'use strict';
 var patternSourceGrammar: { parse(input: string): PatternAST; } = require('./pattern-source-grammar');
 
 

@@ -1,4 +1,3 @@
-'use strict';
 import * as assert from 'assert';
 import * as http from 'http';
 import * as path from 'path';

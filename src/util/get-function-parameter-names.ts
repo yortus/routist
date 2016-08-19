@@ -1,4 +1,3 @@
-'use strict';
 // TODO: re-implement getFunctionParameterNames using a pegjs grammar, including defaults & destructuring...
 
 

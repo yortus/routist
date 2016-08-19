@@ -1,4 +1,3 @@
-'use strict';
 import * as util from '../util';
 import RouteHandler from './route-handler';
 import Rule from './rule';

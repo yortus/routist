@@ -1,4 +1,3 @@
-'use strict';
 import insertAsDescendent from './insert-as-descendent';
 import Pattern from '../pattern';
 import TaxonomyNode from './taxonomy-node';

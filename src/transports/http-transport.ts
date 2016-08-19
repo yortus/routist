@@ -1,4 +1,3 @@
-'use strict';
 import * as crypto from 'crypto';
 import * as http from 'http';
 import * as path from 'path';

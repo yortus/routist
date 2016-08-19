@@ -1,4 +1,3 @@
-'use strict';
 import {async, await} from 'asyncawait';
 import {expect} from 'chai';
 import {RuleSet, UNHANDLED, util} from 'routist';

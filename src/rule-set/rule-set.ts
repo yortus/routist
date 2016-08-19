@@ -1,4 +1,3 @@
-'use strict';
 import makeRuleSetHandler from './make-rule-set-handler';
 import Rule from './rule';
 // TODO: write up [1] ref below: resolving ambiguous pattern order (overlaps and tiebreak fn)

@@ -1,4 +1,3 @@
-'use strict';
 import * as http from 'http';
 import * as _ from 'lodash';
 let Cookies = require('cookies');

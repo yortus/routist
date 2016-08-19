@@ -1,4 +1,3 @@
-'use strict';
 import * as assert from 'assert';
 import {async, await} from 'asyncawait';
 import {RuleSet, UNHANDLED, util} from 'routist';

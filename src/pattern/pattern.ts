@@ -1,4 +1,3 @@
-'use strict';
 import intersectPatterns from './intersect-patterns';
 import makePatternMatcher from './make-pattern-matcher';
 import parsePatternSource from './parse-pattern-source';

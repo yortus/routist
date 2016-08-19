@@ -1,4 +1,3 @@
-'use strict';
 import {expect} from 'chai';
 import {Rule} from 'routist';
 // TODO: add some asynchronous cases (with results, null, errors)...

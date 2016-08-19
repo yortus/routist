@@ -1,4 +1,3 @@
-'use strict';
 import {expect} from 'chai';
 import {Pattern, Taxonomy, TaxonomyNode} from 'routist';
 
