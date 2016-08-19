@@ -15,8 +15,9 @@
 ## To Do List
 
 - [ ] revise terminology for pattern-matching/dispatch (basically the RuleSet)
-  - RuleSet --> Dispatcher
-  - address --> discriminant
+  - RuleSet --> Dispatcher, PatternMatchingFunction
+  - address --> string
+  - ??? -> discriminant
   - request --> ??? input $input in $in
   - response --> ??? result? output $output out $out
 - [ ] still need `∅` pattern anywhere in /src?
