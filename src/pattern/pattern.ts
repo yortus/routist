@@ -92,9 +92,13 @@ export default class Pattern {
      *        such that R ∈ S iff R ∈ `this` and R ∈ `other`.
      */
     intersect(other: Pattern): Pattern[] {
-        return intersectPatterns(this, other);
+        // TODO: improve formatting...
+        return intersectPatterns(this.normalized.toString(), other.normalized.toString())
+            .map(src => new Pattern(src));
     }
 
+
+// TODO: toIdentifier would be better/simpler. Just prepend a '_' (or something else better?) if result would not otherwise be a valid identifier...
 
     /**
      * Returns a string that is visually similar to the normalized source of this pattern, but

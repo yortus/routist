@@ -1,27 +1,35 @@
-import Pattern from './pattern';
 
 
 
 
 
 /**
+ * TODO: revise...
+ * Returns the minimal list of normalized patterns whose union matches all the addresses
+ * that are matched by *both* of the input patterns `a` and `b`.
+
+
  * Returns a pattern that matches all the addresses that are matched by *both* input
  * patterns `a` and `b`. Returns the empty pattern '∅' if `a` and `b` are disjoint.
  * Throws an error if the intersection cannot be expressed as a single pattern.
  * The resulting pattern is guaranteed to be normalized.
  * NB: patterns are case-sensitive.
- * @param {Pattern} a - a pattern instance. May or may not be normalized.
- * @param {Pattern} b - a pattern instance. May or may not be normalized.
- * @returns {Pattern} - a normalized pattern representing the set of addresses S,
- *        such that R ∈ S iff R ∈ `a` and R ∈ `b`.
+ * @param {string} a - a normalized pattern source.
+ * @param {string} b - a normalized pattern source.
+ * @returns {string[]} - an array of normalized pattern sources representing the set of addresses S,
+ *        such that for all R, R ∈ S iff R ∈ `a` and R ∈ `b`.
  */
-export default function intersectPatterns(a: Pattern, b: Pattern): Pattern[] {
-    let allIntersections = getAllIntersections(a.normalized.toString(), b.normalized.toString());
+export default function intersectPatterns(a: string, b: string): string[] {
+
+    // TODO: operate on strings, not patterns...
+
+
+    let allIntersections = getAllIntersections(a, b);
     let distinctIntersections = getDistinctPatterns(allIntersections);
 
 
     // TODO: temp testing...
-    return distinctIntersections.map(p => new Pattern(p));
+    return distinctIntersections;
 
 
     // TODO: was...
