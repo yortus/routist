@@ -1,7 +1,40 @@
 # routist
 
 
+## is the `∅` pattern ever useful?
+
+- is there such a regex? Yes infinitely many, eg A|!A
+- any need to express the pattern that matches no strings? when? why? scenario?
+- just remove it and add it back later if needed to express something?
+- it's the subtype of all patterns, a.k.a. TypeScript's `never` type
+
+
+
+
+
 ## To Do List
+
+- [ ] revise terminology for pattern-matching/dispatch (basically the RuleSet)
+  - RuleSet --> Dispatcher
+  - address --> discriminant
+  - request --> ??? input $input in $in
+  - response --> ??? result? output $output out $out
+- [ ] still need `∅` pattern anywhere in /src?
+- [ ] update pattern comments/docs
+- [ ] update pattern (intersection) unit tests
+- [ ] in RuleSet, what's involved in dropping the `address` parameter from handlers? check perf diff too...
+- [ ] finalize taxonomy changes w.r.t. Pattern#intersect changes
+- [ ] properly introduce RuleSet options, first option is strict/loose checking for all routes handled
+
+- [ ] can bundling be implemented as a decorator? any advantage in doing that?
+- [ ] List HTTP handler use cases
+      - content (inline/mime and attachment/download)
+      - json/data
+      - bundles
+      - redirect
+      - POST/DELETE/PUT etc
+
+
 
 - [x] RuleSet: change to UNHANDLED sentinel value instead of null
 - [ ] RuleSet: allow UNHANDLED value to be specified as an option
