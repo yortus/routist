@@ -4,8 +4,8 @@
 
 
 /**
- * TODO: revise...
- * Returns the minimal list of normalized patterns whose union matches all the addresses
+ * TODO: revise... too complex to understand the first sentence...
+ * Returns the minimal list of disjoint normalized patterns whose union matches all the addresses
  * that are matched by *both* of the input patterns `a` and `b`.
 
 
@@ -21,16 +21,10 @@
  */
 export default function intersectPatterns(a: string, b: string): string[] {
 
-    // TODO: operate on strings, not patterns...
-
-
+    // TODO: temp testing...
     let allIntersections = getAllIntersections(a, b);
     let distinctIntersections = getDistinctPatterns(allIntersections);
-
-
-    // TODO: temp testing...
     return distinctIntersections;
-
 
     // TODO: was...
     // if (distinctIntersections.length === 0) return Pattern.EMPTY;
@@ -88,7 +82,7 @@ function getAllIntersections(a: string, b: string): string[] {
         return getAllIntersections(a.slice(1), b.slice(1)).map(u => a[0] + u);
     }
 
-    // The intersection of A and B is empty.
+    // A and B are disjoint.
     return [];
 }
 

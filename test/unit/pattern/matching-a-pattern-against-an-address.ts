@@ -5,8 +5,10 @@ import {Pattern} from 'routist';
 describe('Matching a pattern against an address', () => {
 
     let tests = [
-        '∅ DOES NOT MATCH ',
+        '∅ MATCHES ∅',
+        '* MATCHES ∅',
         '* MATCHES abc',
+        '∅ DOES NOT MATCH /',
         '* DOES NOT MATCH abc/def',
         '… MATCHES abc',
         '… MATCHES abc/def',
@@ -54,9 +56,9 @@ describe('Matching a pattern against an address', () => {
         it(test, () => {
             let isMatch = test.indexOf(' MATCHES ') !== -1;
             let split = isMatch ? ' MATCHES ' : ' DOES NOT MATCH ';
-            let patternSource = test.split(split)[0];
+            let patternSource = test.split(split)[0].replace(/^∅$/, '');
             let rhs = test.split(split)[1];
-            let address = rhs.split(' WITH ')[0];
+            let address = rhs.split(' WITH ')[0].replace(/^∅$/, '');
             let expectedCaptures = isMatch ? eval(`(${rhs.split(' WITH ')[1]})`) || {} : null;
             let pattern = new Pattern(patternSource);
             let actualCaptures = pattern.match(address);

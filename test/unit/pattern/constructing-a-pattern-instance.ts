@@ -23,7 +23,8 @@ describe('Constructing a Pattern instance', () => {
         'GET   /foo ==> GET   /foo WITH []',
         '   GET /foo ==>    GET /foo WITH []',
         '   /    ==>    / WITH []',
-        '/∅ ==> ERROR',
+        '& ==> ERROR',
+        '/& ==> ERROR',
         '/*** ==> ERROR',
         '/*… ==> ERROR',
         '/foo/{...rest}* ==> ERROR',
@@ -52,9 +53,9 @@ describe('Constructing a Pattern instance', () => {
 
     tests.forEach(test => {
         it(test, () => {
-            let patternSource = test.split(' ==> ')[0];
+            let patternSource = test.split(' ==> ')[0].replace(/^∅$/, '');
             let rhs = test.split(' ==> ')[1];
-            let expectedSignature = rhs.split(' WITH ')[0];
+            let expectedSignature = rhs.split(' WITH ')[0].replace(/^∅$/, '');
             let expectedCaptureNames = eval(rhs.split(' WITH ')[1] || '[]');
             let expectedComment = patternSource.split('#')[1] || '';
             let actualSignature = 'ERROR';

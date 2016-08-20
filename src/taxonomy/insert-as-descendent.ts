@@ -3,7 +3,7 @@ import TaxonomyNode from './taxonomy-node';
 
 
 
-
+// TODO: remove jsdoc ref to pattern '∅' below... Safe to remove? Anything to replace it?
 
 /**
  * Inserts `insertee` into the taxonomy subgraph rooted at `ancestor`, preserving all invariants

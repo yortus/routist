@@ -10,8 +10,8 @@ import parsePatternSource from './parse-pattern-source';
  * Holds a singleton instance for every normalized pattern that has been instantiated.
  * Subsequent instantiations of the same normalized pattern return the same singleton
  * instance from this map. NB: This is declared before the Pattern class to ensure it
- * is has been initialized before the the static property initializers for UNIVERSAL
- * and EMPTY are called.
+ * is has been initialized before the the static property initializer for UNIVERSAL
+ * is called.
  */
 const normalizedPatternCache = new Map<string, Pattern>();
 
@@ -82,6 +82,7 @@ export default class Pattern {
     match: (address: string) => {[captureName: string]: string};
 
 
+// TODO: update comment...
     /**
      * Returns a new pattern that matches all the addresses that are matched by *both* this
      * pattern and the `other` pattern. Returns the empty pattern '∅' if there are no addresses
@@ -119,7 +120,6 @@ export default class Pattern {
                 if (c === ' ') return 'ㆍ'; // (U+318D)
                 if (c === '…') return '﹍'; // (U+FE4D)
                 if (c === '*') return 'ᕽ'; // (U+157D)
-                if (c === '∅') return 'Ø' // (U+00F8)
                 throw new Error(`Unrecognized character '${c}' in pattern '${this}'`); // sanity check
             })
             .join('');
@@ -136,8 +136,4 @@ export default class Pattern {
 
     /** A singleton pattern that recognises all addresses (i.e., the universal set). */
     static UNIVERSAL = new Pattern('…');
-
-
-    /** A singleton pattern that recognises no addresses (i.e., the empty set). */
-    static EMPTY = new Pattern('∅');
 }

@@ -1,3 +1,4 @@
+// TODO rename this once a pattern matcher refers to something else (ie what is now a RuleSet)
 import {PatternAST} from './parse-pattern-source';
 
 

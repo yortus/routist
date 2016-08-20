@@ -5,7 +5,7 @@ import {parsePatternSource, PatternAST} from 'routist';
 describe('Parsing a pattern string', () => {
 
     let tests = [
-        '∅ ==> {signature: "∅", captures: []}',
+        '∅ ==> {signature: "", captures: []}',
         '/api/foo ==> {signature: "/api/foo", captures: []}',
         '/api/foo/BAR ==> {signature: "/api/foo/BAR", captures: []}',
         '/api/foo… ==> {signature: "/api/foo…", captures: ["?"]}',
@@ -28,8 +28,10 @@ describe('Parsing a pattern string', () => {
         'GET   /foo ==> {signature: "GET   /foo", captures: []}',
         '   GET /foo ==> {signature: "   GET /foo", captures: []}',
         '   /    ==> {signature: "   /", captures: []}',
-        '/∅ ==> ERROR',
-        '∅… ==> ERROR',
+        '/ ==> {signature: "/", captures: []}',
+        '* ==> {signature: "*", captures: ["?"]}',
+        '… ==> {signature: "…", captures: ["?"]}',
+        '... ==> {signature: "…", captures: ["?"]}',
         '/*** ==> ERROR',
         '/*… ==> ERROR',
         '/foo/{...rest}* ==> ERROR',
@@ -51,7 +53,7 @@ describe('Parsing a pattern string', () => {
 
     tests.forEach(test => {
         it(test, () => {
-            let patternSource = test.split(' ==> ')[0];
+            let patternSource = test.split(' ==> ')[0].replace(/^∅$/, '');
             let rhs = test.split(' ==> ')[1];
             let expected: PatternAST|string = rhs === "ERROR" ? rhs : eval(`(${rhs})`);
             let actual: PatternAST|string = 'ERROR';

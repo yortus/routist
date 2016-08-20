@@ -5,13 +5,12 @@
 
 // ================================================================================
 Pattern
-=   !"∅"   elems:Element*   TRAILING_WS?
+=   elems:Element*   TRAILING_WS?
     {
         var signature = elems.map(elem => elem[0]).join('');
         var captures = elems.map(elem => elem[1]).filter(name => !!name);
         return { signature, captures };
     }
-/   "∅"   { return { signature: "∅", captures: [] }; }
 
 Element
 =   Globstar

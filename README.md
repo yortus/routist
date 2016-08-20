@@ -15,6 +15,7 @@
 ## To Do List
 
 - [ ] revise terminology for pattern-matching/dispatch (basically the RuleSet)
+  - Pattern.UNIVERSAL --> Pattern.ANY
   - RuleSet --> Dispatcher, PatternMatchingFunction
   - address --> string
   - ??? -> discriminant

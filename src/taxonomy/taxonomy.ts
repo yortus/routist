@@ -77,11 +77,11 @@ function initTaxonomy(taxonomy: Taxonomy, patterns: Pattern[]) {
     // Retrieve the root node, which always corresponds to the '…' pattern.
     let rootNode = taxonomy.rootNode = nodeFor(Pattern.UNIVERSAL);
 
-    // Insert each of the given patterns, except '…' and '∅', into a DAG rooted at '…'.
+    // Insert each of the given patterns, except '…', into a DAG rooted at '…'.
     // The insertion logic assumes only normalized patterns, which we obtain first.
     patterns
-        .map(pattern => pattern.normalized)
-        .filter(pattern => pattern !== Pattern.UNIVERSAL && pattern !== Pattern.EMPTY)
+        .map(pattern => pattern.normalized) // TODO: what if normalized patterns contain duplicates?
+        .filter(pattern => pattern !== Pattern.UNIVERSAL) // TODO: why need this??
         .forEach(pattern => insertAsDescendent(nodeFor(pattern), rootNode, nodeFor));
 
     // Finally, compute the `allNodes` snapshot.
