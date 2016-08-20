@@ -19,7 +19,7 @@ describe('Traversing a taxonomy', () => {
             let taxonomy = new Taxonomy(patterns);
 
             // A taxonomy is always rooted at '…'.
-            expect(taxonomy.rootNode.pattern).equals(Pattern.UNIVERSAL);
+            expect(taxonomy.rootNode.pattern).equals(Pattern.ANY);
 
             // All input patterns are in the taxonomy constructed from them.
             let taxonomyPatterns = taxonomy.allNodes.map(node => node.pattern);

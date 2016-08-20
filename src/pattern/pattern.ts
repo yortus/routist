@@ -100,18 +100,12 @@ export default class Pattern {
     }
 
 
-// TODO: toIdentifier would be better/simpler. Just prepend a '_' (or something else better?) if result would not otherwise be a valid identifier...
-
     /**
-     * Returns a string that is visually similar to the normalized source of this pattern, but
-     * where every character is a valid IdentifierPart according to the ECMAScript grammar
-     * (see http://www.ecma-international.org/ecma-262/6.0/index.html#sec-names-and-keywords).
-     * NB: The returned string is not guaranteed to be a valid Identifier or IdentifierName,
-     * since the first character may not be a valid IdentifierStart, or the entire string may
-     * match a reserved word. It is the caller's responsibility to deal with this as needed.
+     * Returns a string that is visually similar to the normalized source of this pattern, but is a valid Identifier
+     * as per the ECMAScript grammar (http://www.ecma-international.org/ecma-262/6.0/index.html#sec-names-and-keywords).
     */
-    toIdentifierParts(): string {
-        return this.normalized.source
+    toIdentifier(): string {
+        return 'ℙ' + this.normalized.source
             .split('')
             .map(c => {
                 if (/[a-zA-Z0-9_]/.test(c)) return c;

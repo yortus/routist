@@ -27,7 +27,7 @@ export default function makeRouteHandler(rules: Rule[]): RouteHandler {
 
     // Generate a unique pretty name for each rule, suitable for use in the generated source code.
     let ruleNames: string[] = rules
-        .map(rule => `_${rule.pattern.toIdentifierParts()}`)
+        .map(rule => rule.pattern.toIdentifier())
         .reduce((names, name) => names.concat(`${name}${names.indexOf(name) === -1 ? '' : `_${names.length}`}`), []);
 
     // The 'start' rule is the one whose handler we call to begin the cascading evaluation of the route. It is the
@@ -40,7 +40,7 @@ export default function makeRouteHandler(rules: Rule[]): RouteHandler {
     let lines = [
         ...ruleNames.map((name, i) => `var match${name} = rules[${i}].pattern.match;`),
         ...ruleNames.map((name, i) => `var handle${name} = rules[${i}].handler;`),
-        'function _Ø(addr, req) {\n    return UNHANDLED;\n}',
+        'function ℙØ(addr, req) {\n    return UNHANDLED;\n}',
         generateRuleHandlerSourceCode(rules, ruleNames),
         `return ${startRuleName};`
     ];

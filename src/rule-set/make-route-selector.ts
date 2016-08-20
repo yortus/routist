@@ -21,7 +21,7 @@ export default function makeRouteSelector(taxonomy: Taxonomy, candidates: Map<Pa
     let handlers = patterns.map(pat => candidates.get(pat));
 
     // Generate a unique pretty name for each pattern, suitable for use in the generated source code.
-    let patternNames = patterns.map(generatePatternName);
+    let patternNames = patterns.map(p => p.toIdentifier());
 
     // Generate the combined source code for selecting the best route handler. This includes local variable declarations
     // for all the match functions and all the candidate route handler functions, as well as the dispatcher function
@@ -62,7 +62,7 @@ function generateDispatchSourceCode(specializations: TaxonomyNode[], fallback: P
     // Recursively generate the conditional logic block to select among the given patterns.
     let lines: string[] = [];
     specializations.forEach((node, i) => {
-        let patternName = generatePatternName(node.pattern);
+        let patternName = node.pattern.toIdentifier();
         let condition = `${indent}${i > 0 ? 'else ' : ''}if (matches${patternName}(address)) `;
         let nextLevel = node.specializations;
         if (nextLevel.length === 0) return lines.push(`${condition}return ${patternName};`);
@@ -75,15 +75,6 @@ function generateDispatchSourceCode(specializations: TaxonomyNode[], fallback: P
     });
 
     // Add a line to select the fallback pattern if none of the more specialised patterns matched the address.
-    lines.push(`${indent}return ${generatePatternName(fallback)};`);
+    lines.push(`${indent}return ${fallback.toIdentifier()};`);
     return lines;
-}
-
-
-
-
-
-/** Helper function to return a human-readable JavaScript identifier for the given `pattern`. */
-function generatePatternName(pattern: Pattern): string {
-    return `_${pattern.toIdentifierParts()}`;
 }
