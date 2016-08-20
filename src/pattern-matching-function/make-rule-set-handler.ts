@@ -5,6 +5,7 @@ import makeRouteHandler from './make-route-handler';
 import Pattern from '../pattern';
 import RouteHandler from './route-handler';
 import Rule from './rule';
+import RuleSetOptions from './rule-set-options';
 import Taxonomy, {TaxonomyNode} from '../taxonomy';
 import UNHANDLED from './unhandled';
 import {warn} from '../util';
@@ -14,7 +15,9 @@ import {warn} from '../util';
 
 
 /** Internal function used to generate the RuleSet#execute method. */
-export default function makeRuleSetHandler(rules: {[pattern: string]: Function}): RouteHandler {
+export default function makeRuleSetHandler(options: RuleSetOptions, rules: {[pattern: string]: Function}): (request: any) => any {
+
+    // TODO: assume options are normalized by now? Or normalize them here?
 
     // Generate a taxonomic arrangement of all the patterns that occur in the rule set.
     let taxonomy = new Taxonomy(Object.keys(rules).map(src => new Pattern(src)));
@@ -32,7 +35,7 @@ export default function makeRuleSetHandler(rules: {[pattern: string]: Function})
     // Find all functionally-distinct routes that an address can take through the rule set.
     let routes = findAllRoutesThroughRuleSet(taxonomy, rules);
 
-    // Create an composite handler for each distinct route through the rule set.
+    // Create a composite handler for each distinct route through the rule set.
     let routeHandlers = Array.from(routes.keys()).reduce(
         (map, pattern) => map.set(pattern, makeRouteHandler(routes.get(pattern))),
         new Map<Pattern, RouteHandler>()
@@ -42,7 +45,8 @@ export default function makeRuleSetHandler(rules: {[pattern: string]: Function})
     let selectRouteHandler = makeRouteSelector(taxonomy, routeHandlers);
 
     // Return a composite handler representing this entire rule set.
-    return function _compiledRuleSet(address: string, request: any) {
+    return function _compiledRuleSet(request: any) {
+        let address = options.getDiscriminant(request);
         let handleRoute = selectRouteHandler(address);
         let response = handleRoute(address, request);
         return response;

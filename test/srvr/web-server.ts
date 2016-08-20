@@ -9,7 +9,7 @@ let stackTrace = require('stack-trace');
 
 
 
-let ruleSet = new PatternMatchingFunction({
+let ruleSet = new PatternMatchingFunction({ getDiscriminant: req => req.discriminant }, {
 
     'GET /*.js': html('*.js'), // catch all .js files
     'GET /test.*': html('test.*'), // catch all test files

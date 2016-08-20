@@ -89,7 +89,7 @@ variants.forEach(variant => describe(`Constructing a RuleSet instance (${variant
         `zzz/./{whatever} ==> forty-two`
     ];
 
-    let ruleSetHandler = new PatternMatchingFunction<{address:string}, string>(ruleSet);
+    let ruleSetHandler = new PatternMatchingFunction<{address:string}, string>({getDiscriminant: r => r.address}, ruleSet);
 
     tests.forEach(test => it(test, async.cps(() => {
         let address = test.split(' ==> ')[0];
@@ -98,7 +98,7 @@ variants.forEach(variant => describe(`Constructing a RuleSet instance (${variant
         if (expected === 'UNHANDLED') expected = <any> UNHANDLED;
         let actual: string;
         try {
-            let res = ruleSetHandler(address, request);
+            let res = ruleSetHandler(request);
             actual = util.isPromiseLike(res) ? await (res) : res;
         }
         catch (ex) {

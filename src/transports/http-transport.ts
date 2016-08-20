@@ -29,6 +29,9 @@ let gzip = <(text: string) => Promise<Buffer>> promisify(zlib.gzip);
 //       - definitely not headers...
 export interface Request {
 
+    // TODO: ...
+    discriminant: string;
+
 
     /** The HTTP method (GET, POST, etc). Always uppercase. */
     method: any;
@@ -93,13 +96,14 @@ export function makeHttpListener(ruleSet: PatternMatchingFunction<Request, Respo
         let method = httpReq.method;
         let urlParts = url.parse(httpReq.url, true);
         let pathname = urlParts.pathname;
-        let address = `${method} ${pathname}`;
+        let discriminant = `${method} ${pathname}`;
         let session = sessionCookie.loadFromRequest(httpReq, httpRes);
         let originalSession = _.cloneDeep(session);
 
 
         // TODO: make request...
         let request: Request = {
+            discriminant,
             method,
             host: httpReq.headers.host,
             pathname,
@@ -123,7 +127,7 @@ export function makeHttpListener(ruleSet: PatternMatchingFunction<Request, Respo
 
         // TODO: generate response...
         // TODO: what if promise?
-        let rawResponse = ruleSet(address, request);
+        let rawResponse = ruleSet(request);
         let response = isPromiseLike(rawResponse) ? await (rawResponse) : rawResponse;
 
 

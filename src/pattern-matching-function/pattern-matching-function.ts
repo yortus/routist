@@ -1,5 +1,6 @@
 import makeRuleSetHandler from './make-rule-set-handler';
 import Rule from './rule';
+import RuleSetOptions from './rule-set-options';
 // TODO: write up [1] ref below: resolving ambiguous pattern order (overlaps and tiebreak fn)
 // TODO: finish options: RuleSetOptions implementation...
 
@@ -35,15 +36,20 @@ import Rule from './rule';
  *
  */
 let PatternMatchingFunction: {
-    <TRequest extends any, TResponse extends any>(rules: {[pattern: string]: Function}/*, options?: RuleSetOptions*/): PatternMatchingFunction<TRequest, TResponse>;
-    new <TRequest extends any, TResponse extends any>(rules: {[pattern: string]: Function}/*, options?: RuleSetOptions*/): PatternMatchingFunction<TRequest, TResponse>;
+    <TRequest extends any, TResponse extends any>(options: RuleSetOptions, rules: {[pattern: string]: Function}): PatternMatchingFunction<TRequest, TResponse>;
+    new <TRequest extends any, TResponse extends any>(options: RuleSetOptions, rules: {[pattern: string]: Function}): PatternMatchingFunction<TRequest, TResponse>;
 };
 
 
 
 
-PatternMatchingFunction = <any> (rules => {
-    return makeRuleSetHandler(rules);
+PatternMatchingFunction = <any> ((options: RuleSetOptions, rules: {}) => {
+
+    // TODO: where is best place to normalize options?
+    options = options || {};
+    options.getDiscriminant = options.getDiscriminant || (req => req ? req.toString() : '');
+
+    return makeRuleSetHandler(options, rules);
 });
 
 
@@ -51,48 +57,38 @@ export default PatternMatchingFunction;
 
 
 interface PatternMatchingFunction<TRequest extends any, TResponse extends any> {
-    (address: string, request: TRequest): TResponse | PromiseLike<TResponse>
+    (request: TRequest): TResponse | PromiseLike<TResponse>
 }
 
 
 
 
-class RuleSet<TRequest extends any, TResponse extends any> {
+// class RuleSet<TRequest extends any, TResponse extends any> {
 
 
-    /**
-     * Constructs a RuleSet instance from the given hash of pattern/handler pairs.
-     * @param {Object} rules - an associative array whose keys are pattern sources
-     *        and whose values are the corresponding handlers.
-     */
-    constructor(rules: {[pattern: string]: Function}/*, options?: RuleSetOptions*/) {
+//     /**
+//      * Constructs a RuleSet instance from the given hash of pattern/handler pairs.
+//      * @param {Object} rules - an associative array whose keys are pattern sources
+//      *        and whose values are the corresponding handlers.
+//      */
+//     constructor(rules: {[pattern: string]: Function}/*, options?: RuleSetOptions*/) {
 
-        // TODO: process options...
-
-
-        this.execute = <any> makeRuleSetHandler(rules);
-    }
+//         // TODO: process options...
 
 
-    /**
-     * Generates the appropriate response for the given address and request, according to the rules with which this
-     * RuleSet was constructed. The response may be generated asynchronously, in which case the return value will be a
-     * promise of the response.
-     * @param {string} address - the address associated with the incoming request, used to determine which rule handlers
-     *        to apply to this request.
-     * @param {TRequest} request - the request for which a response is to be generated.
-     * @returns {TResponse|PromiseLike<TResponse>} the response generated for the given address/request according to the
-     *        rules with which this RuleSet was constructed. It may be a promise.
-     */
-    execute: (address: string, request: TRequest) => TResponse | PromiseLike<TResponse>;
-}
+//         this.execute = <any> makeRuleSetHandler(rules);
+//     }
 
 
-
-
-
-// TODO: doc...
-// export interface RuleSetOptions {
-//     tiebreak?: (ruleA: Rule, ruleB: Rule) => Rule;
-//     UNHANDLED?: any;
+//     /**
+//      * Generates the appropriate response for the given address and request, according to the rules with which this
+//      * RuleSet was constructed. The response may be generated asynchronously, in which case the return value will be a
+//      * promise of the response.
+//      * @param {string} address - the address associated with the incoming request, used to determine which rule handlers
+//      *        to apply to this request.
+//      * @param {TRequest} request - the request for which a response is to be generated.
+//      * @returns {TResponse|PromiseLike<TResponse>} the response generated for the given address/request according to the
+//      *        rules with which this RuleSet was constructed. It may be a promise.
+//      */
+//     execute: (request: TRequest) => TResponse | PromiseLike<TResponse>;
 // }
