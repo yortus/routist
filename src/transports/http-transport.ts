@@ -5,7 +5,7 @@ import * as url from 'url';
 import * as zlib from 'zlib';
 import * as _ from 'lodash'; // TODO: remove this dep? What do we need from it? Bring it into 'util'...
 import {async, await} from 'asyncawait'; // TODO: these are devDeps!! remove from this prod code!!
-import RuleSet, {UNHANDLED} from '../rule-set';
+import RuleSet, {UNHANDLED} from '../pattern-matching';
 import {isPromiseLike} from '../util';
 import * as fs from './util/fs';
 import promisify from './util/promisify';

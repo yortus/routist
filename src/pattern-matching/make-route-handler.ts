@@ -77,7 +77,7 @@ function generateRuleHandlerSourceCode(rules: Rule[], ruleNames: string[]): stri
         //   values are the source code for the argument corresponding to each parameter.
         let ruleName = ruleNames[i];
         let nextRuleName = ruleNames[i + 1];
-        let downstreamRuleName = ruleNames.filter((n, j) => (j === 0 || rules[j].isDecorator) && j < i).pop() || '_Ø';
+        let downstreamRuleName = ruleNames.filter((n, j) => (j === 0 || rules[j].isDecorator) && j < i).pop() || 'ℙØ';
         let startsPartition = i === 0 || rule.isDecorator;
         let endsPartition = i === rules.length - 1 || rules[i + 1].isDecorator;
         let captureNames = rule.pattern.captureNames;

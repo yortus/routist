@@ -10,6 +10,7 @@
   - [x] Pattern.UNIVERSAL --> Pattern.ANY
   - RuleSet --> Dispatcher, PatternMatchingFunction
   - address --> string
+  - UNHANLDED -> NO_MATCH
   - ??? -> discriminant
   - request --> ??? input $input in $in
   - response --> ??? result? output $output out $out
