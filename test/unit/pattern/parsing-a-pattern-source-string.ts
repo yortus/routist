@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import {parsePatternSource, PatternAST} from 'routist';
 
 
-describe('Parsing a pattern string', () => {
+describe('Parsing a pattern source string', () => {
 
     let tests = [
         '∅ ==> {signature: "", captures: []}',

@@ -13,7 +13,7 @@ describe('Comparing a pattern with its normalized form', () => {
 
     patterns.forEach(a1 => {
         let p1 = new Pattern(a1);
-        it(`'${a1}' vs normalised`, () => {
+        it(`'${a1}' vs normalized`, () => {
             expect(a1 === p1.normalized.toString()).equals(p1 === p1.normalized);
         });
 

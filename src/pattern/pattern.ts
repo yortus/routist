@@ -1,5 +1,5 @@
 import intersectPatterns from './intersect-patterns';
-import makePatternMatcher from './make-pattern-matcher';
+import makeMatchMethod from './make-match-method';
 import parsePatternSource from './parse-pattern-source';
 
 
@@ -7,11 +7,9 @@ import parsePatternSource from './parse-pattern-source';
 
 
 /**
- * Holds a singleton instance for every normalized pattern that has been instantiated.
- * Subsequent instantiations of the same normalized pattern return the same singleton
- * instance from this map. NB: This is declared before the Pattern class to ensure it
- * is has been initialized before the the static property initializer for UNIVERSAL
- * is called.
+ * Holds a singleton instance for every normalized pattern that has been instantiated. Subsequent instantiations of the
+ * same normalized pattern return the same singleton instance from this map. NB: This is declared before the Pattern
+ * class to ensure it is has been initialized before the the static property initializer for ANY is run.
  */
 const normalizedPatternCache = new Map<string, Pattern>();
 
@@ -20,19 +18,19 @@ const normalizedPatternCache = new Map<string, Pattern>();
 
 
 /**
- * A pattern recognizes a set of addresses. It is like a RegExp, but tailored
- * specifically to address recognition. Pattern instances that represent normalized
- * patterns are always singletons. Consult the documentation for information about
- * the pattern DSL used to construct Pattern instances.
- * NB: All operations on patterns are case-sensitive.
+ * A pattern is a specific dialect of regular expression that recognizes a set of strings. Pattern syntax is restricted
+ * to a small set of fit-for-purpose operators and literals. The limited syntax facilitates set operations on patterns,
+ * such as intersection. Patterns are case-sensitive. Every pattern has a unique normalized form that recognizes the
+ * same set of strings. Instances of normalized patterns are guaranteed to be singletons, so such patterns may be safely
+ * compared using strict equality ('==='). Consult the documentation for details about the pattern DSL syntax.
  */
 export default class Pattern {
 
 
     /**
-     * Constructs or returns a Pattern instance. If `source` represents a normalized pattern,
-     * the corresponding singleton instance of that normalized pattern will be returned.
-     * Otherwise, a new Pattern instance will be constructed.
+     * Constructs or returns a Pattern instance. If `source` represents a normalized pattern, the corresponding
+     * singleton instance of that normalized pattern will be returned. Otherwise, a new Pattern instance will be
+     * constructed.
      * @param {string} source - the pattern specified as a pattern DSL string.
      */
     constructor(private source: string) {
@@ -40,62 +38,65 @@ export default class Pattern {
         // Parse the source string to test its validity and to get syntax information. NB: may throw.
         let ast = parsePatternSource(source);
 
-        // If the source is already normalised, return the singleton instance from the normalised pattern cache.
+        // If the source is already normalized, return the singleton instance from the normalized pattern cache.
         if (source === ast.signature) {
             let instance = normalizedPatternCache.get(source);
             if (instance) return instance;
 
-            // If not already cached, add this instance to the cache and preceed with construction.
+            // If not already cached, add this instance to the cache and proceed with construction.
             normalizedPatternCache.set(source, this);
         }
 
         // Initialize members.
         this.normalized = new Pattern(ast.signature); // NB: recursive.
         this.captureNames = ast.captures.filter(capture => capture !== '?');
-        this.match = makePatternMatcher(source, ast);
+        this.match = makeMatchMethod(source, ast);
         this.comment = source.split('#')[1] || '';
     }
 
 
     /**
-     * The normalized form of this pattern, which recognizes the same set of addresses as
-     * this instance. Two patterns that recognize the same set of addresses are guaranteed
-     * to have the same normalized form.
+     * The normalized form of this pattern, which recognizes the same set of strings as this instance. Two patterns that
+     * recognize the same set of strings are guaranteed to have the same normalized form.
      */
     normalized: Pattern;
 
 
     /**
-     * A string array whose elements correspond, in order, to the named captures in the pattern.
-     * For example, the pattern '{...path}/*.{ext}' has the `captureNames` value ['path', 'ext'].
+     * A array of strings whose elements correspond, in order, to the named captures in the pattern. For example, the
+     * pattern '{...path}/*.{ext}' has the `captureNames` value ['path', 'ext'].
      */
     captureNames: string[];
 
 
     /**
-     * Attempts to match a given address against this pattern. If the match is successful, an
-     * object is returned containing the name/value pairs for each named capture in the pattern.
-     * If the match fails, the return value is null.
-     * @param {string} address - the address to match against this pattern.
-     * @returns {Object} null if the match failed, otherwise a hash of captured name/value pairs.
+     * Attempts to recognize the given string by matching it against this pattern. If the match is successful, an object
+     * is returned containing the name/value pairs for each named capture that unifies the string with this pattern. If
+     * the match fails, the return value is null.
+     * @param {string} string - the string to recognize.
+     * @returns {Object} null if the string is not recognized by the pattern. Otherwise, a hash of captured name/value
+     *          pairs that unify the string with this pattern.
      */
-    match: (address: string) => {[captureName: string]: string};
+    match: (string: string) => {[captureName: string]: string};
 
 
-// TODO: update comment...
     /**
-     * Returns a new pattern that matches all the addresses that are matched by *both* this
-     * pattern and the `other` pattern. Returns the empty pattern '∅' if there are no addresses
-     * matched by both patterns. Throws an error if the intersection cannot be expressed as a
-     * single pattern. The resulting pattern is guaranteed to be normalized.
+     * Computes the intersection of `this` pattern and the `other` pattern. The intersection recognizes a string if and
+     * only if that string is recognized by *both* the input patterns. Because the intersection cannot generally be
+     * expressed as a single pattern, the result is given as an array of normalized patterns, as follows:
+     * (1) An empty array - this means the input patterns are disjoint, i.e. there are no strings that are recognized by
+     *     both input patterns. E.g., foo ∩ bar = []
+     * (2) An array with one pattern - this means the intersection can be represented by the single pattern contained in
+     *     the array. E.g. a* ∩ *b = [a*b]
+     * (3) An array of multiple patterns - the array contains a list of mutually-disjoint patterns, the union of whose
+     *     recognized strings are precisely those strings that are recognized by both input patterns.
+     *     E.g. test.* ∩ *.js = [test.js, test.*.js]
      * @param {Pattern} other - a pattern instance. May or may not be normalized.
-     * @returns {Pattern} - a normalized pattern representing the set of addresses S,
-     *        such that R ∈ S iff R ∈ `this` and R ∈ `other`.
+     * @returns {Pattern[]} - an array of normalized patterns representing the intersection of the input patterns.
      */
     intersect(other: Pattern): Pattern[] {
-        // TODO: improve formatting...
-        return intersectPatterns(this.normalized.toString(), other.normalized.toString())
-            .map(src => new Pattern(src));
+        let patternSources = intersectPatterns(this.normalized.toString(), other.normalized.toString());
+        return patternSources.map(src => new Pattern(src));
     }
 
 
@@ -134,6 +135,6 @@ export default class Pattern {
     toString() { return this.source; }
 
 
-    /** A singleton pattern that recognises all addresses (i.e., the universal set). */
-    static UNIVERSAL = new Pattern('…');
+    /** A singleton pattern that recognises *all* strings. */
+    static ANY = new Pattern('…');
 }

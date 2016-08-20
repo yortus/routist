@@ -30,7 +30,7 @@ export default function makeRouteSelector(taxonomy: Taxonomy, candidates: Map<Pa
         ...patternNames.map((name, i) => `var matches${name} = patterns[${i}].match;`),
         ...patternNames.map((name, i) => `var ${name} = handlers[${i}];`),
         'return function dispatch(address) {',
-        ...generateDispatchSourceCode(taxonomy.rootNode.specializations, Pattern.UNIVERSAL, 1),
+        ...generateDispatchSourceCode(taxonomy.rootNode.specializations, Pattern.ANY, 1),
         '};'
     ];
 

@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import {Pattern} from 'routist';
 
 
-describe('Matching a pattern against an address', () => {
+describe('Matching a pattern against a string', () => {
 
     let tests = [
         '∅ MATCHES ∅',

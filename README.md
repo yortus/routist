@@ -1,21 +1,13 @@
 # routist
 
 
-## is the `∅` pattern ever useful?
-
-- is there such a regex? Yes infinitely many, eg A|!A
-- any need to express the pattern that matches no strings? when? why? scenario?
-- just remove it and add it back later if needed to express something?
-- it's the subtype of all patterns, a.k.a. TypeScript's `never` type
-
-
 
 
 
 ## To Do List
 
 - [ ] revise terminology for pattern-matching/dispatch (basically the RuleSet)
-  - Pattern.UNIVERSAL --> Pattern.ANY
+  - [x] Pattern.UNIVERSAL --> Pattern.ANY
   - RuleSet --> Dispatcher, PatternMatchingFunction
   - address --> string
   - ??? -> discriminant

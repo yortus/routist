@@ -4,33 +4,23 @@
 
 
 /**
- * TODO: revise... too complex to understand the first sentence...
- * Returns the minimal list of disjoint normalized patterns whose union matches all the addresses
- * that are matched by *both* of the input patterns `a` and `b`.
-
-
- * Returns a pattern that matches all the addresses that are matched by *both* input
- * patterns `a` and `b`. Returns the empty pattern '∅' if `a` and `b` are disjoint.
- * Throws an error if the intersection cannot be expressed as a single pattern.
- * The resulting pattern is guaranteed to be normalized.
- * NB: patterns are case-sensitive.
- * @param {string} a - a normalized pattern source.
- * @param {string} b - a normalized pattern source.
- * @returns {string[]} - an array of normalized pattern sources representing the set of addresses S,
- *        such that for all R, R ∈ S iff R ∈ `a` and R ∈ `b`.
+ * Computes the intersection of `this` pattern and the `other` pattern. The intersection recognizes a string if and only
+ * if that string is recognized by *both* the input patterns. Because the intersection cannot generally be expressed as
+ * a single pattern, the result is given as an array of normalized patterns, as follows:
+ * (1) An empty array - this means the input patterns are disjoint, i.e. there are no strings that are recognized by
+ *     both input patterns. E.g., foo ∩ bar = []
+ * (2) An array with one pattern - this means the intersection can be represented by the single pattern contained in the
+ *     array. E.g. a* ∩ *b = [a*b]
+ * (3) An array of multiple patterns - the array contains a list of mutually-disjoint patterns, the union of whose
+ *     recognized strings are precisely those strings that are recognized by both input patterns.
+ *     E.g. test.* ∩ *.js = [test.js, test.*.js]
+ * @param {Pattern} other - a pattern instance. May or may not be normalized.
+ * @returns {Pattern[]} - an array of normalized patterns representing the intersection of the input patterns.
  */
 export default function intersectPatterns(a: string, b: string): string[] {
-
-    // TODO: temp testing...
     let allIntersections = getAllIntersections(a, b);
     let distinctIntersections = getDistinctPatterns(allIntersections);
     return distinctIntersections;
-
-    // TODO: was...
-    // if (distinctIntersections.length === 0) return Pattern.EMPTY;
-    // if (distinctIntersections.length === 1) return new Pattern(distinctIntersections[0]);
-    // let cands = distinctIntersections.join(', ');
-    // throw new Error(`Intersection of ${a} and ${b} cannot be expressed as a single pattern. Candidates are: ${cands}`);
 }
 
 
@@ -38,15 +28,12 @@ export default function intersectPatterns(a: string, b: string): string[] {
 
 
 /**
- * Computes all patterns that may be formed by unifying wildcards from
- * one pattern with substitutable substrings of the other pattern such that
- * all characters from both patterns are present and in order in the result.
- * All the patterns computed in this way represent valid intersections of A
- * and B, however some may be duplicates or subsets of others.
+ * Computes all patterns that may be formed by unifying wildcards from one pattern with substitutable substrings of the
+ * other pattern such that all characters from both patterns are present and in order in the result. All the patterns
+ * computed in this way represent valid intersections of A and B, however some may be duplicates or subsets of others.
  * @param {string} a - source string of a normalized pattern.
  * @param {string} b - source string of a normalized pattern.
- * @returns {string[]} - list of normalized patterns that represent valid
- *        intersections of `a` and `b`. Some may be superfluous.
+ * @returns {string[]} - list of normalized patterns that represent valid intersections of `a` and `b`.
  */
 function getAllIntersections(a: string, b: string): string[] {
 
@@ -91,10 +78,9 @@ function getAllIntersections(a: string, b: string): string[] {
 
 
 /**
- * Returns an array of all the [prefix, suffix] pairs into which `pattern` may be split.
- * Splits that occur on a wildcard character have the wildcard on both sides of the split
- * (i.e. as the last character of the prefix and the first character of the suffix).
- * E.g., 'ab…c' splits into: ['','ab…c'], ['a','b…c'], ['ab…','…c'], and ['ab…c',''].
+ * Returns an array of all the [prefix, suffix] pairs into which `pattern` may be split. Splits that occur on a wildcard
+ * character have the wildcard on both sides of the split (i.e. as the last character of the prefix and the first
+ * character of the suffix). E.g., 'ab…c' splits into: ['','ab…c'], ['a','b…c'], ['ab…','…c'], and ['ab…c',''].
  */
 function getAllPatternSplits(pattern: string): [string, string][] {
     let result = [];
@@ -114,8 +100,8 @@ function getAllPatternSplits(pattern: string): [string, string][] {
 
 
 /**
- * Returns an array containing a subset of the elements in `patterns`, such that no pattern in
- * the returned array is a (proper or improper) subset of any other pattern in the returned array.
+ * Returns an array containing a subset of the elements in `patterns`, such that no pattern in the returned array is a
+ * (proper or improper) subset of any other pattern in the returned array.
  */
 function getDistinctPatterns(patterns: string[]) {
 
@@ -142,10 +128,7 @@ function getDistinctPatterns(patterns: string[]) {
 
 
 
-/**
- * Returns a regular expression that matches all pattern strings
- * that are (proper or improper) subsets of `pattern`.
- */
+/** Returns a regular expression that matches all pattern strings that are (proper or improper) subsets of `pattern`. */
 function makeSubsetRecogniser(pattern: string) {
     let re = pattern.split('').map(c => {
         if (c === '*') return '[^\\/…]*';
