@@ -5,8 +5,6 @@ import Rule from './rule';
 
 
 
-
-
 /**
  * A rule set provides a deterministic means to generate an appropriate response for a given address and request,
  * according to the list of rules passed to the constructor. The rule list passed to the constructor is unordered, with
@@ -36,7 +34,30 @@ import Rule from './rule';
  *     internal structure to perform its function.
  *
  */
-export default class RuleSet<TRequest extends any, TResponse extends any> {
+let PatternMatchingFunction: {
+    <TRequest extends any, TResponse extends any>(rules: {[pattern: string]: Function}/*, options?: RuleSetOptions*/): PatternMatchingFunction<TRequest, TResponse>;
+    new <TRequest extends any, TResponse extends any>(rules: {[pattern: string]: Function}/*, options?: RuleSetOptions*/): PatternMatchingFunction<TRequest, TResponse>;
+};
+
+
+
+
+PatternMatchingFunction = <any> (rules => {
+    return makeRuleSetHandler(rules);
+});
+
+
+export default PatternMatchingFunction;
+
+
+interface PatternMatchingFunction<TRequest extends any, TResponse extends any> {
+    (address: string, request: TRequest): TResponse | PromiseLike<TResponse>
+}
+
+
+
+
+class RuleSet<TRequest extends any, TResponse extends any> {
 
 
     /**

@@ -5,7 +5,7 @@ import * as url from 'url';
 import * as zlib from 'zlib';
 import * as _ from 'lodash'; // TODO: remove this dep? What do we need from it? Bring it into 'util'...
 import {async, await} from 'asyncawait'; // TODO: these are devDeps!! remove from this prod code!!
-import RuleSet, {UNHANDLED} from '../pattern-matching';
+import PatternMatchingFunction, {UNHANDLED} from '../pattern-matching-function';
 import {isPromiseLike} from '../util';
 import * as fs from './util/fs';
 import promisify from './util/promisify';
@@ -81,7 +81,7 @@ export interface Response {
 
 
 
-export function makeHttpListener(ruleSet: RuleSet<Request, Response>) {
+export function makeHttpListener(ruleSet: PatternMatchingFunction<Request, Response>) {
 
     return <any> async ((httpReq: http.IncomingMessage, httpRes: http.ServerResponse) => {
 
@@ -123,7 +123,7 @@ export function makeHttpListener(ruleSet: RuleSet<Request, Response>) {
 
         // TODO: generate response...
         // TODO: what if promise?
-        let rawResponse = ruleSet.execute(address, request);
+        let rawResponse = ruleSet(address, request);
         let response = isPromiseLike(rawResponse) ? await (rawResponse) : rawResponse;
 
 

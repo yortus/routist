@@ -1,6 +1,6 @@
 import {async, await} from 'asyncawait';
 import {expect} from 'chai';
-import {RuleSet, UNHANDLED, util} from 'routist';
+import {PatternMatchingFunction, UNHANDLED, util} from 'routist';
 // TODO: rename these tests in filename and describe() ? this is more about executing the RuleSet, no constructing it...
 // TODO: more ruleset tests? for other files?
 
@@ -89,7 +89,7 @@ variants.forEach(variant => describe(`Constructing a RuleSet instance (${variant
         `zzz/./{whatever} ==> forty-two`
     ];
 
-    let ruleSetHandler = new RuleSet<{address:string}, string>(ruleSet).execute;
+    let ruleSetHandler = new PatternMatchingFunction<{address:string}, string>(ruleSet);
 
     tests.forEach(test => it(test, async.cps(() => {
         let address = test.split(' ==> ')[0];

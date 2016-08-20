@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as http from 'http';
 import * as path from 'path';
-import {makeHttpListener, RuleSet, UNHANDLED} from 'routist';
+import {makeHttpListener, PatternMatchingFunction, UNHANDLED} from 'routist';
 import {file, bundle, json, html} from 'routist';
 let stackTrace = require('stack-trace');
 
@@ -9,7 +9,7 @@ let stackTrace = require('stack-trace');
 
 
 
-let ruleSet = new RuleSet({
+let ruleSet = new PatternMatchingFunction({
 
     'GET /*.js': html('*.js'), // catch all .js files
     'GET /test.*': html('test.*'), // catch all test files

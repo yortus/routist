@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import {async, await} from 'asyncawait';
-import {RuleSet, UNHANDLED, util} from 'routist';
+import {PatternMatchingFunction, UNHANDLED, util} from 'routist';
 // TODO: perf testing... write this up properly.
 
 
@@ -94,7 +94,7 @@ const tests = [
 
     // Set up the tests.
     console.log(`Running perf test: basic routing...`);
-    let ruleSetHandler = new RuleSet<{address: string}, string>(ruleSet).execute;
+    let ruleSetHandler = new PatternMatchingFunction<{address: string}, string>(ruleSet);
     let addresses = tests.map(test => test.split(' ==> ')[0]);
     let requests = addresses.map(address => ({address}));
     let responses = tests.map(test => test.split(' ==> ')[1]);
