@@ -20,6 +20,7 @@ export default function makeRuleSetHandler(rules: {[pattern: string]: Function})
     let taxonomy = new Taxonomy(Object.keys(rules).map(src => new Pattern(src)));
 
     // Detect synthesized patterns in the taxonomy (i.e., ones with no exactly-matching handlers in the rule set).
+    // TODO: If ... then warn...
     // TODO: explain this a bit better... F# also issues a warning when a match expression doesn't cover all possible cases...
     let normalizedPatterns = Object.keys(rules).map(p => new Pattern(p).normalized);
     let unhandledPatterns = taxonomy.allNodes.map(n => n.pattern).filter(p => normalizedPatterns.indexOf(p) === -1);
