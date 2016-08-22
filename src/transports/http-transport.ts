@@ -4,7 +4,6 @@ import * as path from 'path';
 import * as url from 'url';
 import * as zlib from 'zlib';
 import * as _ from 'lodash'; // TODO: remove this dep? What do we need from it? Bring it into 'util'...
-import {async, await} from 'asyncawait'; // TODO: these are devDeps!! remove from this prod code!!
 import PatternMatchingFunction, {UNHANDLED} from '../pattern-matching-function';
 import {isPromiseLike} from '../util';
 import * as fs from './util/fs';
@@ -86,7 +85,7 @@ export interface Response {
 
 export function makeHttpListener(ruleSet: PatternMatchingFunction<Request, Response>) {
 
-    return <any> async ((httpReq: http.IncomingMessage, httpRes: http.ServerResponse) => {
+    return async (httpReq: http.IncomingMessage, httpRes: http.ServerResponse) => {
 
         // TODO: make address...
         // - method
@@ -145,7 +144,7 @@ export function makeHttpListener(ruleSet: PatternMatchingFunction<Request, Respo
         else {
             emitResponse(response, httpReq, httpRes);
         }
-    });
+    };
 }
 
 
@@ -172,7 +171,7 @@ function getRequestBody(httpReq: http.IncomingMessage): Promise<any> {
 
 // TODO: ...
 // TODO: uses await - therefore must be called from witin an async function...
-function emitResponse(response: Response, httpReq: http.IncomingMessage, httpRes: http.ServerResponse) {
+async function emitResponse(response: Response, httpReq: http.IncomingMessage, httpRes: http.ServerResponse) {
 
     // Validate data object.
     if (!_.isObject(response)) throw new Error('http-transport: invalid response object');
@@ -209,7 +208,7 @@ function emitResponse(response: Response, httpReq: http.IncomingMessage, httpRes
     // Handle file responses.
     else if (response.file) {
         let paths = (<string[]> (_.isArray(response.file) ? response.file : [response.file])).map(path.normalize);
-        let absPath = _.find(paths, path => await (fs.exists(path)));
+        let absPath = _.find(paths, path => fs.existsSync(path)); // TODO: use async call here!
         if (!absPath) return UNHANDLED;
         respondWithGzippedFile(absPath, response.headers, httpReq, httpRes);
     }
@@ -230,7 +229,7 @@ function emitResponse(response: Response, httpReq: http.IncomingMessage, httpRes
             let item = items.pop(); // most-specific
 
             if (item.type === 'file') {
-                if (!await (fs.exists(item.glob))) continue; // skip to next item
+                if (!(await fs.exists(item.glob))) continue; // skip to next item
                 respondWithGzippedFile(item.glob, response.headers, httpReq, httpRes);
                 return;
             }
@@ -273,38 +272,38 @@ let staticFileServer = new nodeStatic.Server(__dirname, { cache: 1 });
 
 // TODO: copypasta-ish from fileBundling.ts
 // TODO: what if there was a hash collision? Wrong bundle/file may be served. Investigate risks & implications.
-let getFilePathHashCode = async ((filepath: string): string => {
+let getFilePathHashCode = async (filepath: string) => {
     let stats = await (fs.stat(filepath));
     let hash = crypto.createHash('md5');
     hash.update(filepath);
     hash.update(stats.mtime.getTime().toString());
     let result = hash.digest('hex');
     return result;
-});
+};
 
 
 
 
 
 // TODO: temp testing...
-let getGZippedFileContents = async ((filepath: string): Buffer => {
+let getGZippedFileContents = async (filepath: string) => {
     let text = await (fs.readFile(filepath, null));
     let result = await (gzip(text));
     return result;
-});
+};
 
 
 
 
 
 // TODO: temp testing...
-let respondWithGzippedFile = async ((filepath: string, headers: {}, httpReq: http.IncomingMessage, httpRes: http.ServerResponse) => {
+let respondWithGzippedFile = async (filepath: string, headers: {}, httpReq: http.IncomingMessage, httpRes: http.ServerResponse) => {
 
     let ext = path.extname(filepath);
     let hashCode = await (getFilePathHashCode(filepath));
     let outPath = path.join(await (promisedTempPath), hashCode + ext);
 
-    if (!await (fs.exists(outPath))) {
+    if (!(await fs.exists(outPath))) {
         let contents = await (getGZippedFileContents(filepath));
         await (fs.writeFile(outPath, contents, null));
     }
@@ -313,4 +312,4 @@ let respondWithGzippedFile = async ((filepath: string, headers: {}, httpReq: htt
     headers = headers || {};
     headers['Content-Encoding'] = 'gzip';
     staticFileServer.serveFile(relPath, 200, headers, httpReq, httpRes);
-});
+};

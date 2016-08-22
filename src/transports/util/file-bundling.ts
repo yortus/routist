@@ -2,7 +2,6 @@ import * as crypto from 'crypto';
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from './fs';
-import {async, await} from 'asyncawait';
 import promisedTempPath from './promised-temp-path';
 
 
@@ -10,7 +9,7 @@ import promisedTempPath from './promised-temp-path';
 
 
 // TODO: ...
-export let getBundleFilename: (globPatterns: string[]) => Promise<string> = async ((globPatterns: string[]): string => {
+export let getBundleFilename: (globPatterns: string[]) => Promise<string> = async (globPatterns: string[]) => {
 
     // Get all the filenames that make up this bundle file.
     let filenames = globPatterns.reduce((filenames: string[], globPattern) => {
@@ -25,7 +24,7 @@ export let getBundleFilename: (globPatterns: string[]) => Promise<string> = asyn
         globPattern = globPattern.split('\\').join('/');
 
         // Find all matching files.
-        let matchingFilenames = await (fs.glob(globPattern));
+        let matchingFilenames = fs.globSync(globPattern); // TODO: use async glob method here
 
         // Sort filenames alphabetically so bundle files can be explicitly ordered using filenames eg '01 ...', '02 ...' etc.
         matchingFilenames.sort();
@@ -47,7 +46,7 @@ export let getBundleFilename: (globPatterns: string[]) => Promise<string> = asyn
 
     // TODO: All done.
     return targetPath;
-});
+};
 
 
 
@@ -72,25 +71,25 @@ function getBundleExtension(containedFiles: string[]): string {
 
 
 // TODO: ...
-let getBundleHashCode = async ((containedFiles: string[]): string => {
+let getBundleHashCode = async (containedFiles: string[]) => {
 
     // TODO: what if there was a collision? Wrong bundle/file may be served. Investigate risks & implications.
-    let stats = await (containedFiles.map(p => fs.stat(p)));
+    let stats = await Promise.all(containedFiles.map(p => fs.stat(p)));
     let hash = crypto.createHash('md5');
     for (let i = 0; i < containedFiles.length; ++i) {
         hash.update(containedFiles[i]);
         hash.update(stats[i].mtime.getTime().toString());
     }
-    let result = hash.digest('hex');
+    let result: string = hash.digest('hex');
     return result;
-});
+};
 
 
 
 
 
 // TODO: ...
-var createBundleFile = async ((containedFiles: string[], targetPath: string) => {
+var createBundleFile = async (containedFiles: string[], targetPath: string) => {
     // TODO: there are several inefficiencies in here - eg regex replace to strip BOM, loading file contents all into mem instead of streaming.
 
     // Create the target file.
@@ -98,7 +97,8 @@ var createBundleFile = async ((containedFiles: string[], targetPath: string) => 
     await (fs.close(fd));
 
     // TODO: loop over files...
-    containedFiles.forEach(filename => {
+    for (let i = 0; i < containedFiles.length; ++i) {
+        let filename = containedFiles[i];
 
         // Load the file's content.
         let content = await (fs.readFile(filename, 'utf8'));
@@ -109,5 +109,5 @@ var createBundleFile = async ((containedFiles: string[], targetPath: string) => 
         // Append the content to the target file.
         await (fs.appendFile(targetPath, content, { encoding: 'utf8' }));
         await (fs.appendFile(targetPath, os.EOL, { encoding: 'utf8' }));
-    });
-});
+    }
+};

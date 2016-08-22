@@ -11,6 +11,7 @@ var origMkdirp = require('mkdirp');
 export let appendFile = <(path: string, data: any, options: any) => Promise<void>> <any> promisify(fs.appendFile);
 export let close = <(fd: number) => Promise<void>> <any> promisify(fs.close);
 export let exists = (path: string) => new Promise<boolean>((resolve: any) => { fs.exists(path, resolve); }); //TODO: remove fs.exists - it's deprecated...
+export let existsSync = fs.existsSync;
 export let open = <(path: string, flags: string, mode: string) => Promise<number>> <any> promisify(fs.open);
 export let readdir = <(path: string) => Promise<string[]>> <any> promisify(fs.readdir);
 export let readFile = <(path: string, encoding: string) => Promise<string>> <any> promisify(fs.readFile);
@@ -27,6 +28,9 @@ export function glob(pattern: string, options = {}) {
         origGlob(pattern, options, (err, matches) => err ? reject(err) : resolve(matches));
     });
 }
+
+// Synchronous glob.
+export let globSync = origGlob.sync;
 
 
 

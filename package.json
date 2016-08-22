@@ -34,7 +34,6 @@
   },
   "homepage": "https://github.com/yortus/routist#readme",
   "dependencies": {
-    "asyncawait": "^1.0.3",
     "body": "^5.1.0",
     "cookies": "^0.6.1",
     "find-root": "^1.0.0",
@@ -50,6 +49,6 @@
     "mocha": "^2.2.5",
     "pegjs": "^0.9.0",
     "rimraf": "^2.5.2",
-    "typescript": "^2.1.0-dev.20160819"
+    "typescript": "^2.1.0-dev.20160822"
   }
 }

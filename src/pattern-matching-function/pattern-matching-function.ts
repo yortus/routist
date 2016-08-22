@@ -43,14 +43,14 @@ let PatternMatchingFunction: {
 
 
 
-PatternMatchingFunction = <any> ((options: RuleSetOptions, rules: {}) => {
+PatternMatchingFunction = <any> function (options: RuleSetOptions, rules: {}) {
 
     // TODO: where is best place to normalize options?
     options = options || {};
     options.getDiscriminant = options.getDiscriminant || (req => req ? req.toString() : '');
 
     return makeRuleSetHandler(options, rules);
-});
+};
 
 
 export default PatternMatchingFunction;
