@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as url from 'url';
 import * as zlib from 'zlib';
 import * as _ from 'lodash'; // TODO: remove this dep? What do we need from it? Bring it into 'util'...
-import PatternMatchingFunction, {UNHANDLED} from '../pattern-matching-function';
+import Multimethod, {UNHANDLED} from '../multimethod';
 import {isPromiseLike} from '../util';
 import * as fs from './util/fs';
 import promisify from './util/promisify';
@@ -83,7 +83,7 @@ export interface Response {
 
 
 
-export function makeHttpListener(ruleSet: PatternMatchingFunction<Request, Response>) {
+export function makeHttpListener(ruleSet: Multimethod<Request, Response>) {
 
     return async (httpReq: http.IncomingMessage, httpRes: http.ServerResponse) => {
 

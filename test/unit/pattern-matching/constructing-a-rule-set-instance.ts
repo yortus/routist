@@ -6,7 +6,7 @@
 
 
 // import {expect} from 'chai';
-// import {PatternMatchingFunction, UNHANDLED, util} from 'routist';
+// import {Multimethod, UNHANDLED, util} from 'routist';
 // // TODO: rename these tests in filename and describe() ? this is more about executing the RuleSet, no constructing it...
 // // TODO: more ruleset tests? for other files?
 
@@ -95,7 +95,7 @@
 //         `zzz/./{whatever} ==> forty-two`
 //     ];
 
-//     let ruleSetHandler = new PatternMatchingFunction<{address:string}, string>({getDiscriminant: r => r.address}, ruleSet);
+//     let ruleSetHandler = new Multimethod<{address:string}, string>({getDiscriminant: r => r.address}, ruleSet);
 
 //     tests.forEach(test => it(test, async () => {
 //         let address = test.split(' ==> ')[0];

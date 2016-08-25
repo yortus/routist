@@ -5,7 +5,7 @@ import makeRouteHandler from './make-route-handler';
 import Pattern from '../pattern';
 import RouteHandler from './route-handler';
 import Rule from './rule';
-import RuleSetOptions from './rule-set-options';
+import MultimethodOptions from './multimethod-options';
 import Taxonomy, {TaxonomyNode} from '../taxonomy';
 import UNHANDLED from './unhandled';
 import {warn} from '../util';
@@ -14,8 +14,9 @@ import {warn} from '../util';
 
 
 
+// TODO: review all comments here - eg refs to 'RuleSet' should be updated to Multimethod, etc
 /** Internal function used to generate the RuleSet#execute method. */
-export default function makeRuleSetHandler(options: RuleSetOptions, rules: {[pattern: string]: Function}): (request: any) => any {
+export default function makeRuleSetHandler(options: MultimethodOptions, rules: {[pattern: string]: Function}): (request: any) => any {
 
     // TODO: assume options are normalized by now? Or normalize them here?
 

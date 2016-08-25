@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import {inspect} from 'util';
-import {UNHANDLED} from '../pattern-matching-function';
+import {UNHANDLED} from '../multimethod';
 let stackTrace = require('stack-trace');
 
 

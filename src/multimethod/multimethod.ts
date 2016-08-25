@@ -1,8 +1,8 @@
 import makeRuleSetHandler from './make-rule-set-handler';
 import Rule from './rule';
-import RuleSetOptions from './rule-set-options';
+import MultimethodOptions from './multimethod-options';
 // TODO: write up [1] ref below: resolving ambiguous pattern order (overlaps and tiebreak fn)
-// TODO: finish options: RuleSetOptions implementation...
+// TODO: finish options: MultimethodOptions implementation...
 
 
 
@@ -35,24 +35,24 @@ import RuleSetOptions from './rule-set-options';
  *     internal structure to perform its function.
  *
  */
-class PatternMatchingFunction<TRequest extends any, TResponse extends any> {
+class Multimethod<TRequest extends any, TResponse extends any> {
 
 
     // TODO: doc...
-    constructor(options: RuleSetOptions, rules: {[pattern: string]: Function}) {
+    constructor(options: MultimethodOptions, rules: {[pattern: string]: Function}) {
         // TODO: where is best place to normalize options?
         options = options || {};
         options.getDiscriminant = options.getDiscriminant || (req => req ? req.toString() : '');
 
         let result = makeRuleSetHandler(options, rules);
-        PatternMatchingFunction.instances.add(result);
+        Multimethod.instances.add(result);
         return <any> result; // TODO: doc... must cast to account for _tag
     }
 
 
     // TODO: doc...
     static [Symbol.hasInstance](value: any) {
-        return PatternMatchingFunction.instances.has(value);
+        return Multimethod.instances.has(value);
     }
 
 
@@ -63,10 +63,10 @@ class PatternMatchingFunction<TRequest extends any, TResponse extends any> {
     // TODO: doc...
     private _tag;
 }
-interface PatternMatchingFunction<TRequest extends any, TResponse extends any> {
+interface Multimethod<TRequest extends any, TResponse extends any> {
     (request: TRequest): TResponse | PromiseLike<TResponse>;
 }
-export default PatternMatchingFunction;
+export default Multimethod;
 
 
 
@@ -85,7 +85,7 @@ export default PatternMatchingFunction;
 //      * @param {Object} rules - an associative array whose keys are pattern sources
 //      *        and whose values are the corresponding handlers.
 //      */
-//     constructor(rules: {[pattern: string]: Function}/*, options?: RuleSetOptions*/) {
+//     constructor(rules: {[pattern: string]: Function}/*, options?: MultimethodOptions*/) {
 
 //         // TODO: process options...
 

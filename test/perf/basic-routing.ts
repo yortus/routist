@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import {PatternMatchingFunction, UNHANDLED, util} from 'routist';
+import {Multimethod, UNHANDLED, util} from 'routist';
 // TODO: perf testing... write this up properly.
 
 
@@ -96,7 +96,7 @@ const tests = [
 
     // Set up the tests.
     console.log(`Running perf test: basic routing...`);
-    let ruleSetHandler = new PatternMatchingFunction<{address: string}, string>({getDiscriminant: r => r.address}, ruleSet);
+    let ruleSetHandler = new Multimethod<{address: string}, string>({getDiscriminant: r => r.address}, ruleSet);
     let addresses = tests.map(test => test.split(' ==> ')[0]);
     let requests = addresses.map(address => ({address}));
     let responses = tests.map(test => test.split(' ==> ')[1]);
