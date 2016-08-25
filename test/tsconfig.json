@@ -2,6 +2,13 @@
     "compilerOptions": {
         "target": "es6",
         "module": "commonjs",
+        "lib": ["es6"],
+        "types": ["node", "mocha"],
+
+        // TODO: VSCode bug? tsc compiles without this line, but VSCode gives red-squiggles if this is omitted
+        //       See also https://github.com/Microsoft/TypeScript/issues/9208
+        "typeRoots": ["../node_modules/@types"],
+
         "removeComments": false,
         "sourceMap": true,
         "outDir": "../built/test"

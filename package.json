@@ -45,6 +45,10 @@
     "type-is": "^1.6.12"
   },
   "devDependencies": {
+    "@types/chai": "^3.4.31",
+    "@types/lodash": "^4.14.33",
+    "@types/mocha": "^2.2.30",
+    "@types/node": "^6.0.37",
     "chai": "^3.2.0",
     "mocha": "^2.2.5",
     "pegjs": "^0.9.0",

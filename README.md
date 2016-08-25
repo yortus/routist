@@ -6,6 +6,37 @@
 
 ## To Do List
 
+- [ ] move TODO list(s) to separate github issues
+- [ ] clean up README - just keep glossary, pattern info for now
+
+- [ ] use @types, remove typings
+
+- [ ] PatternMatchingFunction --> Multimethod
+  - [ ] define as class
+    - [ ] constructor returns a function
+    - [ ] overrides Symbol.hasInstance
+    - [ ] private tag to ensure instanceof TS narrowing works
+    - [ ] unit tests detect hasInstance runtime support and mocha skip() tests if not supported
+
+- [ ] Multimethod dispatch
+  - [ ] a rule is either (1) a test/action pair or (2) a test/decorator pair
+  - [ ] action signature: `type action = (input, captures): Output | NO_MATCH | Promise<Output | NO_MATCH>`
+  - [ ] decorator signature: `type decorator = (input, captures, next): Output | NO_MATCH | Promise<Output | NO_MATCH>`
+  - [ ] `next` signature - allow for future expansion - complete control of downstream 'decoratee' execution
+
+- [ ] Multimethod options
+  - [ ] specify fixed arity (0=variadic) - this is used to generate efficient calls via eval
+  - [ ] getDiscriminant is passed all args that are passed to Multimethod
+  - [ ] allow for future expansion - two multimethod dispatch styles:
+    1. [ ] discriminant is a string, and rule list is an objected keys by discriminant tests
+    2. [ ] discriminant is a number, and rule list is an array. THINK: holey? how filled? how does test work?
+
+
+
+- [ ] HTTP transport
+  -    
+
+
 - [ ] revise terminology for pattern-matching/dispatch (basically the RuleSet)
   - [x] Pattern.UNIVERSAL --> Pattern.ANY
   - RuleSet --> Dispatcher, PatternMatchingFunction
