@@ -9,14 +9,15 @@
 - [ ] move TODO list(s) to separate github issues
 - [ ] clean up README - just keep glossary, pattern info for now
 
-- [ ] use @types, remove typings
+- [x] use @types, remove typings
 
 - [ ] PatternMatchingFunction --> Multimethod
-  - [ ] define as class
-    - [ ] constructor returns a function
-    - [ ] overrides Symbol.hasInstance
-    - [ ] private tag to ensure instanceof TS narrowing works
+  - [x] define as class
+    - [x] constructor returns a function
+    - [x] overrides Symbol.hasInstance
+    - [x] private tag to ensure instanceof TS narrowing works
     - [ ] unit tests detect hasInstance runtime support and mocha skip() tests if not supported
+    - [ ] unit tests check TS narrowing works too thanks to _tag
 
 - [ ] Multimethod dispatch
   - [ ] a rule is either (1) a test/action pair or (2) a test/decorator pair
@@ -34,7 +35,7 @@
 
 
 - [ ] HTTP transport
-  -    
+  - change action signature: pass in an object containing both rawReq and rawRes, and return either nothing or a Promise<void> (or NO_MATCH)
 
 
 - [ ] revise terminology for pattern-matching/dispatch (basically the RuleSet)

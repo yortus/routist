@@ -35,30 +35,44 @@ import RuleSetOptions from './rule-set-options';
  *     internal structure to perform its function.
  *
  */
-let PatternMatchingFunction: {
-    <TRequest extends any, TResponse extends any>(options: RuleSetOptions, rules: {[pattern: string]: Function}): PatternMatchingFunction<TRequest, TResponse>;
-    new <TRequest extends any, TResponse extends any>(options: RuleSetOptions, rules: {[pattern: string]: Function}): PatternMatchingFunction<TRequest, TResponse>;
-};
+class PatternMatchingFunction<TRequest extends any, TResponse extends any> {
 
 
+    // TODO: doc...
+    constructor(options: RuleSetOptions, rules: {[pattern: string]: Function}) {
+        // TODO: where is best place to normalize options?
+        options = options || {};
+        options.getDiscriminant = options.getDiscriminant || (req => req ? req.toString() : '');
+
+        let result = makeRuleSetHandler(options, rules);
+        PatternMatchingFunction.instances.add(result);
+        return <any> result; // TODO: doc... must cast to account for _tag
+    }
 
 
-PatternMatchingFunction = <any> function (options: RuleSetOptions, rules: {}) {
-
-    // TODO: where is best place to normalize options?
-    options = options || {};
-    options.getDiscriminant = options.getDiscriminant || (req => req ? req.toString() : '');
-
-    return makeRuleSetHandler(options, rules);
-};
+    // TODO: doc...
+    static [Symbol.hasInstance](value: any) {
+        return PatternMatchingFunction.instances.has(value);
+    }
 
 
+    // TODO: doc...
+    private static instances = new WeakSet();
+
+
+    // TODO: doc...
+    private _tag;
+}
+interface PatternMatchingFunction<TRequest extends any, TResponse extends any> {
+    (request: TRequest): TResponse | PromiseLike<TResponse>;
+}
 export default PatternMatchingFunction;
 
 
-interface PatternMatchingFunction<TRequest extends any, TResponse extends any> {
-    (request: TRequest): TResponse | PromiseLike<TResponse>
-}
+
+
+
+
 
 
 

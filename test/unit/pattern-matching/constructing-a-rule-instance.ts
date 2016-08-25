@@ -128,7 +128,11 @@ describe('Constructing a Rule instance', () => {
     ];
 
     tests.forEach(test => {
-        it(`${test.pattern} WITH ${test.handler}`, () => {
+        it(`${test.pattern} WITH ${test.handler}`, function () {
+
+// TODO: temp testing...
+//this.skip();
+
             let expectedParamNames = test.paramNames;
             let expectedIsDecorator = test.isDecorator;
             let expectedError = test.error || '';
