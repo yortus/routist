@@ -1,4 +1,4 @@
-import makeRuleSetHandler from './make-rule-set-handler';
+import makeMultimethodHandler from './make-multimethod-handler';
 import Rule from './rule';
 import MultimethodOptions from './multimethod-options';
 // TODO: write up [1] ref below: resolving ambiguous pattern order (overlaps and tiebreak fn)
@@ -35,16 +35,16 @@ import MultimethodOptions from './multimethod-options';
  *     internal structure to perform its function.
  *
  */
-class Multimethod<TRequest extends any, TResponse extends any> {
+class Multimethod<I extends any, O extends any> {
 
 
     // TODO: doc...
-    constructor(options: MultimethodOptions, rules: {[pattern: string]: Function}) {
+    constructor(options: MultimethodOptions, rules: {[pattern: string]: Action<I, O> | Decorator<I, O>}) {
         // TODO: where is best place to normalize options?
         options = options || {};
         options.getDiscriminant = options.getDiscriminant || (req => req ? req.toString() : '');
 
-        let result = makeRuleSetHandler(options, rules);
+        let result = makeMultimethodHandler(options, rules);
         Multimethod.instances.add(result);
         return <any> result; // TODO: doc... must cast to account for _tag
     }
@@ -63,8 +63,8 @@ class Multimethod<TRequest extends any, TResponse extends any> {
     // TODO: doc...
     private _tag;
 }
-interface Multimethod<TRequest extends any, TResponse extends any> {
-    (request: TRequest): TResponse | PromiseLike<TResponse>;
+interface Multimethod<I extends any, O extends any> {
+    (request: I): O | PromiseLike<O>;
 }
 export default Multimethod;
 
@@ -72,6 +72,10 @@ export default Multimethod;
 
 
 
+// TODO: temp testing...
+// TODO: type `next` better
+export type Action<I, O> = (input?: I, captures?: {[name: string]: string}) => O | symbol | Promise<O | symbol>;
+export type Decorator<I, O> = (input: I, captures: {[name: string]: string}, next: Function) => O | symbol | Promise<O | symbol>;
 
 
 

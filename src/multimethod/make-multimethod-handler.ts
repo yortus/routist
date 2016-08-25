@@ -16,7 +16,7 @@ import {warn} from '../util';
 
 // TODO: review all comments here - eg refs to 'RuleSet' should be updated to Multimethod, etc
 /** Internal function used to generate the RuleSet#execute method. */
-export default function makeRuleSetHandler(options: MultimethodOptions, rules: {[pattern: string]: Function}): (request: any) => any {
+export default function makeMultimethodHandler(options: MultimethodOptions, rules: {[pattern: string]: Function}): (request: any) => any {
 
     // TODO: assume options are normalized by now? Or normalize them here?
 
