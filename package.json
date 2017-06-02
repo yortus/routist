@@ -6,7 +6,7 @@
   "main": "dist/lib/index.js",
   "typings": "dist/lib/index.d.ts",
   "scripts": {
-    "build": "tsc -p src && tsc -p test",
+    "build": "tsc -p src && tsc -p test && tsc -p extras",
     "clean": "rimraf dist/",
     "prepublish": "npm run self-ref && npm run build",
     "test": "node ./scripts/run-unit-tests",
