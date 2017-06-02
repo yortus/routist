@@ -1,10 +1,24 @@
 ﻿{
     "compilerOptions": {
-        "target": "es5",
+        "target": "es6",
         "module": "commonjs",
-        "removeComments": false,
+        "lib": ["es6"],
+        "types": ["node"],
+        "outDir": "../dist/lib/",
         "sourceMap": true,
         "declaration": true,
-        "outDir": "../built"
+        "experimentalDecorators": true,
+
+        // Static checks
+        "allowUnreachableCode": false,
+        "allowUnusedLabels": false,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noImplicitUseStrict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "strictNullChecks": true
     }
 }

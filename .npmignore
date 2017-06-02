@@ -1,11 +1,9 @@
 .vscode/
-built/test/
+dist/test/
 scripts/
 src/
 test/
-typings/
 *.ts
 *.js.map
-*.peg
 *.log
 tsconfig.json

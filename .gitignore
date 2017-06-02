@@ -2,4 +2,3 @@ built/
 node_modules/
 *.js.map
 *.log
-*.sln
