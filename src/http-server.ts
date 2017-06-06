@@ -4,8 +4,11 @@ import * as compression from 'compression';
 import * as express from 'express';
 import * as session from 'express-session';
 import * as sessionFileStore from 'session-file-store';
-import MultimethodsMiddleware from './multimethods-middleware';
-import Handler from './handler';
+import Handler from './http-server/handler';
+import HttpServerOptions from './options/http-server-options';
+import MultimethodsMiddleware from './http-server/multimethods-middleware';
+import normaliseOptions from './options/normalise-options';
+import validateOptions from './options/validate-options';
 
 
 
@@ -21,61 +24,41 @@ import Handler from './handler';
 
 
 // TODO:
-// *don't* export a default httpServer; just export the HttpServer class
-// better Session typing / public interface
-// Clearance type (branded string?)
-// move allow/deny(iff) decorators in here; use the Clearance type
+// - [x] *don't* export a default httpServer; just export the HttpServer class
+// - [ ] better Session typing / public interface
+// - [ ] Clearance type (branded string?)
+// - [ ] move allow/deny(iff) decorators in here; use the Clearance type
 
 
 
 
 
 // TODO: doc...
-export interface HttpServerOptions {
-    secret?: string;
-    port?: number;
-
-    // TODO: ...
-    // session secret
-    // logging options / verbosity / output to
-    // public static files serving - give base dir / option to disable?
-    // permissions:
-    //     function mapping from session.username to full (sorted?) list of clearances
-
-}
-
-
-
-
-
-// TODO: doc...
-export class HttpServer {
+export default class HttpServer {
 
     /** Create a new HttpServer instance. */
-    constructor(options?: HttpServerOptions) {
+    constructor(options?: Partial<HttpServerOptions>) {
 
-        // TODO: normalise options
-        options = {...options};
-        options.secret = options.secret || ''; // TODO: best default?
-        options.port = options.port || 8080; // TODO: best default?
-
-        // Set instance properties
-        this.port = options.port;
+        // TODO: normalise and validate options...
+        this.options = normaliseOptions(options || {});
+        validateOptions(this.options);
+        Object.freeze(this.options);
 
         // TODO: correct?
         this.app.set('trust proxy', '::ffff:127.0.0.1');
 
         // Add session-handling middleware.
-        const FileStore = sessionFileStore(session);
+        // TODO: remove cast when @types/session-file-store is fixed
+        const FileStore: typeof sessionFileStore = (sessionFileStore as any)(session);
         this.app.use(session({
             name: 'sid',
-            secret: options.secret,
+            secret: this.options.secret,
             resave: false,
             saveUninitialized: true,
             store: new FileStore({
                 path: path.resolve(path.resolve(require('app-root-path').toString(), process.env.APP_DATA), 'sessions'),
                 ttl: 3600, // 1 hour
-            })
+            }) as any // TODO: remove cast when @types/session-file-store is fixed
         }));
 
         // Add middleware to compress all responses.
@@ -91,8 +74,8 @@ export class HttpServer {
 
     /** Start the HTTP server */
     start() {
-        this.app.listen(this.port, () => {
-            console.log(`HTTP server listening on port ${this.port}`);
+        this.app.listen(this.options.port, () => {
+            console.log(`HTTP server listening on port ${this.options.port}`);
         });
     }
 
@@ -105,17 +88,5 @@ export class HttpServer {
 
     private mm = new MultimethodsMiddleware();
 
-    private port: number;
+    private options: Readonly<HttpServerOptions>;
 };
-
-
-
-
-
-// TODO: doc...
-// TODO: best options??
-const httpServer = new HttpServer({
-    secret: 'ThE trUTh i5 0uT tHeRE', // TODO: remove from source
-    port: process.env.APP_PORT || 8080
-});
-export default httpServer;

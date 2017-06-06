@@ -6,11 +6,11 @@
   "main": "dist/lib/index.js",
   "typings": "dist/lib/index.d.ts",
   "scripts": {
+    "preinstall": "echo PREINSTALLNING...",
+    "postinstall": "node ./scripts/enable-self-reference && npm run build",
     "build": "tsc -p src && tsc -p test && tsc -p extras",
     "clean": "rimraf dist/",
-    "prepublish": "npm run self-ref && npm run build",
-    "test": "node ./scripts/run-unit-tests",
-    "self-ref": "node ./scripts/enable-self-reference"
+    "test": "node ./scripts/run-unit-tests"
   },
   "repository": {
     "type": "git",
@@ -46,6 +46,7 @@
   "devDependencies": {
     "@types/body-parser": "0.0.34",
     "@types/chai": "^4.0.0",
+    "@types/compression": "0.0.33",
     "@types/express": "^4.0.35",
     "@types/express-session": "0.0.32",
     "@types/httperr": "^1.0.29",
@@ -53,6 +54,7 @@
     "@types/mocha": "^2.2.41",
     "@types/node": "^7.0.23",
     "@types/serve-static": "^1.7.31",
+    "@types/session-file-store": "^1.0.1",
     "rimraf": "^2.6.1",
     "typescript": "^2.4.0-dev.20170601"
   }
