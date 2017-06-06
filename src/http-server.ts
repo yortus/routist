@@ -44,7 +44,7 @@ export default class HttpServer {
         validateOptions(this.options);
         Object.freeze(this.options);
 
-        // TODO: correct?
+        // TODO: correct? configuration options?
         this.app.set('trust proxy', '::ffff:127.0.0.1');
 
         // Add session-handling middleware.
@@ -56,7 +56,7 @@ export default class HttpServer {
             resave: false,
             saveUninitialized: true,
             store: new FileStore({
-                path: path.resolve(path.resolve(require('app-root-path').toString(), process.env.APP_DATA), 'sessions'),
+                path: path.join(path.resolve(require('app-root-path').toString(), process.env.APP_DATA || '.'), 'sessions'),
                 ttl: 3600, // 1 hour
             }) as any // TODO: remove cast when @types/session-file-store is fixed
         }));

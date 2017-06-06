@@ -7,7 +7,14 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Mocha Tests",
+            "name": "Run Toy Server",
+            "program": "${workspaceRoot}/dist/extras/toy-server.js",
+            "protocol": "inspector"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Run Unit Tests",
             "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
             "args": [
                 "-u",

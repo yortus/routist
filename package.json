@@ -1,16 +1,16 @@
 {
   "name": "routist",
-  "version": "0.1.2",
+  "version": "0.2.2",
   "description": "routist",
   "readmeFilename": "README.md",
   "main": "dist/lib/index.js",
   "typings": "dist/lib/index.d.ts",
   "scripts": {
-    "preinstall": "echo PREINSTALLNING...",
-    "postinstall": "node ./scripts/enable-self-reference && npm run build",
+    "prepare": "node ./scripts/enable-self-reference && npm run build",
     "build": "tsc -p src && tsc -p test && tsc -p extras",
     "clean": "rimraf dist/",
-    "test": "node ./scripts/run-unit-tests"
+    "test": "node ./scripts/run-unit-tests",
+    "toy": "node ./dist/extras/toy-server.js"
   },
   "repository": {
     "type": "git",
@@ -32,6 +32,7 @@
   },
   "homepage": "https://github.com/yortus/routist#readme",
   "dependencies": {
+    "app-root-path": "^2.0.1",
     "body-parser": "^1.16.1",
     "chai": "^4.0.1",
     "compression": "^1.6.2",
