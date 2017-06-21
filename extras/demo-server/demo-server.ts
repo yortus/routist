@@ -1,5 +1,5 @@
 import * as path from 'path';
-import {HttpServer, staticFile, staticFiles, meta} from 'routist';
+import {HttpServer, staticFile, staticFiles, meta, PERMISSIONS_TAG} from 'routist';
 import {Request, Response} from 'express';
 declare module 'express' {
     interface Request {
@@ -33,7 +33,10 @@ class RouteTable extends HttpServer {
     });
 
     // Server static files at /public
+    @allow('ALL')
     'GET /public' = staticFile(path.join(__dirname, '../../../extras/demo-server/static-files/index.html'));
+
+    @allow('ALL')
     'GET /public/{...path}' = staticFiles(path.join(__dirname, '../../../extras/demo-server/static-files'));
 
     // HACK: set session.user from the querystring
@@ -51,36 +54,41 @@ class RouteTable extends HttpServer {
 let server = new HttpServer({});
 server.add(new RouteTable);
 server.start();
+console.log(`ROUTE TABLE CLEARANCES for '${RouteTable.name}':`);
+console.log((RouteTable.prototype as any)._clearances);
 
 
 
 
 
-// // TODO: temp testing...
-// interface Clearance {
-//     clearanceMask: string;
-//     intentionMask: string;
-//     allow: boolean;
-// }
+
+
+
+// TODO: temp testing...
+interface Clearance {
+    clearanceMask: string;
+    intentionMask: string;
+    allow: boolean;
+}
 
 // // export function routeTable(classCtor: Function) {
 // //     console.log(`ROUTE TABLE CLEARANCES for '${classCtor.name}':`);
 // //     console.log(classCtor.prototype._clearances);
 // // }
 
-// export function allow(clearanceMask: string) {
-//     return (classProto: any, propertyKey: string) => {
-//         let permissions: Clearance[] = classProto[permissionsTag] || (classProto[permissionsTag] = []);
-//         permissions.push({
-//             clearanceMask,
-//             intentionMask: propertyKey,
-//             allow: true
-//         });
-//     }
-// }
+function allow(clearanceMask: string) {
+    return (classProto: any, propertyKey: string) => {
+        let permissions: Clearance[] = classProto[PERMISSIONS_TAG] || (classProto[PERMISSIONS_TAG] = []);
+        permissions.push({
+            clearanceMask,
+            intentionMask: propertyKey,
+            allow: true
+        });
+    }
+}
 // export function deny(clearanceMask: string) {
 //     return (classProto: any, propertyKey: string) => {
-//         let permissions: Clearance[] = classProto[permissionsTag] || (classProto[permissionsTag] = []);
+//         let permissions: Clearance[] = classProto[PERMISSIONS_TAG] || (classProto[PERMISSIONS_TAG] = []);
 //         permissions.push({
 //             clearanceMask,
 //             intentionMask: propertyKey,

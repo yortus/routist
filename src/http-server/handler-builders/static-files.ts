@@ -8,9 +8,9 @@ import Handler from '../handler';
 
 
 // TODO: doc...
-export default function staticFiles(root: string): Handler {
+export default function staticFiles(rootPath: string): Handler {
     let serveStaticOptions = { index: [] }; // NB: Disable having `dirname` resolve to `dirname/index.html`
-    let serveStaticHandler = promisifyExpressHandler(serveStatic(root, serveStaticOptions));
+    let serveStaticHandler = promisifyExpressHandler(serveStatic(rootPath, serveStaticOptions));
     
     return async (req, res, captures: {path: string}) => {
         if (typeof captures.path !== 'string') throw new Error(`static file route expects {...path} capture variable`);

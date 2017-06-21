@@ -2,7 +2,7 @@ import * as url from 'url';
 import * as express from 'express';
 import {BinaryMultimethod} from 'multimethods';
 import Handler from './handler';
-import permissionsTag from './permissions-tag';
+import PERMISSIONS_TAG from './permissions-tag';
 
 
 
@@ -55,7 +55,7 @@ class MultimethodsMiddleware {
         });
 
 // TODO: temp testing...
-let permissions = (<any> newRoutes)[permissionsTag];
+let permissions = (<any> newRoutes)[PERMISSIONS_TAG];
 if (permissions !== undefined) {
 
     console.log('========== PERMISSIONS ==========');

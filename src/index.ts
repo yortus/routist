@@ -1,4 +1,4 @@
-import {appData, staticFile, staticFiles, meta} from './http-server/index';
+import {appData, staticFile, staticFiles, meta, PERMISSIONS_TAG} from './http-server/index';
 import HttpServer from './http-server';
 import HttpServerOptions from './options/http-server-options';
 
@@ -6,6 +6,6 @@ import HttpServerOptions from './options/http-server-options';
 
 
 
-export {appData, staticFile, staticFiles, meta}
+export {appData, staticFile, staticFiles, meta, PERMISSIONS_TAG}
 export {HttpServer}
 export {HttpServerOptions}
