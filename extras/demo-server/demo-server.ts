@@ -1,74 +1,19 @@
-import {HttpServer, appData} from 'routist';
+import * as path from 'path';
+import {HttpServer, staticFile, staticFiles, meta} from 'routist';
+import {Request, Response} from 'express';
+declare module 'express' {
+    interface Request {
+        session: any;
+    }
+}
 
 
 
 
 
-// TODO: move to st2/server...
-// import {meta} from 'st2/server/http-server';
-// function ensureAuthorisedUser() {
-//     return meta((req, res, _captures: any, next) => {
+class RouteTable extends HttpServer {
 
-//         // TODO: ...
-//         let pathname = url.parse(req.url).pathname || '';
-//         let isPublicRoute = /^\/account($|\/)/.test(pathname);
-//         if (isPublicRoute) return next(req, res);
-
-//         // TODO: use permissions! This is just black/white currently...
-//         let session = (<any>req).session; // TODO: fix types!
-//         let isLoggedIn = session && session.username;
-//         if (isLoggedIn) return next(req, res);
-
-//         // If we get here, request is NOT AUTHORISED.
-//         let hasExtension = /\.[a-z]+$/i.test(pathname);
-//         let hasJsonExtension = /\.json$/i.test(pathname);
-//         if (hasExtension) {
-//             // Fail with 401 unauthorised / 404 not found.
-//             res.sendStatus(hasJsonExtension ? 401 : 404);
-//         }
-//         else {
-//             // Redirect to login page.
-//             res.redirect(`/account/login?then=${encodeURIComponent(req.url)}`);
-//         }
-//     });
-// }
-// function logRequest() {
-//     return meta((req, res, _captures: any, next) => {
-//         console.log(`REQUEST from ${req.ip} for resource ${req.url}`);
-//         return next(req, res);
-//     });
-// }
-// function servePublicAssets() {
-//     const handler = staticFiles(`${appRootPath}/dist/client`);
-//     return meta(async (req, res, captures, next) => {
-//         let result = await handler(req, res, captures);
-//         return result === false ? await next(req, res) : result;
-//     });
-// }
-
-
-
-
-
-// TODO: temp testing... specifying permissions...
-// const ALLOW_ALL = 1, ALLOW_NONE = 1.1, DENY_ALL = 0, DENY_NONE = 0.1;
-// declare function allow(...args: string[]);
-// declare function deny(...args: string[]);
-// ({
-//     '{METHOD} ...': DENY_ALL,
-//     '{METHOD} /account/...': DENY_NONE,
-//     '{METHOD} /leave/{id}': [],
-//     '{METHOD} /my/details': [],
-//     '{METHOD} /my/bank-accounts/{id}': [],
-//     '{METHOD} /sync': [],
-// });
-
-
-
-
-
-class RouteTable {
-
+// TODO: implement equivalents for these:
     // Catchall metarules - these will run *before* all others.
     // NB: CONFUSING BUT CORRECT!!! Least-specific meta rule (1c) executes first, then 1b, ..., and finally most-specific 1a.
     // @deny('*')
@@ -78,24 +23,30 @@ class RouteTable {
 
     // Catchall fallback rules - these will run *after* all others.
     // As fallback, respond with index.html to serve the SPA at any (non-json) route.
-//    '{METHOD} ... #2'  = staticFile(`${appRootPath}/dist/client/index.html`);
-//    '{METHOD} ....json'= notFound(); // Effectively an exception to the previous catchall rule
+    // '{METHOD} ... #2'  = staticFile(`${appRootPath}/dist/client/index.html`);
+    // '{METHOD} ....json'= notFound(); // Effectively an exception to the previous catchall rule
 
-    // Account management routes...
-    'GET /account/{funcName}.json' = appData(({username}, {method}) => ({method, username}), 'account');
+    // Log all incoming requests
+    '{...url}' = meta((req, res, {url}, next) => {
+        console.log(`INCOMING: ${url}`);
+        return next(req, res);
+    });
 
-    // Account management HTTP API...
-//    'POST /account/{funcName}'= httpApi(EssAccountManagement);
+    // Server static files at /public
+    'GET /public' = staticFile(path.join(__dirname, '../../../extras/demo-server/static-files/index.html'));
+    'GET /public/{...path}' = staticFiles(path.join(__dirname, '../../../extras/demo-server/static-files'));
 
-    // TODO: Test path...
-    'GET /test.json' = appData(() => ({size: '200px'}), 'lorem-ipsum'); // TODO: stringly typed 'lorem-ipsum'
+    // HACK: set session.user from the querystring
+    '{METHOD} {...url}' = meta((req, res, {}, next) => {
+        let user = req.query.u;
+        if (user) req.session.user = user;
+        if (user === '') req.session.user = null;
+        return next(req, res);
+    });
 
-    // TODO: Home page test...
-    'GET /.json' = appData(() => ({}), 'lorem-ipsum'); // TODO: stringly typed 'lorem-ipsum'
-
-    // TODO: emps test
-//    @allow.iff(/* user is emp with id empId */)
-    'GET /employees{empId}.json' = appData(({empId}) => ({employeeId: empId}));
+    'GET /whoami*' = (req: Request, res: Response) => {
+        res.send({user: req.session.user || 'GUEST'});
+    }
 }
 let server = new HttpServer({});
 server.add(new RouteTable);

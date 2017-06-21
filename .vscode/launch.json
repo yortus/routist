@@ -7,8 +7,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Run Toy Server",
-            "program": "${workspaceRoot}/dist/extras/toy-server.js",
+            "name": "Run Demo Server",
+            "program": "${workspaceRoot}/dist/extras/demo-server/index.js",
             "protocol": "inspector"
         },
         {
