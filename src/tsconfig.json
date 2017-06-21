@@ -4,7 +4,7 @@
         "module": "commonjs",
         "lib": ["es6"],
         "types": ["node"],
-        "outDir": "../dist/lib/",
+        "outDir": "../dist/release/",
         "sourceMap": true,
         "declaration": true,
         "experimentalDecorators": true,

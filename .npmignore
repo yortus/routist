@@ -9,3 +9,5 @@ extras/
 *.js.map
 *.log
 tsconfig.json
+TODO.md
+README.md

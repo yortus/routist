@@ -8,7 +8,6 @@ import Handler from './http-server/handler';
 import HttpServerOptions from './options/http-server-options';
 import MultimethodsMiddleware from './http-server/multimethods-middleware';
 import normaliseOptions from './options/normalise-options';
-import validateOptions from './options/validate-options';
 
 
 
@@ -41,10 +40,9 @@ export default class HttpServer {
 
         // TODO: normalise and validate options...
         this.options = normaliseOptions(options || {});
-        validateOptions(this.options);
         Object.freeze(this.options);
 
-        // TODO: correct? configuration options?
+        // TODO: correct? make configurable via options...
         this.app.set('trust proxy', '::ffff:127.0.0.1');
 
         // Add session-handling middleware.
@@ -56,12 +54,13 @@ export default class HttpServer {
             resave: false,
             saveUninitialized: true,
             store: new FileStore({
-                path: path.join(path.resolve(require('app-root-path').toString(), process.env.APP_DATA || '.'), 'sessions'),
+                path: path.join(path.resolve(require('app-root-path').toString(), process.env.APP_DATA || '.'), 'sessions'), // TODO: doc env.APP_DATA. Or put in Options interface?
                 ttl: 3600, // 1 hour
             }) as any // TODO: remove cast when @types/session-file-store is fixed
         }));
 
         // Add middleware to compress all responses.
+        // TODO: make configurable...
         this.app.use(compression());
 
         // Add middleware to automatically parse request bodies.
@@ -70,7 +69,7 @@ export default class HttpServer {
 
         // Add middleware to delegate route handling to a multimethod.
         this.app.use(this.mm);
-    }    
+    }
 
     /** Start the HTTP server */
     start() {

@@ -14,5 +14,20 @@ export default function normaliseOptions(options: Partial<HttpServerOptions>): H
         port,
         secret
     };
+
+    validateOptions(normalised);
+
     return normalised;
+}
+
+
+
+
+
+// TODO: doc...
+function validateOptions(options: HttpServerOptions) {
+
+    // TODO: add checks...
+    options;
+    return;
 }

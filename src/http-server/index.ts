@@ -1,3 +1,4 @@
+export {default as appData} from './handler-builders/app-data';
 export {default as Handler} from './handler';
 export {default as httpApi} from './handler-builders/http-api';
 export {default as meta} from './handler-builders/meta';

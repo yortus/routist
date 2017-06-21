@@ -5,8 +5,8 @@
         "lib": ["es6"],
         "types": ["node"],
         "outDir": "../dist/extras/",
+        "rootDir": ".",
         "sourceMap": true,
-        "declaration": true,
         "experimentalDecorators": true,
 
         // Static checks

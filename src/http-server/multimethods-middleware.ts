@@ -14,6 +14,16 @@ import permissionsTag from './permissions-tag';
 
 
 
+// TODO: ...
+// 1. logRequest
+// 2. servePublicAssets
+// 3. ensureAuthorisedUser
+// 4. mm...
+
+
+
+
+
 class MultimethodsMiddleware {
 
     constructor() {
@@ -61,8 +71,7 @@ if (permissions !== undefined) {
         this.mm = new BinaryMultimethod({
             rules: this.allRoutes,
             timing: 'mixed',
-            toDiscriminant: (req) => `${req.method} ${url.parse(req.url).pathname || ''}`,
-            unhandled: false
+            toDiscriminant: (req) => `${req.method} ${url.parse(req.url).pathname || ''}`
         });
     }
 
