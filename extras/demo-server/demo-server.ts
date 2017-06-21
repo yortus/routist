@@ -1,4 +1,3 @@
-import * as path from 'path';
 import {HttpServer, staticFile, staticFiles, meta, PERMISSIONS_TAG} from 'routist';
 import {Request, Response} from 'express';
 declare module 'express' {
@@ -34,10 +33,10 @@ class RouteTable extends HttpServer {
 
     // Server static files at /public
     @allow('ALL')
-    'GET /public' = staticFile(path.join(__dirname, '../../../extras/demo-server/static-files/index.html'));
+    'GET /public' = staticFile('../../../extras/demo-server/static-files/index.html');
 
     @allow('ALL')
-    'GET /public/{...path}' = staticFiles(path.join(__dirname, '../../../extras/demo-server/static-files'));
+    'GET /public/{...path}' = staticFiles('../../../extras/demo-server/static-files');
 
     // HACK: set session.user from the querystring
     '{METHOD} {...url}' = meta((req, res, {}, next) => {

@@ -43,7 +43,8 @@
     "mocha": "^3.4.2",
     "multimethods": "^0.2.12",
     "serve-static": "^1.12.1",
-    "session-file-store": "^1.0.0"
+    "session-file-store": "^1.0.0",
+    "stack-trace": "0.0.10"
   },
   "devDependencies": {
     "@types/body-parser": "0.0.34",

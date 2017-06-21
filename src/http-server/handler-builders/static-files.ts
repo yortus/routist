@@ -1,6 +1,8 @@
+import * as path from 'path';
 import * as url from 'url';
 import * as e from 'express';
 import * as serveStatic from 'serve-static';
+import * as stackTrace from 'stack-trace';
 import Handler from '../handler';
 
 
@@ -9,6 +11,11 @@ import Handler from '../handler';
 
 // TODO: doc...
 export default function staticFiles(rootPath: string): Handler {
+    let callerFilename: string = stackTrace.get()[1].getFileName();
+    let callerDirname = path.dirname(callerFilename);
+    rootPath = path.resolve(callerDirname, rootPath);
+    // TODO: ensure path exists...
+
     let serveStaticOptions = { index: [] }; // NB: Disable having `dirname` resolve to `dirname/index.html`
     let serveStaticHandler = promisifyExpressHandler(serveStatic(rootPath, serveStaticOptions));
     
