@@ -59,6 +59,6 @@
     "@types/serve-static": "^1.7.31",
     "@types/session-file-store": "^1.0.1",
     "rimraf": "^2.6.1",
-    "typescript": "^2.4.0"
+    "typescript": "^2.5.0-dev.20170621"
   }
 }
