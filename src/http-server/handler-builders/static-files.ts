@@ -13,7 +13,7 @@ import Handler from '../handler';
 export default function staticFiles(rootPath: string): Handler {
 
     // TODO: doc this... resolve rootPath relative to dir of immediate caller    
-    let callerFilename: string = stackTrace.get()[1].getFileName();
+    let callerFilename = stackTrace.get()[1].getFileName();
     let callerDirname = path.dirname(callerFilename);
     rootPath = path.resolve(callerDirname, rootPath);
     // TODO: ensure path exists...
