@@ -1,5 +1,11 @@
 ## Decisions:
-- [ ] blah
+- [ ] Built-in features:
+  - [ ] route management
+  - [ ] static file handling
+  - [ ] session management (with extension points)
+  - [ ] permissions system (with extension points)
+  - [ ] RPC - clientside and serverside support
+
 
 
 
