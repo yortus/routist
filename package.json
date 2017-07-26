@@ -12,7 +12,7 @@
     "test": "node ./scripts/run-unit-tests",
     "prepare": "npm run self-ref && npm run build",
     "self-ref": "node ./scripts/enable-self-reference",
-    "demo": "cross-env DEBUG=routist node ./dist/extras/demo-server"
+    "demo": "cross-env DEBUG=routist,multimethods node ./dist/extras/demo-server"
   },
   "repository": {
     "type": "git",

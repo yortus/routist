@@ -1,17 +1,20 @@
 // tslint:disable:no-console
 import {Request, Response} from 'express';
 import {HttpServer, meta, Router, staticFile, staticFiles} from 'routist';
+// TODO: temp testing...
+const PERMISSIONS_TAG = '__perms';
 
 
 
 
 
 // TODO: was... still needed?
-// declare module 'express' {
-//     interface Request {
-//         session: any;
-//     }
-// }
+declare module 'express' {
+    // tslint:disable-next-line:no-shadowed-variable
+    interface Request {
+        session: any;
+    }
+}
 
 
 
@@ -33,7 +36,7 @@ class RouteTable extends Router {
     // '{METHOD} ....json'= notFound(); // Effectively an exception to the previous catchall rule
 
     // Log all incoming requests
-    '{...url}' = meta((req, res, {url}, next) => {
+    '{**url}' = meta((req, res, {url}, next) => {
         console.log(`INCOMING: ${url}`);
         return next(req, res);
     });
@@ -43,7 +46,7 @@ class RouteTable extends Router {
     'GET /public' = staticFile('../../../extras/demo-server/static-files/index.html');
 
     @allow('ALL')
-    'GET /public/{...path}' = staticFiles('../../../extras/demo-server/static-files');
+    'GET /public/{**path}' = staticFiles('../../../extras/demo-server/static-files');
 
     // HACK: set session.user from the querystring
     '{METHOD} {**url}' = meta((req, res, {}, next) => {
@@ -62,14 +65,11 @@ class RouteTable extends Router {
 
 
 
-let server = new HttpServer({});
-server.add(new RouteTable);
+let server = new HttpServer();
+server.router = new RouteTable();
 server.start();
 console.log(`ROUTE TABLE CLEARANCES for '${RouteTable.name}':`);
 console.log((RouteTable.prototype as any)._clearances);
-
-
-
 
 
 
@@ -87,15 +87,18 @@ interface Clearance {
 // //     console.log(classCtor.prototype._clearances);
 // // }
 
+
+
+
 function allow(clearanceMask: string) {
     return (classProto: any, propertyKey: string) => {
         let permissions: Clearance[] = classProto[PERMISSIONS_TAG] || (classProto[PERMISSIONS_TAG] = []);
         permissions.push({
             clearanceMask,
             intentionMask: propertyKey,
-            allow: true
+            allow: true,
         });
-    }
+    };
 }
 // export function deny(clearanceMask: string) {
 //     return (classProto: any, propertyKey: string) => {
@@ -113,7 +116,6 @@ function allow(clearanceMask: string) {
 //         }
 //     }
 // }
-
 
 
 
