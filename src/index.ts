@@ -1,11 +1,15 @@
-import {appData, staticFile, staticFiles, meta, PERMISSIONS_TAG} from './http-server/index';
-import HttpServer from './http-server';
-import HttpServerOptions from './options/http-server-options';
+export {default as HttpServer} from './http-server';
+export {default as HttpServerOptions} from './http-server-options';
+export {appData, meta, staticFile, staticFiles} from './route-helpers';
+export {default as Router} from './router';
 
 
 
 
 
-export {appData, staticFile, staticFiles, meta, PERMISSIONS_TAG}
-export {HttpServer}
-export {HttpServerOptions}
+// TODO: API:
+// - class RouteTable
+//   - support extending etc
+// - function createHttpServer(rt: RouteTable)
+// - decorators for RouteTable properties (pattern decorators)
+// - helpers to create route handlers (handler factories)

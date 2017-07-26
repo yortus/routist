@@ -1,9 +1,9 @@
+import {Handler as ExpressHandler} from 'express';
 import * as path from 'path';
-import * as url from 'url';
-import * as e from 'express';
 import * as serveStatic from 'serve-static';
 import * as stackTrace from 'stack-trace';
-import Handler from '../handler';
+import * as url from 'url';
+import {Handler} from '../router';
 
 
 
@@ -12,7 +12,7 @@ import Handler from '../handler';
 // TODO: doc...
 export default function staticFiles(rootPath: string): Handler {
 
-    // TODO: doc this... resolve rootPath relative to dir of immediate caller    
+    // TODO: doc this... resolve rootPath relative to dir of immediate caller
     let callerFilename = stackTrace.get()[1].getFileName();
     let callerDirname = path.dirname(callerFilename);
     rootPath = path.resolve(callerDirname, rootPath);
@@ -20,7 +20,7 @@ export default function staticFiles(rootPath: string): Handler {
 
     let serveStaticOptions = { index: [] }; // NB: Disable having `dirname` resolve to `dirname/index.html`
     let serveStaticHandler = promisifyExpressHandler(serveStatic(rootPath, serveStaticOptions));
-    
+
     return async (req, res, captures: {path: string}) => {
         if (typeof captures.path !== 'string') throw new Error(`static file route expects {...path} capture variable`);
         let oldUrl = req.url;
@@ -38,7 +38,7 @@ export default function staticFiles(rootPath: string): Handler {
 
 
 // TODO: helpers... this is a general thing that might be useful elsewhere too...
-function promisifyExpressHandler(expressHandler: e.Handler): Handler {
+function promisifyExpressHandler(expressHandler: ExpressHandler): Handler {
     return (req, res) => {
         return new Promise<false | void>((resolve, reject) => {
 
@@ -67,5 +67,5 @@ function promisifyExpressHandler(expressHandler: e.Handler): Handler {
             // Call the original handler
             expressHandler(req, res, interceptNext);
         });
-    }
+    };
 }

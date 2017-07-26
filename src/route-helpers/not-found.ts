@@ -1,11 +1,11 @@
-import Handler from '../handler';
+import {Handler} from '../router';
 
 
 
 
 
 export default function notFound(): Handler {
-    return (_req, res) => {
+    return (_, res) => {
         res.sendStatus(404);
     };
 }

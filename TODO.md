@@ -1,4 +1,55 @@
+## To Do:
+- [ ] more future-proof Handler typing
+  - [ ] change Handler signature: pass a `Context` object that contains `request`, `response`, `user`
+  - [ ] future expansion: add a `type` property (usually 'http', but could be websocket, rpc, etc)
+
+
+
+
+
+## Done:
+- [x] incorporate tslint (same rules as multimethods)
+- [x] use `debug` module for logging
+
+
+
+
+
 ## Decisions:
+- [ ] Project structure:
+```
+    src/
+    |-- http-server/
+        |-- http-server.ts
+        |-- index.ts
+        |-- normal-options.ts
+        |-- normalise-options.ts
+    |-- route-table/
+        |-- handler.ts
+        |-- index.ts
+        |-- route-table.ts
+    |-- route-table-decorators/
+        |-- allow.ts
+        |-- deny.ts
+        |-- index.ts
+    |-- route-table-helpers/
+        |-- app-data.ts
+        |-- http-api.ts
+        |-- index.ts
+        |-- meta.ts
+        |-- not-found.ts
+        |-- static-file.ts
+        |-- static-files.ts
+    |-- util/
+        |-- multimethods-express-middleware.ts
+    |-- http-server-options.ts
+    |-- index.ts
+```
+
+
+
+
+
 - [ ] Built-in features:
   - [ ] route management
   - [ ] static file handling
@@ -10,18 +61,14 @@
 
 
 
-
-## To Do:
-- [ ] blah
-
-
-
-
-
 ```ts
+function createRouterMiddleware(): RouterMiddleware;
+interface RouterMiddleware extends express.RequestHandler {
+    router: Router;
+}
 
 
-class Routes extends HttpServer {
+class MyRoutes extends Router {
 
     '...' = [
         permit('/u/*'),
@@ -41,9 +88,10 @@ class Routes extends HttpServer {
 
 
 // class static calls
-Routes.setup({ port: 1337 });
-Routes.start();
-Routes.stop();
+let server = new HttpServer({ port: 1337 });
+server.router = MyRoutes;
+server.start();
+server.stop();
 
 
 

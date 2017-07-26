@@ -1,20 +1,27 @@
-import {HttpServer, staticFile, staticFiles, meta, PERMISSIONS_TAG} from 'routist';
+// tslint:disable:no-console
 import {Request, Response} from 'express';
-declare module 'express' {
-    interface Request {
-        session: any;
-    }
-}
+import {HttpServer, meta, Router, staticFile, staticFiles} from 'routist';
 
 
 
 
 
-class RouteTable extends HttpServer {
+// TODO: was... still needed?
+// declare module 'express' {
+//     interface Request {
+//         session: any;
+//     }
+// }
+
+
+
+
+
+class RouteTable extends Router {
 
 // TODO: implement equivalents for these:
     // Catchall metarules - these will run *before* all others.
-    // NB: CONFUSING BUT CORRECT!!! Least-specific meta rule (1c) executes first, then 1b, ..., and finally most-specific 1a.
+    // NB: Least-specific meta rule (1c) executes first, then 1b, ..., and finally most-specific 1a.
     // @deny('*')
     // '{METHOD} {...path} #1c' = logRequest(); // TODO: get rid of this too - build it in
     // '{METHOD} {...path} #1b' = servePublicAssets(); // TODO: get rid of this too? Special case for public assets...
@@ -39,7 +46,7 @@ class RouteTable extends HttpServer {
     'GET /public/{...path}' = staticFiles('../../../extras/demo-server/static-files');
 
     // HACK: set session.user from the querystring
-    '{METHOD} {...url}' = meta((req, res, {}, next) => {
+    '{METHOD} {**url}' = meta((req, res, {}, next) => {
         let user = req.query.u;
         if (user) req.session.user = user;
         if (user === '') req.session.user = null;
@@ -50,6 +57,11 @@ class RouteTable extends HttpServer {
         res.send({user: req.session.user || 'GUEST'});
     }
 }
+
+
+
+
+
 let server = new HttpServer({});
 server.add(new RouteTable);
 server.start();

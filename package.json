@@ -8,10 +8,11 @@
   "scripts": {
     "clean": "rimraf dist/",
     "build": "tsc -p src && tsc -p test && tsc -p extras",
+    "lint": "tslint src/**/*.ts extras/**/*.ts test/**/*.ts",
     "test": "node ./scripts/run-unit-tests",
     "prepare": "npm run self-ref && npm run build",
     "self-ref": "node ./scripts/enable-self-reference",
-    "demo": "node ./dist/extras/demo-server"
+    "demo": "cross-env DEBUG=routist node ./dist/extras/demo-server"
   },
   "repository": {
     "type": "git",
@@ -33,15 +34,16 @@
   },
   "homepage": "https://github.com/yortus/routist#readme",
   "dependencies": {
-    "app-root-path": "^2.0.1",
     "body-parser": "^1.16.1",
     "chai": "^4.0.1",
     "compression": "^1.6.2",
+    "debug": "^2.6.8",
     "express": "^4.14.1",
     "express-session": "^1.15.1",
     "httperr": "^1.0.0",
     "mocha": "^3.4.2",
     "multimethods": "^0.6.0",
+    "node-machine-id": "^1.1.9",
     "serve-static": "^1.12.1",
     "session-file-store": "^1.0.0",
     "stack-trace": "0.0.10"
@@ -50,6 +52,7 @@
     "@types/body-parser": "0.0.34",
     "@types/chai": "^4.0.0",
     "@types/compression": "0.0.33",
+    "@types/debug": "0.0.29",
     "@types/express": "^4.0.35",
     "@types/express-session": "0.0.32",
     "@types/httperr": "^1.0.29",
@@ -59,7 +62,9 @@
     "@types/serve-static": "^1.7.31",
     "@types/session-file-store": "^1.0.1",
     "@types/stack-trace": "0.0.28",
+    "cross-env": "^5.0.1",
     "rimraf": "^2.6.1",
+    "tslint": "^5.5.0",
     "typescript": "^2.5.0-dev.20170621"
   }
 }
