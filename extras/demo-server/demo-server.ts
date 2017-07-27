@@ -1,8 +1,13 @@
 // tslint:disable:no-console
 import {Request, Response} from 'express';
 import {HttpServer, meta, Router, staticFile, staticFiles} from 'routist';
+
+
+
+
+
 // TODO: temp testing...
-const PERMISSIONS_TAG = '__perms';
+const PERMISSIONS_TAG = Symbol('permissions');
 
 
 

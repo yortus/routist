@@ -1,46 +1,48 @@
-import {Handler as ExpressHandler, Request, Response} from 'express';
+import {Handler as ExpressHandler} from 'express';
 import * as multimethods from 'multimethods';
 import * as url from 'url';
-import Router from '../router';
-// import PERMISSIONS_TAG from './permissions-tag';
+import Message, {createHttpMessage} from '../message';
+import Router, {HandlerResult} from '../router';
 
 
 
 
 
 // TODO: doc...
-export default function crateRouterMiddleware() {
+export default function createRouterMiddleware() {
 
     // Create an express-style middleware function that internally delegates to a multimethod.
-    let expressHandler: ExpressHandler = async (req, res, next) => {
+    let expressHandler: ExpressHandler = async (request, response, next) => {
         try {
-            const result = await multimethod(req, res);
+            // Compose a http message
+            let message = createHttpMessage(request, response);
+            const result = await multimethod(message);
             if (result === false) {
-                next(); // UNHANDLED
+                next(); // SKIPPED
             }
         }
         catch (err) {
-            next(err);
+            next(err); // FAILURE
         }
+        // SUCCESS
     };
 
     // The middleware instance closes over these two variables.
     let router: Router;
-    let multimethod: (req: Request, res: Response) => false | void | Promise<false | void>;
+    let multimethod: (msg: Message) => HandlerResult;
 
     // Add a getter/setter pair for the `router` property.
-    const routerKey: keyof RouterMiddleware = 'router';
-    Object.defineProperty(expressHandler, routerKey, {
+    const routerPropKey: keyof RouterMiddleware = 'router';
+    Object.defineProperty(expressHandler, routerPropKey, {
         get() {
             return router;
         },
         set(value: Router) {
             router = value;
-
-            multimethod = multimethods.create<Request, Response, false|void>({
-                arity: 2,
+            multimethod = multimethods.create<Message, false|void>({
+                arity: 1,
                 async: undefined,
-                toDiscriminant: (req) => `${req.method} ${url.parse(req.url).pathname || ''}`,
+                toDiscriminant: msg => `${msg.request.method} ${url.parse(msg.request.url).pathname || ''}`,
                 methods: router,
             });
         },
@@ -56,9 +58,7 @@ export default function crateRouterMiddleware() {
 
 
 
-export interface RouterMiddleware extends ExpressHandler {
-    router: Router;
-}
+export type RouterMiddleware = ExpressHandler & {router: Router};
 
 
 

@@ -1,5 +1,5 @@
-import {Request, Response} from 'express';
 import {meta as mmMeta} from 'multimethods';
+import Message from '../message';
 import {Handler, HandlerResult} from '../router';
 
 
@@ -14,6 +14,6 @@ export default function meta(handler: MetaHandler): Handler {
 
 
 
-export type MetaHandler = (req: Request, res: Response, captures: Captures, next: Next) => HandlerResult;
+export type MetaHandler = (msg: Message, captures: Captures, next: Next) => HandlerResult;
 export interface Captures { [name: string]: string; }
-export type Next = (req: Request, res: Response) => HandlerResult;
+export type Next = (msg: Message) => HandlerResult;

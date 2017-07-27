@@ -3,12 +3,12 @@ import * as compression from 'compression';
 import * as express from 'express';
 import * as session from 'express-session';
 import * as sessionFileStore from 'session-file-store';
-import HttpServerOptions from '../http-server-options';
 import Router from '../router';
 import debug from '../util/debug';
 import createRouterMiddleware, {RouterMiddleware} from './create-router-middleware';
 import NormalOptions from './normal-options';
 import normaliseOptions from './normalise-options';
+import Options from './options';
 import validateOptions from './validate-options';
 
 
@@ -37,7 +37,7 @@ import validateOptions from './validate-options';
 export default class HttpServer {
 
     /** Create a new HttpServer instance. */
-    constructor(options?: HttpServerOptions) {
+    constructor(options?: Options) {
 
         // Validate and normalise options.
         options = options || {};

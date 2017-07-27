@@ -3,7 +3,10 @@
   - [ ] change Handler signature: pass a `Context` object that contains `request`, `response`, `user`
   - [ ] better name for `Context`? eg: `Message`, `Exchange`, `Interaction`, `RequestResponse`, `Dispatch`
   - [ ] future expansion: add a `type` property (usually 'http', but could be websocket, rpc, etc)
-
+- [ ] split up code into `src/server/`, `src/client`, and `src/common`
+  - [ ] split up code
+  - [ ] build clientside bundle using webpack
+  
 
 
 

@@ -1,4 +1,4 @@
-import {Request, Response} from 'express';
+import Message from '../message';
 
 
 
@@ -11,7 +11,7 @@ import {Request, Response} from 'express';
 
 
 
-type Handler = (req: Request, res: Response, captures: {[name: string]: string}) => HandlerResult;
+type Handler = (msg: Message, captures: {[name: string]: string}) => HandlerResult;
 export default Handler;
 
 

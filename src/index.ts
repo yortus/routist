@@ -1,5 +1,4 @@
-export {default as HttpServer} from './http-server';
-export {default as HttpServerOptions} from './http-server-options';
+export {default as HttpServer, HttpServerOptions} from './http-server';
 export {appData, meta, staticFile, staticFiles} from './route-helpers';
 export {default as Router} from './router';
 

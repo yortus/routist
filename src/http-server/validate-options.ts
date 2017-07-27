@@ -1,12 +1,12 @@
 import * as path from 'path';
 import {format} from 'util';
-import HttpServerOptions from '../http-server-options';
+import Options from './options';
 
 
 
 
 
-export default function validateOptions(options: HttpServerOptions) {
+export default function validateOptions(options: Options) {
 
     // TODO: port...
     // TODO: secret...

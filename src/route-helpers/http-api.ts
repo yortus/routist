@@ -5,25 +5,30 @@ import {Handler} from '../router';
 
 
 
+// TODO: rename to RPC something...
+
+
+
+
+
 export default function httpApi<S extends ApiFactory<I>, I extends {[K in keyof I]: Function}>(Ctor: S): Handler {
-    return async (req, res, captures) => {
+    return async (msg, captures) => {
 
-        if (!req.session) throw new Error(`rpc internal error: no session!`); // TODO: revise error handling
-        let api = new Ctor(req.session, captures);
+        if (!msg.request.session) throw new Error(`RPC internal error: no session!`); // TODO: revise error handling
+        let api = new Ctor(msg.request.session, captures);
 
-        if (!api || typeof api !== 'object') throw new Error(`rpc: invalid API object`); // TODO: revise error handling
+        if (!api || typeof api !== 'object') throw new Error(`RPC: invalid API object`); // TODO: revise error handling
 
-        let pathname = '/' + url.parse(req.url).pathname;
+        let pathname = '/' + url.parse(msg.request.url).pathname;
         let funcName = pathname.substr(pathname.lastIndexOf('/') + 1) as keyof I;
         let func = api[funcName];
         if (typeof func !== 'function') {
-            throw new Error(`rpc: invalid API has no function '${funcName}'`); // TODO: revise error handling
+            throw new Error(`RPC: API has no function '${funcName}'`); // TODO: revise error handling
         }
 
-        let args = req.body as any[];
+        let args = msg.request.body as any[];
         let result = await func.apply(api, args); // NB: handles both sync and async functions
-        res.send(result);
-        return;
+        msg.response.send(result);
     };
 }
 

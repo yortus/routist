@@ -5,7 +5,7 @@ import {Handler} from '../router';
 
 
 export default function notFound(): Handler {
-    return (_, res) => {
-        res.sendStatus(404);
+    return msg => {
+        msg.response.sendStatus(404);
     };
 }
