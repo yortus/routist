@@ -6,7 +6,7 @@ import {OperationsPredicate, SubjectsPredicate} from './predicates';
 
 
 export default interface AccessControlEntry {
-    subjectPredicate: SubjectsPredicate;
-    operationPredicate: OperationsPredicate;
+    subjectsPredicate: SubjectsPredicate;
+    operationsPredicate: OperationsPredicate;
     policy: Policy;
 }

@@ -3,6 +3,8 @@ import * as compression from 'compression';
 import * as express from 'express';
 import * as session from 'express-session';
 import * as sessionFileStore from 'session-file-store';
+import {AccessControlEntry, AccessControlList, declarationsFor, Policy} from '../access-control';
+import {createOperationsPredicate, createSubjectsPredicate} from '../access-control';
 import Router from '../router';
 import debug from '../util/debug';
 import createRouterMiddleware, {RouterMiddleware} from './create-router-middleware';
@@ -62,6 +64,21 @@ export default class HttpServer {
     // TODO: doc...
     set router(value: Router) {
         this.routerMiddleware.router = value;
+
+        // TODO: ... use property decorator info... (permissions)
+        let declarations = declarationsFor(Object.getPrototypeOf(value));
+        let acl: AccessControlList = declarations.map(decl => {
+            // TODO: need to check/transform Policy?
+            let policy = decl.policy as Policy;
+            let ace: AccessControlEntry = {
+                subjectsPredicate: createSubjectsPredicate(decl.subjects, this.options),
+                operationsPredicate: createOperationsPredicate(decl.operations, this.options),
+                policy,
+            };
+            return ace;
+        });
+        console.log('\n\n\n==================== ACL ====================');
+        console.log(acl);
     }
 
     /** Start the HTTP server */

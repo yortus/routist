@@ -39,10 +39,10 @@ class RouteTable extends Router {
     });
 
     // Server static files at /public
-    @allow('ALL')
+    @allow('@all')
     'GET /public' = staticFile('../../../extras/demo-server/static-files/index.html');
 
-    @allow('ALL')
+    @allow('@all')
     'GET /public/{**path}' = staticFiles('../../../extras/demo-server/static-files');
 
     // HACK: set session.user from the querystring
@@ -53,7 +53,10 @@ class RouteTable extends Router {
         return next(msg);
     });
 
-    @deny('@joe')
+    @deny('@all')
+    @allow('it managers')
+    @deny('admin')
+    @allow('@joe')
     'GET /whoami*' = (msg: Message) => {
         msg.response.send({user: msg.user || 'GUEST'});
     }

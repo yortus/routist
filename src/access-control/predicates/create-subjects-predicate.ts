@@ -49,6 +49,7 @@ export default function createSubjectsPredicate(subjects: string, options?: User
     roles.sort();
 
     // TODO: compute the predicate...
-    let result = `${user}:*${roles.join('*')}${roles.length > 0 ? '*' : ''}` as SubjectsPredicate;
+    let rolesStr = '*<' + roles.join('>*<') + '>*';
+    let result = `${user}:${rolesStr === '*<>*' ? '*' : rolesStr}` as SubjectsPredicate;
     return result;
 }

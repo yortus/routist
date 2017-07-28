@@ -6,3 +6,5 @@ export {default as AccessControlEntry} from './access-control-entry';
 export {default as AccessControlList} from './access-control-list';
 export {default as UserOptions} from './user-options';
 export {default as declarationsFor} from './declarations-for';
+export {OperationsPredicate, SubjectsPredicate, createOperationsPredicate, createSubjectsPredicate} from './predicates';
+export {default as Policy} from './policy';
