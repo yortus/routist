@@ -1,3 +1,11 @@
+// TODO: remove...
+// tslint:disable:no-console
+
+
+
+
+
+import {declarationsFor} from '../access-control';
 import Handler from './handler';
 
 
@@ -22,13 +30,16 @@ import Handler from './handler';
 
 
 
-
-
 class Router {
 
     constructor() {
         // TODO: ...
         // use property decorator info... (permissions)
+        console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        let declarations = declarationsFor(Object.getPrototypeOf(this));
+        declarations.forEach(decl => {
+            console.log(decl);
+        });
     }
 }
 export default Router;

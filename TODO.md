@@ -1,4 +1,6 @@
 ## To Do:
+- [ ] support more chars in UserTag and RoleTag strings
+  - [ ] eg usertags could be emails if the allow: `@ .`
 - [ ] more future-proof Handler typing
   - [ ] change Handler signature: pass a `Context` object that contains `request`, `response`, `user`
   - [ ] better name for `Context`? eg: `Message`, `Exchange`, `Interaction`, `RequestResponse`, `Dispatch`

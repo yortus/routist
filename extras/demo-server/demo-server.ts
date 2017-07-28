@@ -1,25 +1,17 @@
 // tslint:disable:no-console
-import {Request, Response} from 'express';
-import {HttpServer, meta, Router, staticFile, staticFiles} from 'routist';
+import {allow, deny, HttpServer, Message, meta, Router, staticFile, staticFiles} from 'routist';
 
 
 
 
 
-// TODO: temp testing...
-const PERMISSIONS_TAG = Symbol('permissions');
-
-
-
-
-
-// TODO: was... still needed?
-declare module 'express' {
-    // tslint:disable-next-line:no-shadowed-variable
-    interface Request {
-        session: any;
-    }
-}
+// // TODO: was... still needed?
+// declare module 'express' {
+//     // tslint:disable-next-line:no-shadowed-variable
+//     interface Request {
+//         session: any;
+//     }
+// }
 
 
 
@@ -41,9 +33,9 @@ class RouteTable extends Router {
     // '{METHOD} ....json'= notFound(); // Effectively an exception to the previous catchall rule
 
     // Log all incoming requests
-    '{**url}' = meta((req, res, {url}, next) => {
+    '{**url}' = meta((msg, {url}, next) => {
         console.log(`INCOMING: ${url}`);
-        return next(req, res);
+        return next(msg);
     });
 
     // Server static files at /public
@@ -54,15 +46,16 @@ class RouteTable extends Router {
     'GET /public/{**path}' = staticFiles('../../../extras/demo-server/static-files');
 
     // HACK: set session.user from the querystring
-    '{METHOD} {**url}' = meta((req, res, {}, next) => {
-        let user = req.query.u;
-        if (user) req.session.user = user;
-        if (user === '') req.session.user = null;
-        return next(req, res);
+    '{METHOD} {**url}' = meta((msg, {}, next) => {
+        let user = msg.request.query.u;
+        if (user) msg.user = user;
+        if (user === '') msg.user = null;
+        return next(msg);
     });
 
-    'GET /whoami*' = (req: Request, res: Response) => {
-        res.send({user: req.session.user || 'GUEST'});
+    @deny('@joe')
+    'GET /whoami*' = (msg: Message) => {
+        msg.response.send({user: msg.user || 'GUEST'});
     }
 }
 
@@ -73,64 +66,3 @@ class RouteTable extends Router {
 let server = new HttpServer();
 server.router = new RouteTable();
 server.start();
-console.log(`ROUTE TABLE CLEARANCES for '${RouteTable.name}':`);
-console.log((RouteTable.prototype as any)._clearances);
-
-
-
-
-
-// TODO: temp testing...
-interface Clearance {
-    clearanceMask: string;
-    intentionMask: string;
-    allow: boolean;
-}
-
-// // export function routeTable(classCtor: Function) {
-// //     console.log(`ROUTE TABLE CLEARANCES for '${classCtor.name}':`);
-// //     console.log(classCtor.prototype._clearances);
-// // }
-
-
-
-
-function allow(clearanceMask: string) {
-    return (classProto: any, propertyKey: string) => {
-        let permissions: Clearance[] = classProto[PERMISSIONS_TAG] || (classProto[PERMISSIONS_TAG] = []);
-        permissions.push({
-            clearanceMask,
-            intentionMask: propertyKey,
-            allow: true,
-        });
-    };
-}
-// export function deny(clearanceMask: string) {
-//     return (classProto: any, propertyKey: string) => {
-//         let permissions: Clearance[] = classProto[PERMISSIONS_TAG] || (classProto[PERMISSIONS_TAG] = []);
-//         permissions.push({
-//             clearanceMask,
-//             intentionMask: propertyKey,
-//             allow: false
-//         });
-//     }
-// }
-// export namespace allow {
-//     export function iff() {
-//         return (_classProto: any, _propertyKey: string) => {
-//         }
-//     }
-// }
-
-
-
-
-
-// @routeTable class MyClass {
-//     @allow('/u/*')
-//     '{METHOD} {...path} #1': string;
-
-//     @allow('/u/*') @deny('/u/bob')
-//     '{METHOD} {...path} #2': string;
-// }
-// MyClass

@@ -1,6 +1,8 @@
 export {default as HttpServer, HttpServerOptions} from './http-server';
-export {appData, meta, staticFile, staticFiles} from './route-helpers';
 export {default as Router} from './router';
+export {default as Message} from './message';
+export {appData, meta, staticFile, staticFiles} from './route-helpers';
+export {allow, deny} from './route-decorators';
 
 
 
