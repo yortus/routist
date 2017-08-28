@@ -1,23 +1,11 @@
 // tslint:disable:no-console
-import {allow, deny, HttpServer, Message, meta, Router, staticFile, staticFiles} from 'routist';
+import {allow, deny, HttpServer, Message, meta, RouteTable, staticFile, staticFiles} from 'routist';
 
 
 
 
 
-// // TODO: was... still needed?
-// declare module 'express' {
-//     // tslint:disable-next-line:no-shadowed-variable
-//     interface Request {
-//         session: any;
-//     }
-// }
-
-
-
-
-
-class RouteTable extends Router {
+class DemoRoutes extends RouteTable {
 
 // TODO: implement equivalents for these:
     // Catchall metarules - these will run *before* all others.
@@ -39,26 +27,25 @@ class RouteTable extends Router {
     });
 
     // Server static files at /public
-    @allow('@all')
+    @allow('*')
     'GET /public' = staticFile('../../../extras/demo-server/static-files/index.html');
 
-    @allow('@all')
+    @allow('*')
     'GET /public/{**path}' = staticFiles('../../../extras/demo-server/static-files');
 
     // HACK: set session.user from the querystring
     '{METHOD} {**url}' = meta((msg, {}, next) => {
         let user = msg.request.query.u;
-        if (user) msg.user = user;
-        if (user === '') msg.user = null;
+        msg.roles = user ? ['@' + user] : [];
         return next(msg);
     });
 
-    @deny('@all')
-    @allow('it managers')
+    @deny('*')
+    @allow('it manager')
     @deny('admin')
     @allow('@joe')
     'GET /whoami*' = (msg: Message) => {
-        msg.response.send({user: msg.user || 'GUEST'});
+        msg.response.send({user: msg.roles.length === 1 ? msg.roles[0] : 'GUEST/ERROR'});
     }
 }
 
@@ -66,6 +53,18 @@ class RouteTable extends Router {
 
 
 
-let server = new HttpServer();
-server.router = new RouteTable();
+let server = new HttpServer({
+    port: 8080,
+    allRoles: {
+        '@bob':     ['it', 'manager'],
+        '@joe':     ['it', 'staff'],
+        '@mary':    ['hr'],
+        'manager':  ['admin'],
+        'hr':       ['admin'],
+        'it':       [],
+        'admin':    [],
+    },
+});
+server.updateRouteTable(new DemoRoutes());
+// TODO: server.updateAccessControl() // invalidate cached roles, also optionally pass new AccessControlOptions
 server.start();

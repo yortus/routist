@@ -1,5 +1,4 @@
 import {Request, Response} from 'express';
-import {UserTag} from '../access-control';
 import MessageType from './message-type';
 
 
@@ -7,9 +6,27 @@ import MessageType from './message-type';
 
 
 // TODO: doc... future expansion: make this a discriminated union
-export default interface Message {
-    type: MessageType;
+// TODO: doc... all Messages must at least have a `type` and a `discriminant`
+type Message = HttpMessage;
+export default Message;
+
+
+
+
+
+// TODO: doc...
+export interface HttpMessage extends MessageBase<MessageType.http> {
     request: Request;
     response: Response;
-    user: UserTag|null;
+}
+
+
+
+
+
+// TODO: doc...
+export interface MessageBase<T extends MessageType> {
+    type: T;
+    discriminant: string;
+    roles: string[];
 }

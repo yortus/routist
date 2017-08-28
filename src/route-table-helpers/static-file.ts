@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as stackTrace from 'stack-trace';
-import {Handler} from '../router';
+import {Handler} from '../route-table';
 
 
 

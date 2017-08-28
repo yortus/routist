@@ -3,15 +3,12 @@ import * as compression from 'compression';
 import * as express from 'express';
 import * as session from 'express-session';
 import * as sessionFileStore from 'session-file-store';
-import {AccessControlEntry, AccessControlList, declarationsFor, Policy} from '../access-control';
-import {createOperationsPredicate, createSubjectsPredicate} from '../access-control';
-import Router from '../router';
+import RouteTable from '../route-table';
 import debug from '../util/debug';
-import createRouterMiddleware, {RouterMiddleware} from './create-router-middleware';
-import NormalOptions from './normal-options';
-import normaliseOptions from './normalise-options';
-import Options from './options';
-import validateOptions from './validate-options';
+import {AccessControlMiddleware, createAccessControlMiddleware} from './express-middleware';
+import {createRouteTableMiddleware, RouteTableMiddleware} from './express-middleware';
+import HttpConfiguration from './http-configuration';
+import HttpOptions from './http-options';
 
 
 
@@ -39,53 +36,33 @@ import validateOptions from './validate-options';
 export default class HttpServer {
 
     /** Create a new HttpServer instance. */
-    constructor(options?: Options) {
+    constructor(options?: HttpOptions) {
 
-        // Validate and normalise options.
-        options = options || {};
-        validateOptions(options);
-        this.options = normaliseOptions(options);
-        Object.freeze(this.options);
+        // Create configuration based on provided options.
+        this.config = new HttpConfiguration(options); // NB: may throw if options are invalid
 
         // Prepare the underlying express app.
         this.app = express();
-        initApp(this.app, this.options);
+        initApp(this.app, this.config);
 
-        // Prepare the router middleware and add it to the express app's middleware stack.
-        this.routerMiddleware = createRouterMiddleware();
-        this.app.use(this.routerMiddleware);
+        // Prepare the access control and routing middleware, and add them to the express app's middleware stack.
+        this.accessControlMiddleware = createAccessControlMiddleware(this.config);
+        this.routeTableMiddleware = createRouteTableMiddleware();
+        this.app.use(this.accessControlMiddleware); // TODO: correct position in middleware stack? Review...
+        this.app.use(this.routeTableMiddleware);
     }
 
     // TODO: doc...
-    get router() {
-        return this.routerMiddleware.router;
-    }
-
-    // TODO: doc...
-    set router(value: Router) {
-        this.routerMiddleware.router = value;
-
-        // TODO: ... use property decorator info... (permissions)
-        let declarations = declarationsFor(Object.getPrototypeOf(value));
-        let acl: AccessControlList = declarations.map(decl => {
-            // TODO: need to check/transform Policy?
-            let policy = decl.policy as Policy;
-            let ace: AccessControlEntry = {
-                subjectsPredicate: createSubjectsPredicate(decl.subjects, this.options),
-                operationsPredicate: createOperationsPredicate(decl.operations, this.options),
-                policy,
-            };
-            return ace;
-        });
-        console.log('\n\n\n==================== ACL ====================');
-        console.log(acl);
+    updateRouteTable(routes: RouteTable) {
+        this.accessControlMiddleware.update(routes);
+        this.routeTableMiddleware.update(routes);
     }
 
     /** Start the HTTP server */
     start() {
         return new Promise<void>((resolve, reject) => {
-            this.app.listen(this.options.port, () => {
-                debug(`HTTP server listening on port ${this.options.port}`);
+            this.app.listen(this.config.port, () => {
+                debug(`HTTP server listening on port ${this.config.port}`);
                 resolve();
             }).on('error', reject);
         });
@@ -93,18 +70,20 @@ export default class HttpServer {
 
     // TODO: add stop() method
 
-    private options: Readonly<NormalOptions>;
+    private config: HttpConfiguration;
 
     private app: express.Application;
 
-    private routerMiddleware: RouterMiddleware;
+    private accessControlMiddleware: AccessControlMiddleware;
+
+    private routeTableMiddleware: RouteTableMiddleware;
 }
 
 
 
 
 
-function initApp(app: express.Application, options: NormalOptions) {
+function initApp(app: express.Application, config: HttpConfiguration) {
 
     // TODO: This will only suit some applications... make configurable via options... (and simplify?)
     app.set('trust proxy', '::ffff:127.0.0.1');
@@ -114,11 +93,11 @@ function initApp(app: express.Application, options: NormalOptions) {
     const FileStore: typeof sessionFileStore = (sessionFileStore as any)(session);
     app.use(session({
         name: 'sid',
-        secret: options.secret,
+        secret: config.secret,
         resave: false,
         saveUninitialized: true,
         store: new FileStore({
-            path: options.sessionsDir,
+            path: config.sessionsDir,
             ttl: 3600, // 1 hour
         }) as any, // TODO: remove cast when @types/session-file-store is fixed
     }));

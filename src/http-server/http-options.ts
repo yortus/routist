@@ -1,12 +1,13 @@
-import {UserOptions} from '../access-control';
+import {AccessControlOptions} from '../access-control';
 
 
 
 
 
 // TODO: doc...
-export default interface Options extends UserOptions {
+type HttpOptions  = AccessControlOptions & {
     secret?: string;
     port?: number;
     sessionsDir?: string; // NB: must be absolute; default is %CWD%/sessions
-}
+};
+export default HttpOptions;

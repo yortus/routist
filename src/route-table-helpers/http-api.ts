@@ -1,5 +1,5 @@
 import * as url from 'url';
-import {Handler} from '../router';
+import {Handler} from '../route-table';
 
 
 

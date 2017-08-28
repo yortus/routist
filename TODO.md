@@ -1,10 +1,35 @@
-## To Do:
+## Todo - High Priority
+
+
+## Todo - Medium Priority
+
+
+## Todo - Unassigned Priority
+- [ ] AccessControlConfig: support caching and invalidation
+- [ ] Do ACL entries 'inherit' up prototype chains? See TODOs in `access-control-list.ts`
+- [ ] ACL policies: allow policy functions to be async/mixed
+- [ ] ensure access control middleware is correctly position in middleware stack
+  - [ ] investigate:
+    - [ ] any possible bypasses?
+    - [ ] any server info leaks?
+- [ ] HttpServer: implement `stop()` method
+- [ ] HttpServer: add useful options for 'Trust Proxy'
+  - [ ] supported scenarios:
+    - [ ] localhost/debugging
+    - [ ] direct serving
+    - [ ] behind a local reverse proxy eg nginx
+    - [ ] behind a remote reverse proxy
+    - [ ] ...any others?
+  - [ ] read about useful configs
+    - [ ] Express docs
+    - [ ] Nginx docs
+    - [ ] search for other resources, list below...
+- [ ] options (user-supplied) -> configuration (validated & normalised)
+  - [x] refactor
+  - [ ] transform UserOptions to something more internally appropriate?
 - [ ] support more chars in UserTag and RoleTag strings
   - [ ] eg usertags could be emails if the allow: `@ .`
-- [ ] more future-proof Handler typing
-  - [ ] change Handler signature: pass a `Context` object that contains `request`, `response`, `user`
-  - [ ] better name for `Context`? eg: `Message`, `Exchange`, `Interaction`, `RequestResponse`, `Dispatch`
-  - [ ] future expansion: add a `type` property (usually 'http', but could be websocket, rpc, etc)
+  - [ ] allow anything *except* reserved chars?
 - [ ] split up code into `src/server/`, `src/client`, and `src/common`
   - [ ] split up code
   - [ ] build clientside bundle using webpack
@@ -14,41 +39,93 @@
 
 
 ## Done:
+- [x] more future-proof Handler typing
+  - [x] change Handler signature: pass a `Message` object that contains `request`, `response`, `user`
+  - [x] better name for `Context`? eg: `Message`, `Exchange`, `Interaction`, `RequestResponse`, `Dispatch`
+  - [x] future expansion: add a `type` property (usually 'http', but could be websocket, rpc, etc)
 - [x] incorporate tslint (same rules as multimethods)
 - [x] use `debug` module for logging
 
 
 
+```ts
+type ClientOptions = Partial<Options>;
+interface Options {
+    secret: string;
+    port: number;
+    sessionsDir: string;
+    isUser?(user: string): boolean;
+    isRole?(role: string): boolean;
+    getImpliedRoles(userOrRole: UserTag|RoleTag): RoleTag[];
+}
+
+
+
+
+class AccessControlList {
+    static for(obj: object): AccessControlList;
+    set(subjects: string, operations: string, policy: Policy): void;
+    toFunction(options: AccessControlOptions): (msg: Message) => boolean;
+    private constructor();
+}
+```
+
 
 
 ## Decisions:
+- [ ] Access Control Lists
+  - [ ] attached to prototype objects indirectly using a WeakMap
+  - [ ] getting the ACL for an arbitrary object OBJ:
+    - 1. is OBJ null or undefined?
+      - if so, return a new blank ACL and EXIT
+    - 2. set PROTO := the prototype of OBJ
+    - 2. is there an ACL associated with PROTO?
+      - If so: result := ACL of PROTO and EXIT
+    - 3. 
+    - 4. if none found:
+
+      
+
+
+
+
 - [ ] Project structure:
 ```
     src/
-    |-- http-server/
-        |-- http-server.ts
-        |-- index.ts
-        |-- normal-options.ts
-        |-- normalise-options.ts
+    |-- access-control/
+    |   |-- access-control-list.ts
+    |   |-- access-control-options.ts
+    |   |-- * role-tag, user-tag, to-role-tag, to-user-tag, policy
+    |-- clients/
+    |   |-- rpc-client/
+    |   |   |-- *
+    |-- messages/
+    |   |-- *
     |-- route-table/
-        |-- handler.ts
-        |-- index.ts
-        |-- route-table.ts
-    |-- route-table-decorators/
-        |-- allow.ts
-        |-- deny.ts
-        |-- index.ts
+    |   |-- handler.ts
+    |   |-- index.ts
+    |   |-- route-table.ts
     |-- route-table-helpers/
-        |-- app-data.ts
-        |-- http-api.ts
-        |-- index.ts
-        |-- meta.ts
-        |-- not-found.ts
-        |-- static-file.ts
-        |-- static-files.ts
+    |   |-- allow.ts
+    |   |-- app-data.ts
+    |   |-- deny.ts
+    |   |-- http-api.ts
+    |   |-- index.ts
+    |   |-- meta.ts
+    |   |-- not-found.ts
+    |   |-- static-file.ts
+    |   |-- static-files.ts
+    |-- servers/
+    |   |-- http-server/
+    |   |   |-- express-middleware/
+    |   |   |   |-- route-table-adapter.ts
+    |   |   |-- http-server.ts
+    |   |   |-- http-server-options.ts  // use Partial<> with this
+    |   |   |-- validate-options.ts     // both check and normalise - take partial and return non-partial
+    |   |-- rpc-server/
+    |   |   |-- *
     |-- util/
-        |-- multimethods-express-middleware.ts
-    |-- http-server-options.ts
+    |   |-- 
     |-- index.ts
 ```
 

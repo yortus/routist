@@ -1,4 +1,4 @@
-import {Handler} from '../router';
+import {Handler} from '../route-table';
 import meta from './meta';
 
 

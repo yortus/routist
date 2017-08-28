@@ -1,6 +1,6 @@
 import {meta as mmMeta} from 'multimethods';
 import Message from '../message';
-import {Handler, HandlerResult} from '../router';
+import {Handler, HandlerResult} from '../route-table';
 
 
 

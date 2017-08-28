@@ -22,19 +22,19 @@ import Handler from './handler';
 
 
 
-class Router {
+class RouteTable {
 
     constructor() {
         // TODO: ...
     }
 }
-export default Router;
+export default RouteTable;
 
 
 
 
 
 // TODO: temp testing...
-interface Router {
+interface RouteTable {
     [pattern: string]: Handler | Handler[];
 }

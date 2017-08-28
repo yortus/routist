@@ -1,27 +1,34 @@
 import {Request, Response} from 'express';
-import {UserTag} from '../access-control';
-import Message from './message';
+import * as url from 'url';
+import {HttpMessage} from './message';
 import MessageType from './message-type';
 
 
 
 
 
-export default function createHttpMessage(req: Request, res: Response) {
-    let message = {type: MessageType.http, request: req, response: res} as Message;
-    const userPropKey: keyof Message = 'user';
-    Object.defineProperty(message, userPropKey, {
+export default function createHttpMessage(request: Request, response: Response) {
+    let discriminant = `${request.method} ${url.parse(request.url).pathname || ''}`;
+    let message = {type: MessageType.http, discriminant, request, response} as HttpMessage;
+
+    const rolesPropKey: keyof HttpMessage = 'roles';
+    Object.defineProperty(message, rolesPropKey, {
         get: () => {
-            // Get the user tag from the session, if any.
-            if (!message.request.session) throw new Error(`Internal error: no session!`);
-            let user = message.request.session.userTag || null;
-            return user;
+            // Get the roles from the session, creating an empty array if necessary.
+            let session = message.request.session;
+            if (!session) throw new Error(`Internal error: no session!`);
+            let roles = session.roles || (session.roles = []);
+            return roles;
         },
-        set: (value: UserTag|null) => {
-            // Set (or clear) the user tag in the session.
+        set: (value: string[]) => {
+            // Validate roles
+            if (value.some(role => role === '*')) throw new Error(`Wildcard role '*' cannot be used here`);
+
+            // Overwrite the roles in the session.
             if (!message.request.session) throw new Error(`Internal error: no session!`);
-            message.request.session.userTag = value;
+            message.request.session.roles = value;
         },
     });
+
     return message;
 }
