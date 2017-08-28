@@ -13,7 +13,7 @@ export default class AccessControlConfiguration {
             // TODO: validate passed-in allRoles hash? Or better to be permissive/lazy?
             const allRoles = options.allRoles;
             this.isDefinedRole = role => allRoles.hasOwnProperty(role);
-            this.getImpliedRoles = role => allRoles[role];
+            this.getImpliedRoles = role => allRoles[role] || [];
         }
         else {
             this.isDefinedRole = options.isDefinedRole;

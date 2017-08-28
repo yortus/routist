@@ -38,7 +38,8 @@ export default class AccessControlList {
         let methods = {} as {[predicate: string]: (msg: Message) => boolean};
         this.entries.forEach(entry => {
             let roles = config.getAllImpliedRoles(entry.subjects.split(/[ ]+/));
-            let rolesPredicate = roles.length === 0 ? '*' : `*<${roles.join('>*<')}>*`;
+            if (roles.length === 0) throw new Error(`Internal error: empty roles array`);
+            let rolesPredicate = roles[0] === '*' ? '*' : `*<${roles.join('>*<')}>*`;
             methods[`${rolesPredicate}/${entry.operations}`] = entry.policy;
         });
 

@@ -1,3 +1,17 @@
+## Decisions
+- [ ] Lifecycle: receive > authenticate > authorise > dispatch
+- [ ] RouteTable --> Dispatcher
+- [ ] Route table helpers --> dispatch helpers
+- [ ] Pass protocol (eg 'HTTP') as first part of discrimimant
+- [ ] User is-a Role
+- [ ] access control --> authorisation
+- [ ] authentication
+
+
+
+
+
+
 ## Todo - High Priority
 
 
@@ -5,6 +19,7 @@
 
 
 ## Todo - Unassigned Priority
+- [ ] add `util.assert` function and replace `throw` stmts wherever appropriate
 - [ ] AccessControlConfig: support caching and invalidation
 - [ ] Do ACL entries 'inherit' up prototype chains? See TODOs in `access-control-list.ts`
 - [ ] ACL policies: allow policy functions to be async/mixed

@@ -1,5 +1,5 @@
 export {default as HttpServer, HttpOptions} from './http-server';
-export {default as RouteTable} from './route-table';
+export {default as RouteTable, Handler, HandlerResult} from './route-table';
 export {default as Message} from './message';
 export {allow, appData, deny, meta, staticFile, staticFiles} from './route-table-helpers';
 

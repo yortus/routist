@@ -63,6 +63,7 @@ let server = new HttpServer({
         'hr':       ['admin'],
         'it':       [],
         'admin':    [],
+        'staff':    [],
     },
 });
 server.updateRouteTable(new DemoRoutes());
