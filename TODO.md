@@ -1,4 +1,42 @@
 ## Decisions
+- [ ] Architecture: Server/Receiver/Authenticator/Authoriser/Dispatcher
+
+  - [ ] Receiver responsibilities:
+    - [ ] exposes a well-known Message format (so authenticator/authoriser/dispatcher may consume it)
+    - [ ] produces messages
+      - [ ] constructs Message instances, specialised for the protocol of this receiver (e.g., HTTP)
+      - [ ] all messages include type and discriminant; rest is protocol-specific
+    - [ ] provides means to get/set User associated with message (incl session support if receiver's protocol supports it)
+
+  - [ ] Authenticator responsibilities:
+    - [ ] consumes -some- messages
+    - [ ] confirms whether a message comes from a particular user by various means (usn/pwd, valid session, oauth, etc)
+    - [ ] recognises (only) messages whose effect is to set/clear association between Message and User
+    - [ ] sets/clears association between message and user
+    - [ ] does not modify messages
+    - [ ] all other messages pass through
+
+  - [ ] Authoriser responsibilities:
+    - [ ] consumes all messages
+    - [ ] determines whether the given message is authorised for the given user
+    - [ ] unauthorised messages go no further (i.e., they dont get dispatched)
+    - [ ] authorised messages pass through unchanged to dispatch stage
+
+  - [ ] Dispatcher responsibilities:
+    - [ ] consumes all authorised messages
+    - [ ] finds the best-matching handler(s) for the message
+    - [ ] processes the message, including responding in a protocol-specific manner (message instance must allow for this)
+
+  - [ ] Server responsibilities:
+    - [ ] chains together receiver + authenticator + authoriser + dispatcher
+    - [ ] manages lifecycle on each Message
+    - [ ] provides for separate contexts for same kind of receiver etc
+    - [ ] provides controls for starting/stopping
+    - [ ] handles sync/async cases gracefully
+
+
+
+
 - [ ] Lifecycle: receive > authenticate > authorise > dispatch
 - [ ] RouteTable --> Dispatcher
 - [ ] Route table helpers --> dispatch helpers
