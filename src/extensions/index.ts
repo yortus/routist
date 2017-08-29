@@ -1,4 +1,4 @@
-export {HttpMessage, HttpOptions, HttpReceiver} from './http';
+export {HttpMessage, HttpOptions, HttpReceiver, isHttpMessage} from './http';
 
 
 

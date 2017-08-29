@@ -3,6 +3,5 @@
 
 
 
-export default interface Role {
-    __roleBrand: any;
-}
+type Role = string & { __roleBrand: any; };
+export default Role;

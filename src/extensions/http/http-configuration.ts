@@ -17,7 +17,7 @@ export default class HttpConfiguration {
 
         this.secret = machineIdSync();
         this.port = options.port || 8080;
-        this.sessionDir = session.dir || path.join(process.cwd(), 'sessions');
+        this.sessionDir = path.resolve(process.cwd(), session.dir || 'sessions');
         this.sessionTimeout = session.timeout || 600;
     }
 
@@ -41,12 +41,11 @@ function validateOptions(options?: HttpOptions) {
     // TODO: secret...
     // TODO: isUser, isRole, getImpliedRoles...
 
-    // sessions.dir must be an absolute path, or undefined
+    // sessions.dir must be a string, or undefined
     if (options && options.session && options.session.dir) {
         let isValid = typeof options.session.dir === 'string';
-        isValid = isValid && path.isAbsolute(options.session.dir);
         if (!isValid) {
-            let fmt = `Expected an absolute path or undefined value for options.sessions.dir, but found %j.`;
+            let fmt = `Expected an string or undefined value for options.sessions.dir, but found %j.`;
             throw new Error(format(fmt, options.session.dir));
         }
     }

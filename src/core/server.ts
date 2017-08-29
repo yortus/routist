@@ -1,21 +1,34 @@
-// import ServerOptions from './server-options';
+import Message from './message';
+import ServerOptions from './server-options';
 
 
 
 
 
 export default class Server {
-    // constructor(private options: ServerOptions) {
-    //     // TODO:
-    //     // - validate options
-    //     // - convert options to configuration
-    // }
+    constructor(private options: ServerOptions) {
+        // TODO:
+        // - validate options
+        // - convert options to configuration
+    }
 
-    // start(): Promise<void> {
-    //     this.options.receiver.onMessage
-    // }
+    async start(): Promise<void> {
+        return this.options.receiver.start(msg => processMessage(msg, this.options));
+    }
 
-    // stop(): Promise<void> {
+    async stop(): Promise<void> {
+        return this.options.receiver.stop();
+    }
+}
 
-    // }
+
+
+
+
+async function processMessage(msg: Message, options: ServerOptions) {
+    console.log(`Incoming message: ${msg.protocol} ${msg.headline}`);
+    let user = await options.authenticator(msg);
+    console.log(`    user is ${user}`);
+
+    await options.dispatcher(msg);
 }

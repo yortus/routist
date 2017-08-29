@@ -15,19 +15,12 @@ import HttpOptions from './http-options';
 
 
 
-// TODO: add more middleware:
-// - helmet (CSP etc)
-// - CORS
-// - better code for app.enable('trust proxy'); (see express docs)
-
-
-
-
-
 // TODO:
+// - [ ] add more middleware:
+//   - [ ] helmet (CSP etc)
+//   - [ ] CORS
+// - [ ] better code for app.enable('trust proxy'); (see express docs)
 // - [ ] better Session typing / public interface
-// - [ ] Clearance type (branded string?)
-// - [ ] move allow/deny(iff) decorators in here; use the Clearance type
 
 
 
@@ -78,7 +71,7 @@ export default class HttpReceiver implements Receiver {
     }
 
     /** Stop the HTTP server */
-    stop(force = false) {
+    stop() {
 
         // Fail if not started
         if (this.expressApp === null) {
@@ -99,9 +92,11 @@ export default class HttpReceiver implements Receiver {
             this.expressApp = null;
             this.exitApp();
 
+            // If there are still open connections, give them a second to close, otherwise destroy them.
             // If `force` was passed, destroy any connections that are still open.
-            if (force) {
-                this.openSockets.forEach(socket => socket.destroy());
+            if (this.openSockets.size > 0) {
+                let destroyOpenSockets = () => this.openSockets.forEach(socket => socket.destroy());
+                setTimeout(destroyOpenSockets, 1000);
             }
         });
     }
