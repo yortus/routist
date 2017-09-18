@@ -1,9 +1,9 @@
 import Message from './message';
-import Role from './role';
+import User from './user';
 
 
 
 
 
-type Authoriser = (msg: Message, roles: Role[]) => boolean | Promise<boolean>;
+type Authoriser = (msg: Message, user: User) => boolean | Promise<boolean>;
 export default Authoriser;

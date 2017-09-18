@@ -1,3 +1,53 @@
+## Routist MVP - minimal demo
+- [x] basic HTTP receiver
+- [ ] basic authenticator
+- [ ] basic authoriser
+  - [ ] change typedef to `type Authoriser = (msg: Message, user: User) => boolean | Promise<boolean>;`
+  - [ ] load object literal (JSON) config - users, roles, policies
+    - [ ] minimal validation
+  - [ ] helper fn: given a user, get transitive closure of roles
+  - [ ] helper fn: make predicate for role list and headline
+  - [ ] helper fn: make discriminant for role list and headline
+  - [ ] generate multimethod
+  - [ ] add some unit tests 
+- [ ] basic dispatcher
+
+
+
+
+
+## Maintaining an up-to-date Roles Hierarchy
+- [ ] Information consisting of:
+  - [ ] list of 'relation' tuple mappings, each being [user|role, role] => 'in'|undefined
+  - [ ] list of 'policy' tuple mappings, each being [Array<user|role>, headline] => 'allow'|'deny'|...|undefined
+  - [ ] `undefined` above is like a tombstone; it indicates the relation or rule has been deleted/removed
+- [ ] roles may added or removed
+- [ ] relations may be added or removed
+- [ ] policies may be added or removed
+- [ ] changes will not be frequent (assumption; may not be true for some clients)
+- [ ] authoriser may not want to keep entire hierarchy state on hand
+  - [ ] need to know when cached state is invalidated
+  - [ ] need to know facts about a specific user or role on demand
+
+- [ ] SOLN1: use append-only log / log-structured storage abstraction, plus sequence numbers
+  - [ ] how it works?
+  - [ ] client generates (batches of) log entries:
+    - [ ] of entire current state (may contain redundant entries if not compacted)
+    - [ ] whenever any relation or policy changes
+  - [ ] routist can access this log:
+    - [ ] ???... asks client for all log entries from `seqno` onward
+  - [ ] compaction is possible...
+  - [ ] client supplies `seed` data object, and `feed` EventEmitter
+
+- [ ] SOLN2: use an etag-like mechanism, but with client and server reversed
+  - [ ] etags are opaque to the server. They may be a timestamp, content hash, revision number, etc.
+  - [ ] server requests info about a role
+  - [ ] client responds with info and an etag
+  - [ ] server caches info against the etag
+  - [ ] later, server requests info about a role again, sending its etag
+  - [ ] if client finds etag hasn't changed, it sends an UNCHANGED reply, otherwise it sends the requested info
+
+
 ## Decisions
 - [ ] Architecture: Server/Receiver/Authenticator/Authoriser/Dispatcher
 

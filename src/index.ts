@@ -1,5 +1,5 @@
 import {GUEST, Server, User} from './core';
-import {HttpReceiver, isHttpMessage} from './extensions';
+import {HttpReceiver, isHttpMessage, makeRoleAuthoriser} from './extensions';
 
 
 
@@ -29,15 +29,23 @@ let server = new Server({
     authenticator: msg => {
         if (!isHttpMessage(msg)) return GUEST;
 
-        //TODO: temp testing...
+        // TODO: temp testing...
         let user = msg.request.query.u as User;
         return user || GUEST;
     },
 
-//     authoriser: new RoleBasedAuthenticator({
-//         getImpliedRoles: (role: Role) => Role[] | Promise<Role[]>,
-//         table: Array<{roles: Rle[], headline: string, policy: ???}>,
-//     }),
+    authoriser: makeRoleAuthoriser({
+        users: {
+            '*': 'guest',
+        },
+        roles: {
+            guest: {},
+        },
+        policies: [
+            ['*', '**', 'deny'],
+            ['*', 'GET /public/**', 'allow'],
+        ],
+    }),
 
     dispatcher: msg => {
         if (!isHttpMessage(msg)) return;
@@ -45,7 +53,7 @@ let server = new Server({
     },
 });
 server.start().catch(console.log);
-//setTimeout(() => server.stop().catch(console.log), 5000);
+// setTimeout(() => server.stop().catch(console.log), 5000);
 
 
 

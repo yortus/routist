@@ -1,3 +1,4 @@
+import GUEST from './guest';
 import Message from './message';
 import ServerOptions from './server-options';
 
@@ -29,6 +30,8 @@ async function processMessage(msg: Message, options: ServerOptions) {
     console.log(`Incoming message: ${msg.protocol} ${msg.headline}`);
     let user = await options.authenticator(msg);
     console.log(`    user is ${user}`);
+    let isAuthorised = await options.authoriser(msg, user);
+    console.log(`    ${isAuthorised ? '' : 'un'}authorised`);
 
-    await options.dispatcher(msg);
+    await options.dispatcher(msg, GUEST); // TODO: fix user
 }
