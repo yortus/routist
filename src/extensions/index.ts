@@ -5,77 +5,6 @@ export {makeRoleAuthoriser, RoleAuthoriserOptions} from './rbac';
 
 
 
-// TODO: temp testing...
-// import {makeRoleAuthoriser} from './rbac';
-
-// enum Role {
-//     ANY = '*',
-//     guest = 'guest',
-//     staff = 'staff',
-//     admin = 'admin',
-//     it = 'it',
-//     hr = 'hr',
-//     manager = 'manager',
-//     itManager = 'it-manager',
-//     workshop = 'workshop',
-//     kwi = 'kwi',
-// }
-
-// enum Policy {
-//     allow = 'allow',
-//     deny = 'deny',
-// }
-
-// tslint:disable:object-literal-key-quotes
-// let auth = makeRoleAuthoriser({
-//     users: {
-//         '*': Role.guest,
-//         bob: Role.itManager,
-//         joe: Role.it,
-//         mary: Role.hr,
-//     },
-//     roles: {
-//         [Role.guest]: {},
-//         [Role.staff]: {
-//             [Role.admin]: {
-//                 [Role.it]: {
-//                     [Role.itManager]: {},
-//                 },
-//                 [Role.hr]: {},
-//                 [Role.manager]: {
-//                     [Role.itManager]: {
-//                         // TODO: add support for JSON refs/pointers... disabled for now...
-//                         // $ref: '#/roles/staff/admin/it/it-manager',
-//                     },
-//                 },
-//             },
-//             [Role.workshop]: {
-//                 [Role.kwi]: {},
-//             },
-//         },
-//     },
-//     policies: [
-//         [Role.ANY,          '**',               Policy.deny],
-//         [Role.it,           '/employees/**',    Policy.allow],
-//         [Role.itManager,    '/**',              Policy.allow],
-//     ],
-// });
-
-// auth = auth;
-
-
-
-
-
-// Message producers
-// export interface CompositeReceiver extends Receiver {
-//     cr: CompositeReceiver;
-// }
-
-
-
-
-
 // TODO:
 // HttpReceiver extends Receiver
 // - accepts options: port, session {dir, timeout}
@@ -98,6 +27,3 @@ export {makeRoleAuthoriser, RoleAuthoriserOptions} from './rbac';
 // - uses multimethods
 // - supports decorators: ...
 // - supports handler-builders: ...
-
-
-

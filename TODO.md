@@ -2,13 +2,14 @@
 - [x] basic HTTP receiver
 - [ ] basic authenticator
 - [ ] basic authoriser
-  - [ ] change typedef to `type Authoriser = (msg: Message, user: User) => boolean | Promise<boolean>;`
+  - [x] change typedef to `type Authoriser = (msg: Message, user: User) => boolean | Promise<boolean>;`
   - [ ] load object literal (JSON) config - users, roles, policies
+    - [x] load it
     - [ ] minimal validation
-  - [ ] helper fn: given a user, get transitive closure of roles
-  - [ ] helper fn: make predicate for role list and headline
-  - [ ] helper fn: make discriminant for role list and headline
-  - [ ] generate multimethod
+  - [x] helper fn: given a user, get transitive closure of roles
+  - [x] helper fn: make predicate for role list and headline
+  - [x] helper fn: make discriminant for role list and headline
+  - [x] generate multimethod
   - [ ] add some unit tests 
 - [ ] basic dispatcher
 
