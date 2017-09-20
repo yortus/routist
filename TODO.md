@@ -1,3 +1,24 @@
+## Routist BA decisions 20/9/17
+- [ ] Public API
+  - [ ] factory function to create an HTTP Server
+  - [ ] HttpServer options
+    - [ ] callback to create response for request (encapsulates authentication + authorisation + evaluation)
+    - [ ] HTTP specific stuff: `port`
+    - [ ] all with defaults
+  - [ ] handler helpers
+  - [ ] decorators
+- [ ] Message type
+  - [ ] encoding + decoding messages from/to express req/res
+- [ ] creating the req->res callback
+  - [ ] decorated class
+  - [ ] prop decorators for authorisation (allow, deny, roles)
+  - [ ] need to pass in user/role info somewhere
+  - [ ] handler helpers for authentication (login/logout)
+
+
+
+
+
 ## Routist MVP - minimal demo
 - [ ] basic HTTP receiver
   - [x] basic HTTP receiver
