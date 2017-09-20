@@ -1,5 +1,7 @@
 ## Routist MVP - minimal demo
-- [x] basic HTTP receiver
+- [ ] basic HTTP receiver
+  - [x] basic HTTP receiver
+  - [ ] change API from class to factory function ie `makeHTTPReceiver`
 - [ ] basic authenticator
 - [ ] basic authoriser
   - [x] change typedef to `type Authoriser = (msg: Message, user: User) => boolean | Promise<boolean>;`
@@ -12,6 +14,9 @@
   - [x] generate multimethod
   - [ ] add some unit tests 
 - [ ] basic dispatcher
+  - [ ] way to pass/throw an error into the dispatcher
+    - [ ] option 1: modify the Dispatcher signature to accept some Error type
+    - [ ] option 2: add a new kind of Message, eg ErrorMessage, with some well-known codes eg unauthorised
 
 
 
