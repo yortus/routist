@@ -13,7 +13,11 @@
   - [ ] decorated class
   - [ ] prop decorators for authorisation (allow, deny, roles)
   - [ ] need to pass in user/role info somewhere
+    - [ ] eg provide `getAllRolesFor(userOrRole)` callback in HttpServer options
+      - [ ] helper function to make this func from a user/role hash
   - [ ] handler helpers for authentication (login/logout)
+- [ ] DEMO
+  - [ ] should be mostly decorated class plus user/role mappings
 
 
 
