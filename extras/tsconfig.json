@@ -4,7 +4,7 @@
         "module": "commonjs",
         "lib": ["es2016"],
         "types": ["node"],
-        "outDir": "../dist/extras/",
+        "outDir": "../dist/",
         "rootDir": ".",
         "sourceMap": true,
         "experimentalDecorators": true,

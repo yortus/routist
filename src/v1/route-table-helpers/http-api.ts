@@ -27,7 +27,8 @@ export default function httpApi<S extends ApiFactory<I>, I extends {[K in keyof 
         }
 
         let args = msg.request.body as any[];
-        let result = await func.apply(api, args); // NB: handles both sync and async functions
+// TODO: fix type regression ('as any' below)
+        let result = await (func as any).apply(api, args); // NB: handles both sync and async functions
         msg.response.send(result);
     };
 }

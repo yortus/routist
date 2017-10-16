@@ -2,57 +2,66 @@ import * as bodyParser from 'body-parser';
 import * as compression from 'compression';
 import * as express from 'express';
 import * as session from 'express-session';
+import * as multimethods from 'multimethods';
 import * as net from 'net';
+import {machineIdSync} from 'node-machine-id';
+import * as path from 'path';
 import * as sessionFileStore from 'session-file-store';
 import * as url from 'url';
-import {Message, Receiver} from '../../core';
-import debug from '../../util/debug';
-import HttpConfiguration from './http-configuration';
-import HttpMessage from './http-message';
-import HttpOptions from './http-options';
+import debug from '../../../src/util/debug';
+import {Constructor, Message} from './core-types';
+import {DispatchTable, MessageHandler, Reply} from './dispatch';
 
 
 
 
 
-// TODO:
-// - [ ] add more middleware:
-//   - [ ] helmet (CSP etc)
-//   - [ ] CORS
-// - [ ] better code for app.enable('trust proxy'); (see express docs)
-// - [ ] better Session typing / public interface
+export interface HttpServerOptions {
+    dispatchTable: Constructor<DispatchTable>;
+}
 
 
 
 
 
-export default class HttpReceiver implements Receiver {
+export class HttpServer {
+    constructor(options: HttpServerOptions) {
 
-    constructor(options?: HttpOptions) {
+        // TODO: temp testing create message server
+        this.messageServer = multimethods.create<Message, Reply>({
+            arity: 1,
+            async: undefined,
+            toDiscriminant: msg => `${msg.receiver}${msg.selector === 'GET' ? '' : `:${msg.selector}`}`,
+            methods: new options.dispatchTable(), // TODO: any checking needed?
+        });
 
-        // Create configuration based on provided options.
-        this.config = new HttpConfiguration(options); // NB: may throw if options are invalid
+        // TODO: temp testing create config
+        this.config = {
+            secret: machineIdSync(),
+            port: 8080,
+            sessionDir: path.resolve(process.cwd(), 'sessions'),
+            sessionTimeout: 600,
+        };
     }
 
     /** Start the HTTP server */
-    start(cb: (msg: Message) => (void|Promise<void>)) {
-
+    start() {
         // Fail if already started
         if (this.expressApp !== null) {
-            throw new Error(`HttpReceiver already started.`);
+            throw new Error(`HttpServer already started.`);
         }
 
         // Prepare the underlying express app.
         let app = this.expressApp = express();
         this.exitApp = initApp(this.expressApp, this.config);
-        this.expressApp.use(makeForwarder(cb));
+        this.expressApp.use(makeMessageForwardingMiddleware(this.messageServer));
 
         // Start the HTTP server asynchronously.
         return new Promise<void>((resolve, reject) => {
 
             // Begin listening for incoming HTTP requests.
             this.httpServer = app.listen(this.config.port, () => {
-                debug(`HTTP server listening on port ${this.config.port}`);
+                debug(`HttpServer listening on port ${this.config.port}`);
                 resolve();
             })
 
@@ -75,7 +84,7 @@ export default class HttpReceiver implements Receiver {
 
         // Fail if not started
         if (this.expressApp === null) {
-            throw new Error(`HttpReceiver not started.`);
+            throw new Error(`HttpServer not started.`);
         }
 
         // Stop the HTTP server asynchronously.
@@ -84,7 +93,7 @@ export default class HttpReceiver implements Receiver {
             // Ask the HTTP server to stop accepting new connections.
             this.httpServer.close((err: any) => {
                 if (err) return reject(err);
-                debug(`HTTP server closed`);
+                debug(`HttpServer closed`);
                 resolve();
             });
 
@@ -102,6 +111,8 @@ export default class HttpReceiver implements Receiver {
 
     private config: HttpConfiguration;
 
+    private messageServer: MessageHandler;
+
     private expressApp: express.Application | null = null;
 
     // TODO: this is a messy bit... better way to track?
@@ -111,13 +122,6 @@ export default class HttpReceiver implements Receiver {
 
     private openSockets = new Set<net.Socket>();
 }
-
-
-
-
-
-// TODO: messy way...
-type ExitApp = () => void;
 
 
 
@@ -165,18 +169,54 @@ function initApp(app: express.Application, config: HttpConfiguration): ExitApp {
 
 
 
-function makeForwarder(cb: (msg: Message) => (void|Promise<void>)) {
+function makeMessageForwardingMiddleware(handler: MessageHandler) {
     let result: express.RequestHandler;
     result = async (request, response, next) => {
-        let protocol = 'http';
-        let headline = `${request.method} ${url.parse(request.url).pathname || ''}`;
-        let message = {protocol, headline, request, response} as HttpMessage;
+
+        // TODO: log request...
+        debug(`HTTP Request: ${request.method} ${request.url}`);
+
+        // TODO: create Message instance
+        let executor = ''; // TODO: ...
+        let receiver = `${url.parse(request.url).pathname || ''}`;
+        let selector = `${request.method}`; // TODO: ...
+        let args = {}; // TODO: ...
+        let message = {executor, receiver, selector, arguments: args};
+        // TODO: payload if...
+
         try {
-            await cb(message);
+            let reply = await handler(message, {});
+            if (reply) {
+                switch (reply.type) {
+                    case 'json': return response.json(reply.value);
+                    default: throw new Error(`Unknown payload type '${reply.type}'`);
+                }
+            }
+            else {
+                return response.sendStatus(200); // TODO: ...
+            }
         }
         catch (err) {
-            next(err);
+            return next(err);
         }
     };
     return result;
 }
+
+
+
+
+
+interface HttpConfiguration {
+    secret: string;
+    port: number;
+    sessionDir: string;
+    sessionTimeout: number;
+}
+
+
+
+
+
+// TODO: doc...
+type ExitApp = () => void;

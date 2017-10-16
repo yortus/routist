@@ -1,3 +1,40 @@
+## Routist BA decisions 14/10/17
+- [ ] Multi-phase development of functionality:
+  - phase I:
+    - export only express middleware and helpers
+  - phase II:
+    - reuse phase I functionality
+    - support transport-independent message-passing
+    - add more transports eg sockets
+- [ ] PHASE I:
+  - [ ] export `Router` express middleware factory
+    - what it does...
+    - example...
+      ```ts
+      let router = routist.expressMiddleware.createRouter();
+      app.use(router);
+      router['GET /users/**'] = async (req, res) => {...}
+      ```
+
+
+
+
+
+
+## Routist BA decisions 5/10/17
+- [ ] lib exports several typed classlike objects which provide factory functions
+  - [ ] `HttpServer.create` returns an HTTP server instance
+    - [ ] listens on a port and responds to HTTP requests
+  - [ ] `MessageServer.fromRouteTable` returns message handler/responder/processor/switchboard/exchange/match/message server/coordinator
+    - [ ] authentication is indirectly supported (client must provide logic)
+    - [ ] authorisation is supported
+    - [ ] dispatch/evaluation is supported
+  - [ ] `OrgChart.fromGraph` returns ACL/user classifier/anonymiser
+    - [ ] supports getting all roles for a given user
+    - [ ] supports getting all implied roles for a given role
+- [ ] An HTTP Server wraps a generic Message Server
+
+
 ## Routist BA decisions 20/9/17
 - [ ] Public API
   - [ ] factory function to create an HTTP Server
@@ -18,6 +55,49 @@
   - [ ] handler helpers for authentication (login/logout)
 - [ ] DEMO
   - [ ] should be mostly decorated class plus user/role mappings
+
+
+```typescript
+export interface OrgChart {
+  getUserRoles(user: string): string[] | Promise<string[]>;
+  getImpliedRoles?(role: string): string[] | Promise<string[]>;
+}
+export var OrgChart: {
+  fromGraph(graph: ???): OrgChart;
+};
+
+export interface MessageServer {
+  authorise(msg: Message, orgchart: OrgChart): boolean | Promise<boolean>;
+  dispatch(msg: Message): Reply | Promise<Reply>;
+}
+export var MessageServer: {
+  create(): MessageServer;
+};
+
+export interface HttpServer {
+  start(): Promise<void>;
+  stop(): Promise<void>;
+  // TODO: ability to update message server and/or orgchart
+  // TODO: ability to inspect message server and/or orgchart
+}
+export var HttpServer: {
+  create(options?: HttpServerOptions): HttpServer;
+};
+
+export interface HttpServerOptions {
+  port?: number;
+  messageServer?: MessageServer;
+  orgchart?: OrgChart;
+}
+
+export interface Message {
+  // TODO: ...
+}
+
+export interface Reply ??extends Message?? {
+  // TODO: ...
+}
+```
 
 
 

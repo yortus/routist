@@ -54,6 +54,7 @@ export default class AccessControlList {
 
     private constructor(associatedPrototype: object) {
         this.associatedPrototype = associatedPrototype;
+        this.associatedPrototype = this.associatedPrototype; // TODO: temp testing... remove...
         this.entries = [];
     }
 
