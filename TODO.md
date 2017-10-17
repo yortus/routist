@@ -7,18 +7,20 @@
     - support transport-independent message-passing
     - add more transports eg sockets
 - [ ] PHASE I:
+  - [ ] discriminant uses EXPR/STMT 'dichotomy' for HTTP methods (GET = EXPR, other = STMT)
   - [ ] export `Router` express middleware factory
     - what it does...
     - example...
       ```ts
       let router = routist.expressMiddleware.createRouter();
       app.use(router);
-      router['GET /users/**'] = async (req, res) => {...}
+      router['EXPR /users/**'] = async (req, res) => {...}
+      routes['STMT /users/**'];
+
+      routes['/users/{usn}'];
+      routes['/users!'];
+      routes['/users/{usn}/delete!'];
       ```
-
-
-
-
 
 
 ## Routist BA decisions 5/10/17

@@ -102,7 +102,7 @@ app.start();
 
 
 // Get users
-routes['EXPR /users/**'] = async (_, res) => res.send({users: ['bob', 'joe']});
+routes['/users/**'] = async (_, res) => res.send({users: ['bob', 'joe']});
 
 // Update users
-routes['STMT /users/**'] = async (_, res) => res.sendStatus(500);
+routes['/users/**!'] = async (_, res) => res.sendStatus(500);

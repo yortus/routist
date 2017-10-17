@@ -57,7 +57,15 @@ function createMiddlewareFunction(): Middleware {
         return multimethods.create<Request, Response, void>({
             arity: 2,
             async: true,
-            toDiscriminant: req => `${req.method === 'GET' ? 'EXPR' : `STMT`} ${url.parse(req.url).pathname || ''}`,
+            toDiscriminant: req => {
+                let resource = url.parse(req.url).pathname || '';
+                switch (req.method) {
+                    case 'GET': return `${resource}`;
+                    case 'POST': return `${resource}!`;
+                    default: throw new Error(`Method '${req.method}' not supported`);
+                    // TODO: support other methods by allowing client code to provide a map: allowed method -> suffix
+                }
+            },
             methods: routes,
         });
     }
