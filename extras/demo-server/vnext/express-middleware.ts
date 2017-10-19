@@ -7,6 +7,23 @@ import debug from '../../../src/util/debug';
 
 
 
+// tslint:disable-next-line:no-namespace
+declare global {
+    export namespace Express {
+        // tslint:disable-next-line:no-shadowed-variable
+        export interface Request {
+            accessControlPolicy: boolean;
+            arguments: {[name: string]: {}};
+        }
+        export interface Session {
+            user: string|undefined;
+        }
+    }
+}
+
+
+
+
 export function createRouteTable() {
 
     let queries = {} as RouteTable;
@@ -39,20 +56,31 @@ export function createRouteTable() {
         handlers = handlers.map(handler => {
             let result: Handler;
             if (ACCESS_CONTROL_FUNCTIONS.has(handler)) {
-                result = multimethods.meta(async (req: Request, res: Response, _: {}, next: Function) => {
+                result = multimethods.meta(async (req: Request, res: Response, captures: {}, next: Function) => {
+
+                    // Add captures to req.arguments
+                    Object.assign(req.arguments, captures);
+
+                    // Compute new access control policy
                     await handler(req, res);
-                    let policy = (req as any)[ACCESS_CONTROL_POLICY_KEY]; // TODO: fix cast...
-                    debug(`SET POLICY TO ${policy ? 'ALLOW' : 'DENY'} for ${predicate}`);
+                    debug(`SET POLICY TO ${req.accessControlPolicy ? 'ALLOW' : 'DENY'} for ${predicate}`);
+
+                    // Continue with downstream routes
                     return next(req, res);
                 }) as Handler;
             }
             else {
-                result = async (req, res) => {
+                result = (async (req: Request, res: Response, captures: {}) => {
                     // check access first
-                    let policy = (req as any)[ACCESS_CONTROL_POLICY_KEY]; // TODO: fix cast...
+                    let policy = req.accessControlPolicy;
                     if (!policy) throw new Error(`Not permitted`); // TODO: use proper 401/403 error signalling
+
+                    // Add captures to req.arguments
+                    Object.assign(req.arguments, captures);
+
+                    // Delegate to client-provided handler
                     return handler(req, res);
-                };
+                }) as Handler;
             }
             return result;
         });
@@ -120,6 +148,10 @@ function createMiddlewareFunction(): Middleware {
         // TODO: log request...
         debug(`HTTP Request: ${req.method} ${req.url}`);
 
+        // TODO: initialise `req.arguments`
+        // TODO: safe to use req.body as an object here?
+        req.arguments = Object.assign({body: req.body}, req.query);
+
         // TODO: dispatch through multimethod...
         try {
             await mm(req, res);
@@ -143,9 +175,9 @@ function createMiddlewareFunction(): Middleware {
 export function allow(policy: (user: string|undefined, currentPolicy: boolean) => boolean | Promise<boolean>): Handler {
     let result: Handler = async req => {
         let user = req.session!.user || undefined;
-        let currentPolicy = (req as any)[ACCESS_CONTROL_POLICY_KEY] || false; // TODO: fix cast...
+        let currentPolicy = req.accessControlPolicy || false;
         let newPolicy = await(policy(user, currentPolicy));
-        (req as any)[ACCESS_CONTROL_POLICY_KEY] = newPolicy; // TODO: fix cast...
+        req.accessControlPolicy = newPolicy;
     };
     ACCESS_CONTROL_FUNCTIONS.add(result);
     return result;
@@ -158,19 +190,19 @@ export function allow(policy: (user: string|undefined, currentPolicy: boolean) =
 export const ALWAYS = () => true;
 export const NEVER = () => false;
 export const ACCESS_CONTROL_FUNCTIONS = new WeakSet<Function>();
-const ACCESS_CONTROL_POLICY_KEY = Symbol('accessControlPolicy');
 
 
 
 
 
-export function updateSession(paramNames: {username: string; password: string}): Handler {
+export function updateSession(fields: {username: string; password: string}): Handler {
     return async req => {
-        let username = (req.body || {})[paramNames.username] || req.query[paramNames.username];
-        // let password = (req.body || {})[paramNames.password] || req.query[paramNames.password];
+        let username = req.arguments[fields.username];
+        // let password = req.arguments[params.password];
 
         // TODO: verify usn/pwd combo... For testing purposes, just set the user without checking the password...
         if (typeof username === 'string') {
+            // NB blank string will clear the session-user binding (ie log out)
             req.session!.user = username || undefined;
         }
         return multimethods.CONTINUE;

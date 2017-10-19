@@ -36,19 +36,6 @@ let {queries, actions} = routes;
 app.use(routes);
 app.start();
 
-
-// // Get users
-// queries['/users/**'] = async (_, res) => res.send({users: ['bob', 'joe']});
-
-// // Update users
-// actions['new: /users'] = async (_, res) => res.sendStatus(500);
-// actions['delete: /users/{userId}'] = async (_, res) => res.sendStatus(501);
-// actions['*: /users/**'] = async (_, res) => res.sendStatus(502);
-
-
-
-
-
 // Lock down all routes by default. These are redundant since this is the default behaviour anyway.
 queries['**'] = allow(NEVER);
 actions['**'] = allow(NEVER);
@@ -72,9 +59,14 @@ queries['/users'] = [
     async (_, res) => res.send({users}),
 ];
 
-// // Show details of given user (only if self or subordinate to logged in user)
+// Show details of given user (only if self or subordinate to logged in user)
 // queries['/users/{name}'] = [
 //     //allow.ifAny(isSelf({username: 'name'}), isSubordinate({username: 'name'})),
+//     allow(user => {
+
+//     }),
+
+
 //     json(msg => ({user: msg.arguments.name || 'GUEST', boss: managers[msg.arguments.name as string]})),
 // ];
 
