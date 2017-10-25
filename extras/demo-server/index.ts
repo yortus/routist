@@ -3,7 +3,13 @@
 // import {User} from './vnext/core-types';
 // import {error, json, makeMessageServer, MessageHandler} from './vnext/dispatch';
 import * as app from './vnext/express-application';
-import {allow, ALWAYS, createRouteTable, NEVER, updateSession} from './vnext/express-middleware';
+// import {allow, ALWAYS, createRouteTable, NEVER, updateSession} from './vnext/express-middleware';
+
+import {Routist} from './vnext/api';
+import createDispatchTable = Routist.createDispatchTable;
+import Handler = Routist.Handler;
+import allow = Routist.AccessControlAPI.allow;
+import AccessPredicate = Routist.AccessControlAPI.AccessPredicate;
 
 
 
@@ -31,50 +37,45 @@ let users = ['amy', 'bob', 'cal', 'dan'];
 // ================================================================================
 // Demo Code
 // ================================================================================
-let routes = createRouteTable();
-let {queries, actions} = routes;
-app.use(routes);
+let dispatchTable = createDispatchTable();
+let {queries, actions} = dispatchTable;
+app.use(dispatchTable);
 app.start();
 
 // Lock down all routes by default. These are redundant since this is the default behaviour anyway.
-queries['**'] = allow(NEVER);
-actions['**'] = allow(NEVER);
+queries['**'] = allow.never;
+actions['**'] = allow.never;
 
 // Session maintenance (login/logout)
 actions['/session'] = [
-    allow(ALWAYS),
-    updateSession({username: 'usn', password: 'pwd'}),
+    allow.always,
+    authenticate('usn', 'pwd'),
 ];
 queries['/session'] = [
-    allow(ALWAYS),
-    updateSession({username: 'usn', password: 'pwd'}),
+    allow.always,
+    authenticate('usn', 'pwd'), // TODO: temp testing only - should not be on GET, only POST...
     async (req, res) => {
-        res.send({username: req.session!.user});
+        res.send({username: req.user});
     },
 ];
 
 // List all users (only for ceo)
 queries['/users'] = [
-    allow(user => user === CEO),
-    async (_, res) => res.send({users}),
+    allow.when(req => req.user === CEO),
+    async (_, res) => { res.send({users}); },
 ];
 
 // Show details of given user (only if self or subordinate to logged in user)
-// queries['/users/{name}'] = [
-//     //allow.ifAny(isSelf({username: 'name'}), isSubordinate({username: 'name'})),
-//     allow(user => {
-
-//     }),
-
-
+queries['/users/{name}'] = [
+    allow.when(userEqualsUserInField('name')).or(userIsSuperiorToUserInField('name')),
 //     json(msg => ({user: msg.arguments.name || 'GUEST', boss: managers[msg.arguments.name as string]})),
-// ];
+];
 
 // // List users assigned to given boss (only for managers; boss must be subordinate to logged in user)
-// queries['/teams/{boss}'] = [
-//     //allow.ifAll(userIsInRole('managers'), isSubordinate({username: 'boss'})),
+queries['/teams/{teamlead}'] = [
+    allow.when(userIsInRole('managers')).and(userIsSuperiorToUserInField('teamlead')),
 //     json((_, {boss}) => Object.keys(managers).filter(u => managers[u] === boss)),
-// ];
+];
 
 // // Show details of logged in user (not allowed for GUEST)
 // queries['/my/self'] = error('Not Implemented');
@@ -93,14 +94,25 @@ queries['/users'] = [
 
 // TODO: temp testing...
 queries['/favicon.ico'] = [
-    allow(ALWAYS),
-    async _ => 0,
+    allow.always,
+    async () => { return; },
 ];
 
 
 
 
 
-// declare function userIsInRole(roleName: string): MessagePredicate;
-// declare function isSelf(paramsNames: {username: string}): MessagePredicate;
-// declare function isSubordinate(paramsNames: {username: string}): MessagePredicate;
+declare function userIsInRole(roleName: string): AccessPredicate;
+declare function userEqualsUserInField(fieldName: string): AccessPredicate;
+declare function userIsSuperiorToUserInField(fieldName: string): AccessPredicate;
+
+
+
+
+
+// TODO: ...
+function authenticate(usernameField = 'username', passwordField = 'password'): Handler {
+    usernameField = usernameField;
+    passwordField = passwordField;
+    throw new Error(`Not implemented`);
+}

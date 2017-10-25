@@ -12,14 +12,22 @@ declare global {
     export namespace Express {
         // tslint:disable-next-line:no-shadowed-variable
         export interface Request {
-            accessControlPolicy: boolean;
-            arguments: {[name: string]: {}};
+            //user: string|undefined;
+            fields: {[name: string]: {}};
+            intent: string;
+
+
+
+// TODO: was...
+            // accessControlPolicy: boolean;
+            // arguments: {[name: string]: {}};
         }
-        export interface Session {
-            user: string|undefined;
-        }
+        // export interface Session {
+        //     user: string|undefined;
+        // }
     }
 }
+
 
 
 
@@ -147,6 +155,35 @@ function createMiddlewareFunction(): Middleware {
 
         // TODO: log request...
         debug(`HTTP Request: ${req.method} ${req.url}`);
+
+        // TODO: add req properties: user, fields, intent, authorised
+        Object.defineProperties(req, {
+            user: {
+                get: () => {
+                    // TODO: ensure session exists...
+                    return req.session!.user || undefined;
+                },
+                set: (value: string|undefined) => {
+                    // TODO: ensure user is a string...
+                    // TODO: ensure session exists...
+                    req.session!.user = value;
+                },
+                enumerable: true,
+            },
+            fields: {
+                // TODO: ...
+            },
+            intent: {
+                get: () => {
+                    // TODO: ...
+                    let resource = url.parse(req.url).pathname || '';
+                    let method = req.method.toLowerCase(); // TODO: allow overriding via querystring/body/capture
+
+                    
+                },
+                enumerable: true,
+            },
+        });
 
         // TODO: initialise `req.arguments`
         // TODO: safe to use req.body as an object here?
