@@ -57,7 +57,7 @@ export namespace Routist {
 
         interface Condition {
             (accessPredicate: AccessPredicate): Conjunction & ChainEnd;
-            previouslyAllowed: Conjunction & ChainEnd;
+            generallyAllowed: Conjunction & ChainEnd;
         }
 
         interface Conjunction {

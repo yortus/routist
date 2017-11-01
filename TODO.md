@@ -1,3 +1,24 @@
+## TODO List 01/11/17
+- [ ] `export function createExpressApplication(): express.Application;`
+  - [ ] add third party middleware
+  - [ ] add middleware for enforcing access controls
+  - [ ] add middleware for dispatching to route handlers
+- [ ] `app.routes`
+  - [ ] type is `{ [filter: string]: (req: express.Request, res: express.Response) => undefined | Promise<undefined> }`
+  - [ ] is a proxy over a plain old object
+  - [ ] setters convert to call to `app.refine.routes`
+- [ ] `app.access`
+  - [ ] type is `{ [filter: string]: (req: express.Request) => ALLOW | DENY | Promise<ALLOW | DENY> }`
+  - [ ] is a proxy over a plain old object
+  - [ ] setters convert to call to `app.refine.access`
+- [ ] `app.refine`
+  - [ ] type is `{ routes(value: typeof app.routes): void; access(value: typeof app.access): void; }`
+  - [ ] place to check/enforce all refinement rules (TODO: list the rules)
+  - [ ] 
+
+
+
+
 ## Routist BA decisions 14/10/17
 - [ ] Multi-phase development of functionality:
   - phase I:
