@@ -21,7 +21,7 @@ export default function staticFiles(rootPath: string): Handler {
     let serveStaticOptions = { index: [] }; // NB: Disable having `dirname` resolve to `dirname/index.html`
     let serveStaticHandler = promisifyExpressHandler(serveStatic(rootPath, serveStaticOptions));
 
-    return async (msg, captures: {path: string}) => {
+    return async (msg, captures: {[x: string]: string}) => {
         if (typeof captures.path !== 'string') throw new Error(`static file route expects a {**path} capture variable`);
         let oldUrl = msg.request.url;
         let {protocol, auth, host, search, hash} = url.parse(oldUrl);
