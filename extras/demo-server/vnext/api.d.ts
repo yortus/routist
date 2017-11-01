@@ -41,6 +41,17 @@ export namespace Routist {
 
     export interface Response extends express.Response { }
 
+    export namespace reply {
+
+        export function json(cb: (req: Request) => {} | Promise<{}>): Handler;
+        export function json(value: {}): Handler;
+        export function error(message: string): Handler;
+        // TODO: ...
+    }
+
+    // TODO: temp testing...
+    export function compute(cb: (req: Request) => {} | Promise<{}>): Handler;
+        
 
 
 

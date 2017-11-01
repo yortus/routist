@@ -8,6 +8,8 @@ import * as app from './vnext/express-application';
 import {Routist} from './vnext/api';
 import createDispatchTable = Routist.createDispatchTable;
 import Handler = Routist.Handler;
+import reply = Routist.reply;
+import compute = Routist.compute;
 import allow = Routist.AccessControlAPI.allow;
 import AccessPredicate = Routist.AccessControlAPI.AccessPredicate;
 
@@ -20,7 +22,7 @@ import AccessPredicate = Routist.AccessControlAPI.AccessPredicate;
 // ================================================================================
 const CEO = 'bob';
 let users = ['amy', 'bob', 'cal', 'dan'];
-// let managers = {} as {[user: string]: User};
+let managers = {} as {[user: string]: string};
 
 // ceo = 'bob';
 // managers = {
@@ -54,43 +56,42 @@ actions['/session'] = [
 queries['/session'] = [
     allow.always,
     authenticate('usn', 'pwd'), // TODO: temp testing only - should not be on GET, only POST...
-    async (req, res) => {
-        res.send({username: req.user});
-    },
+    reply.json(req => req.user),
 ];
 
 // List all users (only for ceo)
 queries['/users'] = [
     allow.when(req => req.user === CEO),
-    async (_, res) => { res.send({users}); },
+    reply.json({users}),
 ];
 
 // Show details of given user (only if self or subordinate to logged in user)
 queries['/users/{name}'] = [
     allow.when(userEqualsUserInField('name')).or(userIsSuperiorToUserInField('name')),
-//     json(msg => ({user: msg.arguments.name || 'GUEST', boss: managers[msg.arguments.name as string]})),
+    reply.json(req => ({user: req.fields.name || 'GUEST', boss: managers[req.fields.name as string]})),
 ];
 
 // // List users assigned to given boss (only for managers; boss must be subordinate to logged in user)
 queries['/teams/{teamlead}'] = [
     allow.when(userIsInRole('managers')).and(userIsSuperiorToUserInField('teamlead')),
-//     json((_, {boss}) => Object.keys(managers).filter(u => managers[u] === boss)),
+    compute(() => 'blah'),
+    reply.json(req => Object.keys(managers).filter(u => managers[u] === req.fields.boss)),
 ];
 
-// // Show details of logged in user (not allowed for GUEST)
-// queries['/my/self'] = error('Not Implemented');
+// Show details of logged in user (not allowed for GUEST)
+queries['/my/self'] = reply.error('Not Implemented');
 
-// // List users assigned to logged in user (only for managers)
-// queries['/my/team'] = error('Not Implemented');
+// List users assigned to logged in user (only for managers)
+queries['/my/team'] = reply.error('Not Implemented');
 
-// // Create a new user and assign to logged in user (only for managers; user must not already exist)
-// actions['create: /users'] = error('Not Implemented');
+// Create a new user and assign to logged in user (only for managers; user must not already exist)
+actions['create: /users'] = reply.error('Not Implemented');
 
-// // Delete the given user (only for managers; user must be subordinate to logged in user)
-// actions['delete: /users'] = error('Not Implemented');
+// Delete the given user (only for managers; user must be subordinate to logged in user)
+actions['delete: /users'] = reply.error('Not Implemented');
 
-// // Re-assign the given user to the given boss (only for managers; user must be subordinate to logged in user)
-// actions['assignto: /users/{name}'] = error('Not Implemented');
+// Re-assign the given user to the given boss (only for managers; user must be subordinate to logged in user)
+actions['assignto: /users/{name}'] = reply.error('Not Implemented');
 
 // TODO: temp testing...
 queries['/favicon.ico'] = [
