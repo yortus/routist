@@ -39,7 +39,7 @@ export default function createRequestAugmentationMiddleware(): express.RequestHa
                 enumerable: true,
             },
             fields: {
-                // TODO: ...
+                // TODO: ... use a proxy that delegates `get`s to params, query, body, captures (but which order?)
             },
             intent: {
                 get: () => {

@@ -19,6 +19,8 @@ export default function createAccessControlMiddleware(): RequestHandler & Access
     // TODO: ACL hash...
     let access = {} as { [filter: string]: AccessGuard };
 
+    let accessProxy = new Proxy(access, { set: (_, key, value) => setRoute('q', key, value) });
+    
     // TODO: MM...
     let mm = compileAccessControls(access);
 
