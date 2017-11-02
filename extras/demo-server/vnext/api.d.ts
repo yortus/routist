@@ -5,25 +5,6 @@ import * as express from 'express';
 
 
 export namespace Routist {
-
-    export interface RoutistExpressApplication extends express.Application {
-        routes: { [filter: string]: Handler };
-        access: { [filter: string]: AccessGuard };
-        refine: {
-            routes(value: RoutistExpressApplication['routes']): void;
-            access(value: RoutistExpressApplication['access']): void;
-        };
-    }
-
-    export function createExpressApplication(): RoutistExpressApplication;
-
-    export interface AccessGuard {
-        (req: Request): ALLOW | DENY | Promise<ALLOW | DENY>;
-    }
-
-    export type ALLOW = { __allowBrand: any; }
-
-    export type DENY = { __denyBrand: any; }
     
     export interface Handler {
         (req: Request, res: Response): void | Promise<void>;
@@ -45,37 +26,5 @@ export namespace Routist {
         export function json(value: {}): Handler;
         export function error(message: string): Handler;
         // TODO: ...
-    }
-
-    // TODO: temp testing...
-    export function compute(cb: (req: Request) => {} | Promise<{}>): Handler;
-        
-
-
-
-
-    export namespace AccessControlAPI {
-
-        export let allow: AllowChain;
-
-        interface AllowChain {
-            when: Condition;
-            always: ChainEnd;
-            never: ChainEnd;
-        }
-
-        interface Condition {
-            (accessPredicate: AccessPredicate): Conjunction & ChainEnd;
-            generallyAllowed: Conjunction & ChainEnd;
-        }
-
-        interface Conjunction {
-            and: Condition;
-            or: Condition;
-        }
-
-        type ChainEnd = AccessGuard;
-
-        type AccessPredicate = (req: Request) => boolean | Promise<boolean>;
     }
 }

@@ -4,13 +4,11 @@
 // import {error, json, makeMessageServer, MessageHandler} from './vnext/dispatch';
 // import {allow, ALWAYS, createRouteTable, NEVER, updateSession} from './vnext/express-middleware';
 
-import createExpressApplication from './vnext/create-express-application';
-// import {Routist} from './vnext/api';
-// import Handler = Routist.Handler;
-// import reply = Routist.reply;
-// import compute = Routist.compute;
-// import allow = Routist.AccessControlAPI.allow;
-// import AccessPredicate = Routist.AccessControlAPI.AccessPredicate;
+import {createExpressApplication, grant, deny, AccessPredicate} from './vnext';
+
+import {Routist} from './vnext/api';
+import Handler = Routist.Handler;
+import reply = Routist.reply;
 
 
 
@@ -52,29 +50,23 @@ app.refine.access({
 });
 
 // Session maintenance (login/logout)
-app.routes['POST /session'] = [
-    authenticate('usn', 'pwd'),
-];
-app.routes['GET /session'] = [
-    authenticate('usn', 'pwd'), // TODO: temp testing only - should not be on GET, only POST...
-    reply.json(req => req.user),
-];
+app.routes['POST /session'] = authenticate('usn', 'pwd').then(reply.json(42));
+
+// TODO: temp testing only - should not be on GET, only POST...
+app.routes['GET /session'] = authenticate('usn', 'pwd').then(reply.json(req => req.user));
 
 // List all users (only for ceo)
-app.routes['GET /users'] = [
-    reply.json({users}),
-];
+app.routes['GET /users'] = reply.json({users});
 
 // Show details of given user (only if self or subordinate to logged in user)
-app.routes['GET /users/{name}'] = [
-    reply.json(req => ({user: req.fields.name || 'GUEST', boss: managers[req.fields.name as string]})),
-];
+app.routes['GET /users/{name}'] = reply.json(req => ({
+    user: req.fields.name || 'GUEST',
+    boss: managers[req.fields.name as string]
+}));
 
 // // List users assigned to given boss (only for managers; boss must be subordinate to logged in user)
-app.routes['GET /teams/{teamlead}'] = [
-    compute(() => 'blah'),
-    reply.json(req => Object.keys(managers).filter(u => managers[u] === req.fields.boss)),
-];
+app.routes['GET /teams/{teamlead}'] = reply.json(req => Object.keys(managers)
+                                                              .filter(u => managers[u] === req.fields.boss));
 
 // Show details of logged in user (not allowed for GUEST)
 app.routes['GET /my/self'] = reply.error('Not Implemented');
@@ -107,8 +99,11 @@ declare function userIsSuperiorToUserInField(fieldName: string): AccessPredicate
 
 
 // TODO: ...
-function authenticate(usernameField = 'username', passwordField = 'password'): Handler {
+function authenticate(usernameField = 'username', passwordField = 'password'): Authenticate {
     usernameField = usernameField;
     passwordField = passwordField;
     throw new Error(`Not implemented`);
+}
+interface Authenticate {
+    then(h: Handler): Handler;
 }

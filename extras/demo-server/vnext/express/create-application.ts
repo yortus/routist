@@ -7,7 +7,25 @@ import {machineIdSync} from 'node-machine-id';
 import * as path from 'path';
 import * as sessionFileStore from 'session-file-store';
 // import debug from '../../../src/util/debug';
-import * as API from './api';
+
+import {AccessGuard} from '../access-guards';
+import createRequestAugmentationMiddleware from './create-request-augmentation-middleware';
+import createAccessControlMiddleware from './create-access-control-middleware';
+import createDispatcherMiddleware, {Handler} from './create-dispatcher-middleware';
+
+
+
+
+
+export interface RoutistExpressApplication extends express.Application {
+    routes: { [filter: string]: Handler };
+    access: { [filter: string]: AccessGuard };
+    refine: {
+        routes(value: RoutistExpressApplication['routes']): void;
+        access(value: RoutistExpressApplication['access']): void;
+    };
+}
+
 
 
 
@@ -24,10 +42,10 @@ const config = {
 
 
 
-export default function createExpressApplication(): API.Routist.RoutistExpressApplication {
+export default function createApplication() {
 
     // TODO: this is internal module state...
-    const app = express();
+    const app = express() as express.Application as RoutistExpressApplication;
 
     // let started = false;
     // let stopped = false;
@@ -42,7 +60,7 @@ export default function createExpressApplication(): API.Routist.RoutistExpressAp
     // TODO: temp testing...
     initialise(app, fileStoreOptions);
 
-    return app as any;
+    return app;
 }
 
 
@@ -50,7 +68,7 @@ export default function createExpressApplication(): API.Routist.RoutistExpressAp
 
 
 // Configure the express application.
-function initialise(app: express.Application, fileStoreOptions: sessionFileStore.Options) {
+function initialise(app: RoutistExpressApplication, fileStoreOptions: sessionFileStore.Options) {
 
     // TODO: This will only suit some applications... make configurable via options... (and simplify?)
     app.set('trust proxy', '::ffff:127.0.0.1');
@@ -73,6 +91,13 @@ function initialise(app: express.Application, fileStoreOptions: sessionFileStore
     // Add middleware to automatically parse request bodies.
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: false}));
+
+    // TODO: Add our own middleware...
+    let ac = createAccessControlMiddleware();
+    let disp = createDispatcherMiddleware();
+    app.use(createRequestAugmentationMiddleware(), ac, disp);
+    app.access = ac.access;
+    app.routes = disp.routes;
 }
 
 

@@ -1,7 +1,7 @@
 import {Request, RequestHandler, Response} from 'express';
 import * as multimethods from 'multimethods';
 import * as url from 'url';
-import debug from '../../../src/util/debug';
+import debug from './debug';
 
 
 
