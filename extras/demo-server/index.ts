@@ -2,16 +2,15 @@
 // import {allow, deny, MessagePredicate} from './vnext/access-control';
 // import {User} from './vnext/core-types';
 // import {error, json, makeMessageServer, MessageHandler} from './vnext/dispatch';
-import * as app from './vnext/express-application';
 // import {allow, ALWAYS, createRouteTable, NEVER, updateSession} from './vnext/express-middleware';
 
-import {Routist} from './vnext/api';
-import createDispatchTable = Routist.createDispatchTable;
-import Handler = Routist.Handler;
-import reply = Routist.reply;
-import compute = Routist.compute;
-import allow = Routist.AccessControlAPI.allow;
-import AccessPredicate = Routist.AccessControlAPI.AccessPredicate;
+import createExpressApplication from './vnext/create-express-application';
+// import {Routist} from './vnext/api';
+// import Handler = Routist.Handler;
+// import reply = Routist.reply;
+// import compute = Routist.compute;
+// import allow = Routist.AccessControlAPI.allow;
+// import AccessPredicate = Routist.AccessControlAPI.AccessPredicate;
 
 
 
@@ -39,65 +38,61 @@ let managers = {} as {[user: string]: string};
 // ================================================================================
 // Demo Code
 // ================================================================================
-let dispatchTable = createDispatchTable();
-let {queries, actions} = dispatchTable;
-app.use(dispatchTable);
-app.start();
+let app = createExpressApplication();
+app.listen(1337);
 
-// Lock down all routes by default. These are redundant since this is the default behaviour anyway.
-queries['**'] = allow.never;
-actions['**'] = allow.never;
+
+app.refine.access({
+    '**':                       deny.access, // fallback (redundant since this is default)
+    '{ANY} /session':           grant.access,
+    'GET /users':               grant.access.when(req => req.user === CEO),
+    'GET /users/{name}':        grant.access.when(userEqualsUserInField('name')).or(userIsSuperiorToUserInField('name')),
+    'GET /teams/{teamlead}':    grant.access.when(userIsInRole('managers')).and(userIsSuperiorToUserInField('teamlead')),
+    'GET /favicon.ico':         grant.access,
+});
 
 // Session maintenance (login/logout)
-actions['/session'] = [
-    allow.always,
+app.routes['POST /session'] = [
     authenticate('usn', 'pwd'),
 ];
-queries['/session'] = [
-    allow.always,
+app.routes['GET /session'] = [
     authenticate('usn', 'pwd'), // TODO: temp testing only - should not be on GET, only POST...
     reply.json(req => req.user),
 ];
 
 // List all users (only for ceo)
-queries['/users'] = [
-    allow.when(req => req.user === CEO),
+app.routes['GET /users'] = [
     reply.json({users}),
 ];
 
 // Show details of given user (only if self or subordinate to logged in user)
-queries['/users/{name}'] = [
-    allow.when(userEqualsUserInField('name')).or(userIsSuperiorToUserInField('name')),
+app.routes['GET /users/{name}'] = [
     reply.json(req => ({user: req.fields.name || 'GUEST', boss: managers[req.fields.name as string]})),
 ];
 
 // // List users assigned to given boss (only for managers; boss must be subordinate to logged in user)
-queries['/teams/{teamlead}'] = [
-    allow.when(userIsInRole('managers')).and(userIsSuperiorToUserInField('teamlead')),
+app.routes['GET /teams/{teamlead}'] = [
     compute(() => 'blah'),
     reply.json(req => Object.keys(managers).filter(u => managers[u] === req.fields.boss)),
 ];
 
 // Show details of logged in user (not allowed for GUEST)
-queries['/my/self'] = reply.error('Not Implemented');
+app.routes['GET /my/self'] = reply.error('Not Implemented');
 
 // List users assigned to logged in user (only for managers)
-queries['/my/team'] = reply.error('Not Implemented');
+app.routes['GET /my/team'] = reply.error('Not Implemented');
 
 // Create a new user and assign to logged in user (only for managers; user must not already exist)
-actions['create: /users'] = reply.error('Not Implemented');
+app.routes['create: /users'] = reply.error('Not Implemented');
 
 // Delete the given user (only for managers; user must be subordinate to logged in user)
-actions['delete: /users'] = reply.error('Not Implemented');
+app.routes['DELETE /users'] = reply.error('Not Implemented');
 
 // Re-assign the given user to the given boss (only for managers; user must be subordinate to logged in user)
-actions['assignto: /users/{name}'] = reply.error('Not Implemented');
+app.routes['assignto: /users/{name}'] = reply.error('Not Implemented');
 
 // TODO: temp testing...
-queries['/favicon.ico'] = [
-    allow.always,
-    async () => { return; },
-];
+app.routes['GET /favicon.ico'] = async () => { return; };
 
 
 
