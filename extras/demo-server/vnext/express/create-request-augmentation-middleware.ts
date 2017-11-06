@@ -27,11 +27,11 @@ export default function createRequestAugmentationMiddleware(): express.RequestHa
         // TODO: add req properties: user, fields, intent, authorised
         Object.defineProperties(req, {
             user: {
-                get: () => {
+                get: (): string|GUEST => {
                     // TODO: ensure session exists...
                     return req.session!.user || GUEST;
                 },
-                set: (value: string|typeof GUEST) => {
+                set: (value: string|GUEST) => {
                     // TODO: ensure user is a string...
                     // TODO: ensure session exists...
                     req.session!.user = value;
@@ -43,7 +43,7 @@ export default function createRequestAugmentationMiddleware(): express.RequestHa
             },
             intent: {
                 get: () => {
-                    // TODO: ...
+                    // TODO: cache this after first compute...
                     let resource = url.parse(req.url).pathname || '';
                     let method = req.method.toUpperCase(); // TODO: allow overriding via querystring/body/capture
                     return `${method} ${resource}`;

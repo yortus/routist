@@ -22,8 +22,15 @@ export {GRANT, DENY}
 
 
 
-export let grant: AccessImperative1;
-export let deny: AccessImperative1;
+export let grant: AccessImperative1 = {
+    // TODO: temp testing... support `when` etc
+    access: (() => GRANT) as any,
+};
+
+export let deny: AccessImperative1 = {
+    // TODO: temp testing... support `when` etc
+    access: (() => DENY) as any,
+};
 
 interface AccessImperative1 {
     access: AccessImperative2 & AccessGuard;

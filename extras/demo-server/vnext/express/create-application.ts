@@ -98,6 +98,20 @@ function initialise(app: RoutistExpressApplication, fileStoreOptions: sessionFil
     app.use(createRequestAugmentationMiddleware(), ac, disp);
     app.access = ac.access;
     app.routes = disp.routes;
+
+    // TODO: poor man's refine... Fix this
+    app.refine = {
+        access(obj: any) {
+            Object.keys(obj).forEach(key => {
+                app.access[key] = obj[key];
+            });
+        },
+        routes(obj: any) {
+            Object.keys(obj).forEach(key => {
+                app.routes[key] = obj[key];
+            });
+        },
+    };
 }
 
 

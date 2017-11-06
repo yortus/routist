@@ -4,11 +4,30 @@
 // import {error, json, makeMessageServer, MessageHandler} from './vnext/dispatch';
 // import {allow, ALWAYS, createRouteTable, NEVER, updateSession} from './vnext/express-middleware';
 
-import {createExpressApplication, grant, deny, AccessPredicate} from './vnext';
+import {Request, Response} from 'express';
+import {createExpressApplication, grant, deny/*, AccessPredicate*/} from './vnext';
+import debug from './vnext/debug';
 
-import {Routist} from './vnext/api';
-import Handler = Routist.Handler;
-import reply = Routist.reply;
+//import {Routist} from './vnext/api';
+//import Handler = Routist.Handler;
+//import reply = Routist.reply;
+
+// TODO: temp testing...
+const reply = {
+    json(v: {} | ((req: Request) => {})) {
+        return (req: Request, res: Response) => {
+            if (typeof v === 'function') {
+                v = v(req);
+            }
+            res.json(v);
+        };
+    },
+    error(msg: string) {
+        return () => {
+            throw new Error(msg);
+        };
+    },
+};
 
 
 
@@ -17,7 +36,7 @@ import reply = Routist.reply;
 // ================================================================================
 // Application State
 // ================================================================================
-const CEO = 'bob';
+//const CEO = 'bob';
 let users = ['amy', 'bob', 'cal', 'dan'];
 let managers = {} as {[user: string]: string};
 
@@ -37,15 +56,16 @@ let managers = {} as {[user: string]: string};
 // Demo Code
 // ================================================================================
 let app = createExpressApplication();
-app.listen(1337);
+app.listen(8080);
+debug(`app listening on port 8080`);
 
 
 app.refine.access({
     '**':                       deny.access, // fallback (redundant since this is default)
     '{ANY} /session':           grant.access,
-    'GET /users':               grant.access.when(req => req.user === CEO),
-    'GET /users/{name}':        grant.access.when(userEqualsUserInField('name')).or(userIsSuperiorToUserInField('name')),
-    'GET /teams/{teamlead}':    grant.access.when(userIsInRole('managers')).and(userIsSuperiorToUserInField('teamlead')),
+//    'GET /users':               grant.access.when(req => req.user === CEO),
+//    'GET /users/{name}':        grant.access.when(userEqualsUserInField('name')).or(userIsSuperiorToUserInField('name')),
+//    'GET /teams/{teamlead}':    grant.access.when(userIsInRole('managers')).and(userIsSuperiorToUserInField('teamlead')),
     'GET /favicon.ico':         grant.access,
 });
 
@@ -90,9 +110,9 @@ app.routes['GET /favicon.ico'] = async () => { return; };
 
 
 
-declare function userIsInRole(roleName: string): AccessPredicate;
-declare function userEqualsUserInField(fieldName: string): AccessPredicate;
-declare function userIsSuperiorToUserInField(fieldName: string): AccessPredicate;
+//declare function userIsInRole(roleName: string): AccessPredicate;
+//declare function userEqualsUserInField(fieldName: string): AccessPredicate;
+//declare function userIsSuperiorToUserInField(fieldName: string): AccessPredicate;
 
 
 
@@ -100,10 +120,21 @@ declare function userIsSuperiorToUserInField(fieldName: string): AccessPredicate
 
 // TODO: ...
 function authenticate(usernameField = 'username', passwordField = 'password'): Authenticate {
+
+    // TODO: implement...
     usernameField = usernameField;
     passwordField = passwordField;
-    throw new Error(`Not implemented`);
+//    throw new Error(`Not implemented`);
+
+    return {
+        then(v: Handler) { return v; },
+    };
+
+
 }
 interface Authenticate {
     then(h: Handler): Handler;
+}
+interface Handler {
+    (req: Request, res: Response): void | Promise<void>;
 }
