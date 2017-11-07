@@ -37,7 +37,7 @@ const config = {
     secret: machineIdSync(),
     sessionDir: path.resolve(process.cwd(), 'sessions'),
     sessionTimeout: 600,
-    faviconPath: path.join(process.cwd(), 'extras/demo-server/static-files/favicon.ico'),
+    faviconPath: path.join(process.cwd(), 'extras/public/default-favicon.ico'),
 };
 
 
