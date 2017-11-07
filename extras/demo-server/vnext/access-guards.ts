@@ -4,19 +4,17 @@ import {Request} from 'express';
 
 
 
-export interface AccessGuard {
-    (req: Request): GRANT | DENY | Promise<GRANT | DENY>;
-}
+export type AccessGuard = (req: Request) => GRANT | DENY | Promise<GRANT | DENY>;
 
 
 
 
 
-type GRANT = { __grantBrand: any; }
+interface GRANT { __grantBrand: any; }
 const GRANT = Symbol('GRANT') as any as GRANT;
-type DENY = { __denyBrand: any; }
+interface DENY { __denyBrand: any; }
 const DENY = Symbol('DENY') as any as DENY;
-export {GRANT, DENY}
+export {GRANT, DENY};
 
 
 
@@ -40,9 +38,7 @@ interface AccessImperative2 {
     when: Condition;
 }
 
-interface Condition {
-    (accessPredicate: AccessPredicate): Conjunction & Fallback & AccessGuard;
-}
+type Condition = (accessPredicate: AccessPredicate) => Conjunction & Fallback & AccessGuard;
 
 interface Conjunction {
     and: Condition;
@@ -52,7 +48,7 @@ interface Conjunction {
 interface Fallback {
     otherwise: {
         fallback: AccessGuard;
-    }
+    };
 }
 
 export type AccessPredicate = (req: Request) => boolean | Promise<boolean>;

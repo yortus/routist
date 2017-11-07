@@ -5,7 +5,8 @@
 // import {allow, ALWAYS, createRouteTable, NEVER, updateSession} from './vnext/express-middleware';
 
 import {Request, Response} from 'express';
-import {createExpressApplication, deny, grant/*, AccessPredicate*/} from './vnext';
+import {createExpressApplication, deny, grant, GUEST/*, AccessPredicate*/} from './vnext';
+import authenticate from './vnext/authenticate';
 import debug from './vnext/debug';
 
 //import {Routist} from './vnext/api';
@@ -79,10 +80,11 @@ app.routes['GET /fields/{name}'] = reply.json(req => req.fields);
 app.routes['GET /fields/{**path}'] = reply.json(req => req.fields);
 
 // Session maintenance (login/logout)
-app.routes['POST /session'] = authenticate('usn', 'pwd').then(reply.json(42));
-
-// TODO: temp testing only - should not be on GET, only POST...
-app.routes['GET /session'] = authenticate('usn', 'pwd').then(reply.json(req => req.user));
+app.routes['GET /session'] = reply.json(req => ({
+    isLoggedIn: req.user !== GUEST,
+    username: req.user === GUEST ? '' : req.user,
+}));
+app.routes['POST /session'] = authenticate('usn', 'pwd');
 
 // List all users (only for ceo)
 app.routes['GET /users'] = reply.json({users});
@@ -119,26 +121,3 @@ app.routes['assignto: /users/{name}'] = reply.error('Not Implemented');
 //declare function userIsInRole(roleName: string): AccessPredicate;
 //declare function userEqualsUserInField(fieldName: string): AccessPredicate;
 //declare function userIsSuperiorToUserInField(fieldName: string): AccessPredicate;
-
-
-
-
-
-// TODO: ...
-function authenticate(usernameField = 'username', passwordField = 'password'): Authenticate {
-
-    // TODO: implement...
-    usernameField = usernameField;
-    passwordField = passwordField;
-//    throw new Error(`Not implemented`);
-
-    return {
-        then(v: Handler) { return v; },
-    };
-
-
-}
-interface Authenticate {
-    then(h: Handler): Handler;
-}
-type Handler = (req: Request, res: Response) => void | Promise<void>;

@@ -26,6 +26,13 @@ declare global {
 export default function createRequestAugmentationMiddleware(): express.RequestHandler {
     return (req, _, next) => {
 
+        // TODO: move this into its own middleware / 3rd party middleware already existing?
+        // TODO: whitelist is good, but could extend it...
+        // TODO: audit effects of changing method - security, caching on intermediaries, etc
+        // TODO: idea: method-overriding only in 'dev' mode
+        let method = (req.query.method as string || req.method).toUpperCase();
+        if (['GET', 'POST', 'PUT', 'DELETE'].includes(method)) req.method = method;
+
         // TODO: add req properties: user, fields, intent
         Object.defineProperties(req, {
             user: {
@@ -49,8 +56,7 @@ export default function createRequestAugmentationMiddleware(): express.RequestHa
                 get: () => {
                     // TODO: cache this after first compute...
                     let resource = url.parse(req.url).pathname || '';
-                    let method = req.method.toUpperCase(); // TODO: allow overriding via querystring/body/capture
-                    return `${method} ${resource}`;
+                    return `${req.method} ${resource}`;
                 },
                 enumerable: true,
             },
