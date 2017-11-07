@@ -1,8 +1,8 @@
 import {Request, RequestHandler} from 'express';
 import * as multimethods from 'multimethods';
-import {AccessGuard, GRANT, DENY} from '../access-guards';
-import GUEST from '../guest';
+import {AccessGuard, DENY, GRANT} from '../access-guards';
 import debug from '../debug';
+import GUEST from '../guest';
 
 
 
@@ -29,7 +29,7 @@ export default function createAccessControlMiddleware(): RequestHandler & Access
             return true;
         },
     });
-    
+
     // TODO: MM...
     let mm = compileAccessControls(access);
 
@@ -39,10 +39,10 @@ export default function createAccessControlMiddleware(): RequestHandler & Access
         if (isGranted(ruling)) {
             return next();
         }
-        else {
-            // TODO: improve error handling...
-            return res.status(403).send(`Not permitted:   user="${req.user === GUEST ? 'GUEST' : req.user}"   intent="${req.intent}"`);
-        }
+
+        // TODO: improve error handling...
+        res.status(403);
+        res.send(`Not permitted:   user="${req.user === GUEST ? 'GUEST' : req.user}"   intent="${req.intent}"`);
     };
 
     // TODO: combine...
@@ -64,11 +64,20 @@ function isGranted(ruling: GRANT|DENY): ruling is GRANT {
 
 function compileAccessControls(access: { [filter: string]: AccessGuard }) {
 
+    // TODO: wrap every handler to set req._captures
+    const methods = {} as {[x: string]: (req: Request, captures: any) => GRANT|DENY|Promise<GRANT|DENY>};
+    Object.keys(access).forEach(key => {
+        methods[key] = (req, captures) => {
+            req._captures = captures;
+            return access[key](req);
+        };
+    });
+
     // TODO: temp testing...
     return multimethods.create<Request, GRANT|DENY>({
         arity: 1,
         async: undefined,
-        methods: access,
+        methods,
         toDiscriminant: req => req.intent,
     });
 }

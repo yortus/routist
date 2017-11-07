@@ -9,9 +9,7 @@ import debug from '../debug';
 export interface DispatchTable {
     routes: { [filter: string]: Handler };
 }
-export interface Handler {
-    (req: Request, res: Response): void | Promise<void>;
-}
+export type Handler = (req: Request, res: Response) => void | Promise<void>;
 
 
 
@@ -36,8 +34,8 @@ export default function createDispatcherMiddleware(): RequestHandler & DispatchT
 
     // TODO: Express middleware function...
     let middleware: RequestHandler = async (req, res) => {
-        let result = await mm(req, res);
-        if (result !== undefined) {
+        let msg = await mm(req, res);
+        if (msg !== undefined) {
             // TODO: handle non-undefined results...
         }
     };
@@ -54,11 +52,20 @@ export default function createDispatcherMiddleware(): RequestHandler & DispatchT
 
 function compileDispatcher(routes: { [filter: string]: Handler }) {
 
+    // TODO: wrap every handler to set req._captures
+    const methods = {} as {[x: string]: (req: Request, res: Response, captures: any) => void};
+    Object.keys(routes).forEach(key => {
+        methods[key] = (req, res, captures) => {
+            req._captures = captures;
+            return routes[key](req, res);
+        };
+    });
+
     // TODO: temp testing...
     return multimethods.create<Request, Response, void>({
         arity: 2,
         async: undefined,
-        methods: routes,
+        methods,
         toDiscriminant: req => req.intent,
     });
 }

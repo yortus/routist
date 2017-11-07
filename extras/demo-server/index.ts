@@ -5,7 +5,7 @@
 // import {allow, ALWAYS, createRouteTable, NEVER, updateSession} from './vnext/express-middleware';
 
 import {Request, Response} from 'express';
-import {createExpressApplication, grant, deny/*, AccessPredicate*/} from './vnext';
+import {createExpressApplication, deny, grant/*, AccessPredicate*/} from './vnext';
 import debug from './vnext/debug';
 
 //import {Routist} from './vnext/api';
@@ -14,9 +14,13 @@ import debug from './vnext/debug';
 
 // TODO: temp testing...
 const reply = {
-    json(v: {} | ((req: Request) => {})) {
+    json(vOrF: {} | ((req: Request) => {})) {
         return (req: Request, res: Response) => {
+            let v = vOrF;
             if (typeof v === 'function') {
+                res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+                res.setHeader('Pragma', 'no-cache');
+                res.setHeader('Expires', '0');
                 v = v(req);
             }
             res.json(v);
@@ -63,7 +67,7 @@ debug(`app listening on port 8080`);
 app.refine.access({
 
     // TODO: temp testing...
-    'GET /fields':              grant.access,
+    'GET /fields**':            grant.access,
 
     '**':                       deny.access, // fallback (redundant since this is default)
     '{ANY} /session':           grant.access,
@@ -74,6 +78,8 @@ app.refine.access({
 
 // TODO: temp testing...
 app.routes['GET /fields'] = reply.json(req => req.fields);
+app.routes['GET /fields/{name}'] = reply.json(req => req.fields);
+app.routes['GET /fields/{**path}'] = reply.json(req => req.fields);
 
 // Session maintenance (login/logout)
 app.routes['POST /session'] = authenticate('usn', 'pwd').then(reply.json(42));
@@ -87,7 +93,7 @@ app.routes['GET /users'] = reply.json({users});
 // Show details of given user (only if self or subordinate to logged in user)
 app.routes['GET /users/{name}'] = reply.json(req => ({
     user: req.fields.name || 'GUEST',
-    boss: managers[req.fields.name as string]
+    boss: managers[req.fields.name as string],
 }));
 
 // // List users assigned to given boss (only for managers; boss must be subordinate to logged in user)
@@ -138,6 +144,4 @@ function authenticate(usernameField = 'username', passwordField = 'password'): A
 interface Authenticate {
     then(h: Handler): Handler;
 }
-interface Handler {
-    (req: Request, res: Response): void | Promise<void>;
-}
+type Handler = (req: Request, res: Response) => void | Promise<void>;

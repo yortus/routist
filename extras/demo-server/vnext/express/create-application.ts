@@ -2,10 +2,10 @@ import * as bodyParser from 'body-parser';
 import * as compression from 'compression';
 import * as express from 'express';
 import * as session from 'express-session';
-import * as favicon from 'serve-favicon';
 // import * as net from 'net';
 import {machineIdSync} from 'node-machine-id';
 import * as path from 'path';
+import * as favicon from 'serve-favicon';
 import * as sessionFileStore from 'session-file-store';
 import debug from '../debug';
 
