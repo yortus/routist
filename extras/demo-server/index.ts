@@ -61,13 +61,19 @@ debug(`app listening on port 8080`);
 
 
 app.refine.access({
+
+    // TODO: temp testing...
+    'GET /fields':              grant.access,
+
     '**':                       deny.access, // fallback (redundant since this is default)
     '{ANY} /session':           grant.access,
 //    'GET /users':               grant.access.when(req => req.user === CEO),
 //    'GET /users/{name}':        grant.access.when(userEqualsUserInField('name')).or(userIsSuperiorToUserInField('name')),
 //    'GET /teams/{teamlead}':    grant.access.when(userIsInRole('managers')).and(userIsSuperiorToUserInField('teamlead')),
-    'GET /favicon.ico':         grant.access,
 });
+
+// TODO: temp testing...
+app.routes['GET /fields'] = reply.json(req => req.fields);
 
 // Session maintenance (login/logout)
 app.routes['POST /session'] = authenticate('usn', 'pwd').then(reply.json(42));
@@ -102,9 +108,6 @@ app.routes['DELETE /users'] = reply.error('Not Implemented');
 
 // Re-assign the given user to the given boss (only for managers; user must be subordinate to logged in user)
 app.routes['assignto: /users/{name}'] = reply.error('Not Implemented');
-
-// TODO: temp testing...
-app.routes['GET /favicon.ico'] = async () => { return; };
 
 
 

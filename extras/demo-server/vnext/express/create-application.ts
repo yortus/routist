@@ -2,16 +2,17 @@ import * as bodyParser from 'body-parser';
 import * as compression from 'compression';
 import * as express from 'express';
 import * as session from 'express-session';
+import * as favicon from 'serve-favicon';
 // import * as net from 'net';
 import {machineIdSync} from 'node-machine-id';
 import * as path from 'path';
 import * as sessionFileStore from 'session-file-store';
-// import debug from '../../../src/util/debug';
+import debug from '../debug';
 
 import {AccessGuard} from '../access-guards';
-import createRequestAugmentationMiddleware from './create-request-augmentation-middleware';
 import createAccessControlMiddleware from './create-access-control-middleware';
 import createDispatcherMiddleware, {Handler} from './create-dispatcher-middleware';
+import createRequestAugmentationMiddleware from './create-request-augmentation-middleware';
 
 
 
@@ -36,6 +37,7 @@ const config = {
     secret: machineIdSync(),
     sessionDir: path.resolve(process.cwd(), 'sessions'),
     sessionTimeout: 600,
+    faviconPath: path.join(process.cwd(), 'extras/demo-server/static-files/favicon.ico'),
 };
 
 
@@ -73,6 +75,9 @@ function initialise(app: RoutistExpressApplication, fileStoreOptions: sessionFil
     // TODO: This will only suit some applications... make configurable via options... (and simplify?)
     app.set('trust proxy', '::ffff:127.0.0.1');
 
+    // TODO: favicon
+    app.use(favicon(config.faviconPath));
+
     // Add session-handling middleware.
     let FileStore: typeof sessionFileStore;
     FileStore = (sessionFileStore as any)(session); // TODO: remove cast when @types/session-file-store is fixed
@@ -93,9 +98,13 @@ function initialise(app: RoutistExpressApplication, fileStoreOptions: sessionFil
     app.use(bodyParser.urlencoded({extended: false}));
 
     // TODO: Add our own middleware...
+    let log: express.RequestHandler = (req, _, next) => {
+        debug(`INCOMING: ${req.intent}`);
+        next();
+    };
     let ac = createAccessControlMiddleware();
     let disp = createDispatcherMiddleware();
-    app.use(createRequestAugmentationMiddleware(), ac, disp);
+    app.use(createRequestAugmentationMiddleware(), log, ac, disp);
     app.access = ac.access;
     app.routes = disp.routes;
 
