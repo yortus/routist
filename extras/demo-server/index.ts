@@ -18,9 +18,6 @@ const reply = {
         return (req: Request, res: Response) => {
             let v = vOrF;
             if (typeof v === 'function') {
-                res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-                res.setHeader('Pragma', 'no-cache');
-                res.setHeader('Expires', '0');
                 v = v(req);
             }
             res.json(v);
