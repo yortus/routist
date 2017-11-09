@@ -9,9 +9,9 @@ import {createExpressApplication, deny, grant, GUEST/*, AccessPredicate*/} from 
 import authenticate from './vnext/authenticate';
 import debug from './vnext/debug';
 
-//import {Routist} from './vnext/api';
-//import Handler = Routist.Handler;
-//import reply = Routist.reply;
+// import {Routist} from './vnext/api';
+// import Handler = Routist.Handler;
+// import reply = Routist.reply;
 
 // TODO: temp testing...
 const reply = {
@@ -38,17 +38,15 @@ const reply = {
 // ================================================================================
 // Application State
 // ================================================================================
-//const CEO = 'bob';
+const CEO = 'bob';
 let users = ['amy', 'bob', 'cal', 'dan'];
 let managers = {} as {[user: string]: string};
-
-// ceo = 'bob';
-// managers = {
-//     amy: 'bob',
-//     bob: '',
-//     cal: 'bob',
-//     dan: 'bob',
-// };
+managers = {
+    amy: 'bob',
+    bob: '',
+    cal: 'bob',
+    dan: 'bob',
+};
 
 
 
@@ -67,9 +65,9 @@ app.refine.access({
     // TODO: temp testing...
     'GET /fields**':            grant.access,
 
-    '**':                       deny.access, // fallback (redundant since this is default)
+    '**':                       deny.access, // TODO: ultimate fallback... not needed since default fallback is DENIED
     '{ANY} /session':           grant.access,
-//    'GET /users':               grant.access.when(req => req.user === CEO),
+    'GET /users':               grant.access.when(req => req.user === CEO),
 //    'GET /users/{name}':        grant.access.when(userEqualsUserInField('name')).or(userIsSuperiorToUserInField('name')),
 //    'GET /teams/{teamlead}':    grant.access.when(userIsInRole('managers')).and(userIsSuperiorToUserInField('teamlead')),
 });
@@ -118,6 +116,6 @@ app.routes['assignto: /users/{name}'] = reply.error('Not Implemented');
 
 
 
-//declare function userIsInRole(roleName: string): AccessPredicate;
-//declare function userEqualsUserInField(fieldName: string): AccessPredicate;
-//declare function userIsSuperiorToUserInField(fieldName: string): AccessPredicate;
+// declare function userIsInRole(roleName: string): AccessPredicate;
+// declare function userEqualsUserInField(fieldName: string): AccessPredicate;
+// declare function userIsSuperiorToUserInField(fieldName: string): AccessPredicate;

@@ -9,7 +9,10 @@
             "request": "launch",
             "name": "Run Demo Server",
             "program": "${workspaceRoot}/dist/extras/demo-server/index.js",
-            "protocol": "inspector"
+            "protocol": "inspector",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
         },
         {
             "type": "node",
@@ -24,7 +27,10 @@
                 "--colors",
                 "${workspaceRoot}/dist/test"
             ],
-            "internalConsoleOptions": "openOnSessionStart"
+            "internalConsoleOptions": "openOnSessionStart",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
         }
     ]
 }

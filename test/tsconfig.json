@@ -1,8 +1,8 @@
 ﻿{
     "compilerOptions": {
-        "target": "es2016",
+        "target": "es2017",
         "module": "commonjs",
-        "lib": ["es2016"],
+        "lib": ["es2017"],
         "types": ["node", "mocha"],
         "outDir": "../dist/test/",
         "sourceMap": true,

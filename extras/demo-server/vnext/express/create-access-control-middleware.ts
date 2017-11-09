@@ -1,6 +1,6 @@
 import {Request, RequestHandler} from 'express';
 import * as multimethods from 'multimethods';
-import {AccessGuard, DENY, GRANT} from '../access-guards';
+import {AccessGuard, Permission} from '../access-guards';
 import debug from '../debug';
 import GUEST from '../guest';
 
@@ -35,12 +35,21 @@ export default function createAccessControlMiddleware(): RequestHandler & Access
 
     // TODO: Express middleware function...
     let middleware: RequestHandler = async (req, res, next) => {
-        let ruling = await mm(req);
-        if (isGranted(ruling)) {
+        let permission: Permission.GRANTED | Permission.DENIED;
+        try {
+            permission = await mm(req);
+        }
+        catch {
+            permission = Permission.DENIED; // TODO: doc this... it's the fallback if no catchall or a perm rule throws
+            // TODO: if something in permission system throws, we better log the error too...
+        }
+        if (permission === Permission.GRANTED) {
+
+            // TODO: permission granted...
             return next();
         }
 
-        // TODO: improve error handling...
+        // TODO: Permission denied... improve error handling...
         res.status(403);
         res.send(`Not permitted:   user="${req.user === GUEST ? 'GUEST' : req.user}"   intent="${req.intent}"`);
     };
@@ -55,26 +64,23 @@ export default function createAccessControlMiddleware(): RequestHandler & Access
 
 
 
-function isGranted(ruling: GRANT|DENY): ruling is GRANT {
-    return ruling === GRANT;
-}
-
-
-
-
 function compileAccessControls(access: { [filter: string]: AccessGuard }) {
 
-    // TODO: wrap every handler to set req._captures
-    const methods = {} as {[x: string]: (req: Request, captures: any) => GRANT|DENY|Promise<GRANT|DENY>};
-    Object.keys(access).forEach(key => {
-        methods[key] = (req, captures) => {
-            req._captures = captures;
-            return access[key](req);
-        };
-    });
+    // TODO: wrap every handler to set req._captures and handle FALLBACK returns
+    const methods = Object.keys(access).reduce(
+        (meths, key) => {
+            meths[key] = async (req, captures) => {
+                req._captures = captures;
+                let result = await access[key](req);
+                return result === Permission.INHERITED ? multimethods.CONTINUE : result;
+            };
+            return meths;
+        },
+        {} as {[x: string]: (req: Request, captures: any) => Promise<Permission.GRANTED | Permission.DENIED>}
+    );
 
     // TODO: temp testing...
-    return multimethods.create<Request, GRANT|DENY>({
+    return multimethods.create<Request, Permission.GRANTED | Permission.DENIED>({
         arity: 1,
         async: undefined,
         methods,
