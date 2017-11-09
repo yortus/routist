@@ -63,13 +63,13 @@ debug(`app listening on port 8080`);
 app.refine.access({
 
     // TODO: temp testing...
-    'GET /fields**':            grant.access,
+    'GET /fields**':          grant.access,
 
-    '**':                       deny.access, // TODO: ultimate fallback... not needed since default fallback is DENIED
-    '{ANY} /session':           grant.access,
-    'GET /users':               grant.access.when(req => req.user === CEO),
-//    'GET /users/{name}':        grant.access.when(userEqualsUserInField('name')).or(userIsSuperiorToUserInField('name')),
-//    'GET /teams/{teamlead}':    grant.access.when(userIsInRole('managers')).and(userIsSuperiorToUserInField('teamlead')),
+    '**':                     deny.access, // TODO: ultimate fallback... not needed since default fallback is DENIED
+    '{ANY} /session':         grant.access,
+    'GET /users':             grant.access.when(req => req.user === CEO),
+    'GET /users/{name}':      grant.access.when(userEqualsUserInField('name')).or(userIsSuperiorToUserInField('name')),
+    'GET /teams/{teamlead}':  grant.access.when(userIsInRole('managers')).and(userIsSuperiorToUserInField('teamlead')),
 });
 
 // TODO: temp testing...
@@ -95,7 +95,7 @@ app.routes['GET /users/{name}'] = reply.json(req => ({
 
 // // List users assigned to given boss (only for managers; boss must be subordinate to logged in user)
 app.routes['GET /teams/{teamlead}'] = reply.json(req => Object.keys(managers)
-                                                              .filter(u => managers[u] === req.fields.boss));
+                                                              .filter(u => managers[u] === req.fields.teamlead));
 
 // Show details of logged in user (not allowed for GUEST)
 app.routes['GET /my/self'] = reply.error('Not Implemented');
@@ -116,6 +116,29 @@ app.routes['assignto: /users/{name}'] = reply.error('Not Implemented');
 
 
 
-// declare function userIsInRole(roleName: string): AccessPredicate;
-// declare function userEqualsUserInField(fieldName: string): AccessPredicate;
-// declare function userIsSuperiorToUserInField(fieldName: string): AccessPredicate;
+function userIsInRole(roleName: string) {
+    return (req: Request) => {
+        if (roleName !== 'managers') return false;
+        if (req.user === GUEST) return false;
+        return Object.values(managers).includes(req.user as any);
+    };
+}
+
+function userEqualsUserInField(fieldName: string) {
+    return (req: Request) => {
+        let testUser = req.fields[fieldName] as string || '';
+        return testUser === req.user;
+    };
+}
+
+function userIsSuperiorToUserInField(fieldName: string) {
+    return (req: Request) => {
+        let teamleadUser = req.fields[fieldName] as string || '';
+
+        // TODO: include self for now...
+        if (teamleadUser === req.user) return true;
+
+        // TODO: check should be recursive...
+        return (managers[teamleadUser] || '') === req.user;
+    };
+}
