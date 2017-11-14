@@ -1,9 +1,9 @@
-import {Request} from 'express';
+import {AugmentedRequest} from '../express';
 import Permission from './permission';
 
 
 
 
 
-type AccessGuard = (req: Request) => Permission | Promise<Permission>;
+type AccessGuard = (req: AugmentedRequest) => Permission | Promise<Permission>;
 export default AccessGuard;

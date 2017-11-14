@@ -1,31 +1,15 @@
 import * as assert from 'assert';
-import {NextFunction, Request, Response} from 'express';
+import {NextFunction, Request} from 'express';
 import * as url from 'url';
+import {AugmentedRequest} from '..';
 import {GUEST, User} from '../../authentication';
 
 
 
 
 
-// TODO: ...
-// tslint:disable-next-line:no-namespace
-declare global {
-    export namespace Express {
-        // tslint:disable-next-line:no-shadowed-variable
-        export interface Request {
-            user: User;
-            intent: string;
-            fields: { [name: string]: {} };
-            _captures: {[captureName: string]: string};
-        }
-    }
-}
-
-
-
-
-
-export default function augmentRequest(req: Request, _: Response, next: NextFunction) {
+export default function augmentRequest(expressReq: Request, _: {}, next: NextFunction) {
+    let req = expressReq as AugmentedRequest;
 
     // TODO: override the request method if the querystring has a 'method' parameter with a valid value.
     // TODO: move this into its own middleware / 3rd party middleware already existing?
@@ -36,6 +20,7 @@ export default function augmentRequest(req: Request, _: Response, next: NextFunc
     if (['GET', 'POST', 'PUT', 'DELETE'].includes(method)) req.method = method;
 
     // TODO: add req properties: user, fields, intent...
+    // TODO: how to ensure sync with AugmentedRequest interface?
     Object.defineProperties(req, {
         user: {
             get: (): User => {

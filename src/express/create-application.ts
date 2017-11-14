@@ -101,20 +101,21 @@ function createSessionStore(config: ApplicationConfig['sessions']) {
 // TODO: ...
 function augmentApplication(app: express.Application) {
 
-    let augmentedApp = app as express.Application as RoutistExpressApplication;
-
     let aug = middleware.augmentRequest;
     let log = middleware.logRequest;
+    let acl = middleware.createAccessControlMiddleware();
     let err = middleware.handleErrors;
-    augmentedApp.use(aug, log, err);
 
-    // // TODO: Add our own middleware...
-    // let log: express.RequestHandler = (req, _, next) => {
-    //     debug(`INCOMING: ${req.intent}`);
-    //     next();
-    // };
-    // let ac = createAccessControlMiddleware();
-    // let disp = createDispatcherMiddleware();
+    let augmentedApp = app as express.Application as RoutistExpressApplication;
+    augmentedApp.use(aug, log, acl, err);
+    augmentedApp.access = acl.access;
+    augmentedApp.refine = {
+        access(table: AccessTable) {
+            Object.keys(table).forEach(routeFilter => {
+                acl.access[routeFilter] = table[routeFilter];
+            });
+        },
+    };
 
     // augmentedApp.use(createRequestAugmentationMiddleware(), log, ac, disp);
     // augmentedApp.access = ac.access;
