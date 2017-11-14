@@ -1,11 +1,14 @@
 import * as express from 'express';
-import {createExpressApplication} from 'routist';
+import {createExpressApplication, grant} from 'routist';
 
 
 
 
 
 let subapp = createExpressApplication({});
+subapp.refine.access({
+    '**': grant.access,
+});
 
 
 
