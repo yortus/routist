@@ -91,6 +91,7 @@ function initialise(app: RoutistExpressApplication, fileStoreOptions: sessionFil
 
     // Add middleware to compress all responses.
     // TODO: make configurable...
+    // TODO: prefer nginx or other to do this? (less load on node.js)
     app.use(compression());
 
     // Add middleware to automatically parse request bodies.

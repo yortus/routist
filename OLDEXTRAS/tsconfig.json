@@ -1,0 +1,25 @@
+﻿{
+    "compilerOptions": {
+        "target": "es2017",
+        "module": "commonjs",
+        "lib": ["es2017"],
+        "types": ["node"],
+        "outDir": "../dist/extras",
+        "rootDir": ".",
+        "sourceMap": true,
+        "experimentalDecorators": true,
+
+        // Static checks
+        "allowUnreachableCode": false,
+        "allowUnusedLabels": false,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noImplicitUseStrict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true
+    }
+}
