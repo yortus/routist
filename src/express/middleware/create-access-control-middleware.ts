@@ -9,7 +9,7 @@ import AugmentedRequest from '../augmented-request';
 
 
 
-export default function createAccessControlMiddleware(): RequestHandler & { access: AccessTable } {
+export default function createAccessControlMiddleware() {
 
     // TODO: ACL hash...
     let accessTable = {} as AccessTable;

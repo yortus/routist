@@ -1,3 +1,9 @@
+## TODO
+- [ ] handle errors properly throughout the middleware stack
+  - [ ] in particular, if any routist middleware throws/rejects, it should be handled gracefully
+  - [ ] use httperr?
+
+
 ## TODO List 01/11/17
 - [ ] `export function createExpressApplication(): express.Application;`
   - [ ] add third party middleware

@@ -7,6 +7,7 @@ import * as path from 'path';
 import * as favicon from 'serve-favicon';
 import * as sessionFileStore from 'session-file-store';
 import {AccessTable} from '../authorisation';
+import {DispatchTable} from '../dispatch';
 import {ApplicationConfig, ApplicationOptions, validate} from './application-options';
 import * as middleware from './middleware';
 // import * as net from 'net';
@@ -19,10 +20,10 @@ import * as middleware from './middleware';
 
 
 export interface RoutistExpressApplication extends express.Application {
-    // routes: { [filter: string]: RouteHandler };
+    routes: DispatchTable;
     access: AccessTable;
     refine: {
-    //     routes(value: RoutistExpressApplication['routes']): void;
+        routes(value: DispatchTable): void;
         access(value: AccessTable): void;
     };
 }
@@ -101,39 +102,28 @@ function createSessionStore(config: ApplicationConfig['sessions']) {
 // TODO: ...
 function augmentApplication(app: express.Application) {
 
-    let aug = middleware.augmentRequest;
-    let log = middleware.logRequest;
-    let acl = middleware.createAccessControlMiddleware();
-    let err = middleware.handleErrors;
+    let augmentRequest = middleware.augmentRequest;
+    let logRequest = middleware.logRequest;
+    let authorise = middleware.createAccessControlMiddleware();
+    let dispatch = middleware.createDispatchMiddleware();
+    let handleErrors = middleware.handleErrors;
 
     let augmentedApp = app as express.Application as RoutistExpressApplication;
-    augmentedApp.use(aug, log, acl, err);
-    augmentedApp.access = acl.access;
+    augmentedApp.use(augmentRequest, logRequest, authorise, dispatch, handleErrors);
+    augmentedApp.access = authorise.access;
+    augmentedApp.routes = dispatch.routes;
     augmentedApp.refine = {
         access(table: AccessTable) {
-            Object.keys(table).forEach(routeFilter => {
-                acl.access[routeFilter] = table[routeFilter];
+            Object.keys(table).forEach(intentFilter => {
+                authorise.access[intentFilter] = table[intentFilter];
+            });
+        },
+        routes(table: DispatchTable) {
+            Object.keys(table).forEach(intentFilter => {
+                dispatch.routes[intentFilter] = table[intentFilter];
             });
         },
     };
-
-    // augmentedApp.use(createRequestAugmentationMiddleware(), log, ac, disp);
-    // augmentedApp.access = ac.access;
-    // augmentedApp.routes = disp.routes;
-
-    // // TODO: poor man's refine... Fix this
-    // augmentedApp.refine = {
-    //     access(obj: any) {
-    //         Object.keys(obj).forEach(key => {
-    //             app.access[key] = obj[key];
-    //         });
-    //     },
-    //     routes(obj: any) {
-    //         Object.keys(obj).forEach(key => {
-    //             app.routes[key] = obj[key];
-    //         });
-    //     },
-    // };
 
     return augmentedApp;
 }
