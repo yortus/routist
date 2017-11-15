@@ -1,4 +1,4 @@
-import {Request} from 'express';
+import Request from '../request';
 import AccessGuard from './access-guard';
 import Permission from './permission';
 

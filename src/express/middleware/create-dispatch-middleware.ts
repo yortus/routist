@@ -1,6 +1,6 @@
 import {RequestHandler, Response} from 'express';
 import * as multimethods from 'multimethods';
-import {DispatchTable, Handler} from '../../dispatch';
+import {RouteTable, RouteHandler} from '../../dispatch';
 import debug from '../../util/debug';
 import createMiddleware, {AugmentedRequest} from './create-middleware';
 
@@ -11,7 +11,7 @@ import createMiddleware, {AugmentedRequest} from './create-middleware';
 export default function createDispatcherMiddleware() {
 
     // TODO: ACL hash...
-    let routes = {} as { [filter: string]: Handler };
+    let routes = {} as { [filter: string]: RouteHandler };
 
     let routesProxy = new Proxy(routes, {
         set: (_, key, value) => {
@@ -35,7 +35,7 @@ export default function createDispatcherMiddleware() {
     });
 
     // TODO: combine...
-    let result = middleware as RequestHandler & { routes: DispatchTable };
+    let result = middleware as RequestHandler & { routes: RouteTable };
     result.routes = routesProxy;
     return result;
 }
@@ -44,7 +44,7 @@ export default function createDispatcherMiddleware() {
 
 
 
-function compileDispatcher(routes: { [filter: string]: Handler }) {
+function compileDispatcher(routes: { [filter: string]: RouteHandler }) {
 
     // TODO: wrap every handler to set req._captures
     const methods = {} as {[x: string]: (req: AugmentedRequest, res: Response, captures: any) => void};

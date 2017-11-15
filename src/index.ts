@@ -1,4 +1,4 @@
-import {deny, grant} from './authorisation';
+import {deny, grant} from './access-control';
 import {createApplication} from './express';
 
 

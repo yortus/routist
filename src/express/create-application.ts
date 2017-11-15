@@ -7,23 +7,19 @@ import * as path from 'path';
 import * as favicon from 'serve-favicon';
 import * as sessionFileStore from 'session-file-store';
 import {AccessTable} from '../authorisation';
-import {DispatchTable} from '../dispatch';
+import {RouteTable} from '../dispatch';
 import {ApplicationConfig, ApplicationOptions, validate} from './application-options';
 import * as middleware from './middleware';
-// import * as net from 'net';
-// import debug from '../debug';
-// import createAccessControlMiddleware from './create-access-control-middleware';
-// import createDispatcherMiddleware, {Handler} from './create-dispatcher-middleware';
 
 
 
 
 
 export interface RoutistExpressApplication extends express.Application {
-    routes: DispatchTable;
+    routes: RouteTable;
     access: AccessTable;
     refine: {
-        routes(value: DispatchTable): void;
+        routes(value: RouteTable): void;
         access(value: AccessTable): void;
     };
 }
@@ -118,7 +114,7 @@ function augmentApplication(app: express.Application) {
                 authorise.access[intentFilter] = table[intentFilter];
             });
         },
-        routes(table: DispatchTable) {
+        routes(table: RouteTable) {
             Object.keys(table).forEach(intentFilter => {
                 dispatch.routes[intentFilter] = table[intentFilter];
             });

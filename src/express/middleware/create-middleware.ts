@@ -41,18 +41,6 @@ export type PromisifiedHandler = (req: AugmentedRequest, res: Response) => Promi
 
 
 
-// TODO: ...
-export interface AugmentedRequest extends Request {
-    user: User;
-    intent: string;
-    fields: { [name: string]: {} };
-    _captures: {[captureName: string]: string};
-}
-
-
-
-
-
 function augmentRequest(expressRequest: Request) {
 
     // Return early if the request is already augmented
