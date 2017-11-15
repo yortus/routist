@@ -12,25 +12,33 @@ import createMiddleware from './create-middleware';
 
 export default function createRouteDispatcherMiddleware() {
 
-    // TODO: ACL hash...
+    // TODO: ...
     let routeTable = {} as RouteTable;
+    let multimethod = compileRouteTable(routeTable);
+    let multimethodUpdatePending = false;
+
+    function updateMultimethod() {
+        if (multimethodUpdatePending === true) return;
+        multimethodUpdatePending = true;
+        process.nextTick(() => {
+            multimethod = compileRouteTable(routeTable);
+            multimethodUpdatePending = false;
+        });
+    }
 
     let routeTableProxy = new Proxy(routeTable, {
         set: (_, key, value) => {
             debug(`SET HANDLER FOR: ${key}`); // TODO: temp testing...
             routeTable[key] = value; // TODO: make immutable...
-            mm = compileRouteTable(routeTable); // TODO: batch updates... too costly to recompile on every key change
+            updateMultimethod();
             return true;
         },
     });
 
-    // TODO: MM...
-    let mm = compileRouteTable(routeTable);
-
     // TODO: Express middleware function...
     let middleware = createMiddleware(async (req, res) => {
         try {
-            let msg = await mm(req, res);
+            let msg = await multimethod(req, res);
             if (msg !== undefined) {
                 // TODO: handle non-undefined results... This could be useful for route handler helpers like JSON etc...
             }

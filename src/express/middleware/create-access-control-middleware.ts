@@ -13,29 +13,35 @@ import createMiddleware from './create-middleware';
 
 export default function createAccessControlMiddleware() {
 
-    // TODO: ACL hash...
+    // TODO: ...
     let accessTable = {} as AccessTable;
+    let multimethod = compileAccessTable(accessTable);
+    let multimethodUpdatePending = false;
+
+    function updateMultimethod() {
+        if (multimethodUpdatePending === true) return;
+        multimethodUpdatePending = true;
+        process.nextTick(() => {
+            multimethod = compileAccessTable(accessTable);
+            multimethodUpdatePending = false;
+        });
+    }
 
     let accessTableProxy = new Proxy(accessTable, {
         set: (_, key, value) => {
             debug(`SET ACCESS FOR: ${key}`); // TODO: temp testing...
             accessTable[key] = value; // TODO: make immutable...
-
-            // TODO: batch updates... too costly to recompile on every key change
-            // TODO: ---IDEA--- also provide a .refresh() method
-            mm = compileAccessTable(accessTable);
+            updateMultimethod();
             return true;
         },
     });
 
-    // TODO: MM...
-    let mm = compileAccessTable(accessTable);
 
     // TODO: Express middleware function...
     let middleware = createMiddleware(async req => {
         let permission: Permission.GRANTED | Permission.DENIED;
         try {
-            permission = await mm(req);
+            permission = await multimethod(req);
         }
         catch {
             permission = Permission.DENIED; // TODO: doc this... it's the fallback if no catchall or a perm rule throws

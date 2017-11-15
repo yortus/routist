@@ -1,9 +1,11 @@
-## TODO
+## TODO 15/11/2017
 - [x] handle errors properly throughout the middleware stack
   - [x] in particular, if any routist middleware throws/rejects, it should be handled gracefully
   - [x] use httperr?
 - [x] allow fallthrough to non-routist routes if unhandled by `routes`
-- [ ] add refresh() method to access control and dispatch middleware
+- [x] optimisation: don't make new access/routes multimethods on every handler change
+  - [x] EITHER: add refresh() method to access control and dispatch middleware
+  - [x] OR: queue up pending changes from the same tick to the next tick
 - [ ] app start/end
 - [ ] `user` fluent API
 
