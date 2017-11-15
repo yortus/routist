@@ -1,9 +1,10 @@
 import {RequestHandler} from 'express';
+import * as httperr from 'httperr';
 import * as multimethods from 'multimethods';
 import {GUEST} from '../../authentication';
 import {AccessGuard, AccessTable, Permission} from '../../authorisation';
 import debug from '../../util/debug';
-import AugmentedRequest from '../augmented-request';
+import createMiddleware, {AugmentedRequest} from './create-middleware';
 
 
 
@@ -30,8 +31,7 @@ export default function createAccessControlMiddleware() {
     let mm = compileAccessControls(accessTable);
 
     // TODO: Express middleware function...
-    let middleware: RequestHandler = async (expressRequest, res, next) => {
-        let req = expressRequest as AugmentedRequest; // TODO: assumes request is already augmented. Make safer...
+    let middleware = createMiddleware(async req => {
         let permission: Permission.GRANTED | Permission.DENIED;
         try {
             permission = await mm(req);
@@ -40,19 +40,14 @@ export default function createAccessControlMiddleware() {
             permission = Permission.DENIED; // TODO: doc this... it's the fallback if no catchall or a perm rule throws
             // TODO: if something in permission system throws, we better log the error too...
         }
-        if (permission === Permission.GRANTED) {
-
-            // TODO: permission granted...
-            return next();
-        }
+        if (permission === Permission.GRANTED) return false;
 
         // TODO: Permission denied... improve error handling...
         // TODO: use httperr library?
         // TODO: throw error instead of using next...
         let user = req.user === GUEST ? 'GUEST' : req.user;
-        res.status(403);
-        res.send(`Not permitted:   user="${user}"   intent="${req.intent}"`);
-    };
+        throw new httperr[403](`Not permitted:   user="${user}"   intent="${req.intent}"`);
+    });
 
     // TODO: combine...
     let result = middleware as RequestHandler & { access: AccessTable };

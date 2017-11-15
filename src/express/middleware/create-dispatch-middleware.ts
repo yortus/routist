@@ -1,8 +1,8 @@
 import {RequestHandler, Response} from 'express';
 import * as multimethods from 'multimethods';
-import {AugmentedRequest} from '..';
 import {DispatchTable, Handler} from '../../dispatch';
 import debug from '../../util/debug';
+import createMiddleware, {AugmentedRequest} from './create-middleware';
 
 
 
@@ -26,14 +26,13 @@ export default function createDispatcherMiddleware() {
     let mm = compileDispatcher(routes);
 
     // TODO: Express middleware function...
-    let middleware: RequestHandler = async (expressRequest, res) => {
-//TODO: if mm throws, we get an unhandledrejectionwarning... Handle errors properly throughout middleware stack...
-        let req = expressRequest as AugmentedRequest; // TODO: assumes request is already augmented. Make safer...
+    let middleware = createMiddleware(async (req, res) => {
         let msg = await mm(req, res);
         if (msg !== undefined) {
             // TODO: handle non-undefined results...
         }
-    };
+        return true; // TODO: allow special return value to 'pass through' to non-routist middleware
+    });
 
     // TODO: combine...
     let result = middleware as RequestHandler & { routes: DispatchTable };
