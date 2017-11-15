@@ -2,7 +2,7 @@ import * as Joi from 'joi';
 import {machineIdSync} from 'node-machine-id';
 import * as path from 'path';
 import * as pkgDir from 'pkg-dir';
-import DeepPartial from '../util/deep-partial';
+import DeepPartial from '../../util/deep-partial';
 
 
 

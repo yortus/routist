@@ -1,5 +1,5 @@
 import {deny, grant} from './access-control';
-import {createApplication} from './express';
+import {createApplication} from './express/application';
 
 
 

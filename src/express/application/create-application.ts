@@ -6,10 +6,10 @@ import {Store} from 'express-session';
 import * as path from 'path';
 import * as favicon from 'serve-favicon';
 import * as sessionFileStore from 'session-file-store';
-import {AccessTable} from '../access-control';
-import {RouteTable} from '../route-dispatch';
+import {AccessTable} from '../../access-control';
+import {RouteTable} from '../../route-dispatch';
+import * as middleware from '../middleware';
 import {ApplicationConfig, ApplicationOptions, validate} from './application-options';
-import * as middleware from './middleware';
 
 
 
