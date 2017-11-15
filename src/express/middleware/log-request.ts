@@ -1,19 +1,16 @@
-import {Request} from 'express';
-import {AugmentedRequest} from '..';
-import {GUEST} from '../../authentication';
+import {RequestHandler} from 'express';
+import {GUEST} from '../../user';
 import debug from '../../util/debug';
+import createMiddleware from './create-middleware';
 
 
 
 
 
-export default function logRequest(expressReq: Request, _: {}, next: Function) {
-
+const logRequest: RequestHandler = createMiddleware(async req => {
     // TODO: temp testing... better format/info?
-    let req = expressReq as AugmentedRequest; // TODO: assumes request is already augmented. Make safer...
     const user = req.user === GUEST ? 'GUEST' : req.user;
     debug(`INCOMING REQUEST:\tUSER=${user}\tINTENT=${req.intent}`);
-
-    // Continue with next middleware function.
-    next();
-}
+    return false;
+});
+export default logRequest;

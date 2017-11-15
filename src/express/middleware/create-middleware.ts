@@ -1,15 +1,18 @@
 import * as assert from 'assert';
-import {Request, RequestHandler, Response} from 'express';
+import {Request as ExpressRequest, RequestHandler as ExpressRequestHandler} from 'express';
 import {HttpError} from 'httperr';
 import * as url from 'url';
-import {GUEST, User} from '../../authentication';
+import {default as RoutistRequest} from '../../request';
+import {default as RoutistResponse} from '../../response';
+import User, {GUEST} from '../../user';
+import debug from '../../util/debug';
 
 
 
 
 
 // TODO: ...
-export default function createMiddleware(handler: PromisifiedHandler): RequestHandler {
+export default function createMiddleware(handler: RoutistRequestHandler): ExpressRequestHandler {
     return async (req, res, next) => {
         let reqx = augmentRequest(req);
         try {
@@ -19,6 +22,9 @@ export default function createMiddleware(handler: PromisifiedHandler): RequestHa
             }
         }
         catch (err) {
+            // TODO: temp testing... better format/info?
+            debug(`REQUEST ERROR: ${err}`);
+
             if (err instanceof HttpError) {
                 res.status(err.statusCode);
                 res.send(err.message); // TODO: don't leak server details to client... how to ensure this reliably??
@@ -35,16 +41,17 @@ export default function createMiddleware(handler: PromisifiedHandler): RequestHa
 
 
 // TODO: doc... eventual returned value: true=success; false=skipped; reject=failure
-export type PromisifiedHandler = (req: AugmentedRequest, res: Response) => Promise<boolean>;
+export type RoutistRequestHandler = (req: RoutistRequest, res: RoutistResponse) => Promise<boolean>;
 
 
 
 
 
-function augmentRequest(expressRequest: Request) {
+// TODO: ...
+function augmentRequest(expressRequest: ExpressRequest) {
 
-    // Return early if the request is already augmented
-    let req = expressRequest as AugmentedRequest;
+    // Return early if the request is already augmented.
+    let req = expressRequest as RoutistRequest;
     if (req.intent) return req;
 
     // TODO: override the request method if the querystring has a 'method' parameter with a valid value.
@@ -56,7 +63,7 @@ function augmentRequest(expressRequest: Request) {
     if (['GET', 'POST', 'PUT', 'DELETE'].includes(method)) req.method = method;
 
     // TODO: add req properties: user, fields, intent...
-    // TODO: how to ensure sync with AugmentedRequest interface?
+    // TODO: how to ensure sync with RoutistRequest interface?
     Object.defineProperties(req, {
         user: {
             get: (): User => {

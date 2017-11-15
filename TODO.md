@@ -1,8 +1,11 @@
 ## TODO
-- [ ] handle errors properly throughout the middleware stack
-  - [ ] in particular, if any routist middleware throws/rejects, it should be handled gracefully
-  - [ ] use httperr?
+- [x] handle errors properly throughout the middleware stack
+  - [x] in particular, if any routist middleware throws/rejects, it should be handled gracefully
+  - [x] use httperr?
+- [x] allow fallthrough to non-routist routes if unhandled by `routes`
 - [ ] add refresh() method to access control and dispatch middleware
+- [ ] app start/end
+- [ ] `user` fluent API
 
 
 ## TODO List 01/11/17

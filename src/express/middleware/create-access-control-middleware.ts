@@ -1,10 +1,11 @@
 import {RequestHandler} from 'express';
 import * as httperr from 'httperr';
 import * as multimethods from 'multimethods';
-import {GUEST} from '../../authentication';
-import {AccessGuard, AccessTable, Permission} from '../../authorisation';
+import {AccessTable, Permission} from '../../access-control';
+import Request from '../../request';
+import {GUEST} from '../../user';
 import debug from '../../util/debug';
-import createMiddleware, {AugmentedRequest} from './create-middleware';
+import createMiddleware from './create-middleware';
 
 
 
@@ -22,13 +23,13 @@ export default function createAccessControlMiddleware() {
 
             // TODO: batch updates... too costly to recompile on every key change
             // TODO: ---IDEA--- also provide a .refresh() method
-            mm = compileAccessControls(accessTable);
+            mm = compileAccessTable(accessTable);
             return true;
         },
     });
 
     // TODO: MM...
-    let mm = compileAccessControls(accessTable);
+    let mm = compileAccessTable(accessTable);
 
     // TODO: Express middleware function...
     let middleware = createMiddleware(async req => {
@@ -59,7 +60,7 @@ export default function createAccessControlMiddleware() {
 
 
 
-function compileAccessControls(access: { [filter: string]: AccessGuard }) {
+function compileAccessTable(access: AccessTable) {
 
     // TODO: wrap every handler to set req._captures and handle FALLBACK returns
     const methods = Object.keys(access).reduce(
@@ -71,11 +72,11 @@ function compileAccessControls(access: { [filter: string]: AccessGuard }) {
             };
             return meths;
         },
-        {} as {[x: string]: (req: AugmentedRequest, captures: any) => Promise<Permission.GRANTED | Permission.DENIED>}
+        {} as {[x: string]: (req: Request, captures: any) => Promise<Permission.GRANTED | Permission.DENIED>}
     );
 
     // TODO: temp testing...
-    return multimethods.create<AugmentedRequest, Permission.GRANTED | Permission.DENIED>({
+    return multimethods.create<Request, Permission.GRANTED | Permission.DENIED>({
         arity: 1,
         async: undefined,
         methods,

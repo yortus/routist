@@ -6,8 +6,8 @@ import {Store} from 'express-session';
 import * as path from 'path';
 import * as favicon from 'serve-favicon';
 import * as sessionFileStore from 'session-file-store';
-import {AccessTable} from '../authorisation';
-import {RouteTable} from '../dispatch';
+import {AccessTable} from '../access-control';
+import {RouteTable} from '../route-dispatch';
 import {ApplicationConfig, ApplicationOptions, validate} from './application-options';
 import * as middleware from './middleware';
 
@@ -98,14 +98,12 @@ function createSessionStore(config: ApplicationConfig['sessions']) {
 // TODO: ...
 function augmentApplication(app: express.Application) {
 
-    let augmentRequest = middleware.augmentRequest;
     let logRequest = middleware.logRequest;
     let authorise = middleware.createAccessControlMiddleware();
-    let dispatch = middleware.createDispatchMiddleware();
-    let handleErrors = middleware.handleErrors;
+    let dispatch = middleware.createRouteDispatchMiddleware();
 
     let augmentedApp = app as express.Application as RoutistExpressApplication;
-    augmentedApp.use(augmentRequest, logRequest, authorise, dispatch, handleErrors);
+    augmentedApp.use(logRequest, authorise, dispatch);
     augmentedApp.access = authorise.access;
     augmentedApp.routes = dispatch.routes;
     augmentedApp.refine = {

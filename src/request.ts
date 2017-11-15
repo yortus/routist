@@ -11,6 +11,6 @@ export default interface Request extends express.Request {
     intent: string;
     fields: { [name: string]: {} };
 
-    // TODO: ...
-    //_captures: {[captureName: string]: string};
+    // TODO: better way to make this internal?
+    _captures: {[captureName: string]: string};
 }
