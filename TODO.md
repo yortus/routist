@@ -2,6 +2,7 @@
 - [ ] handle errors properly throughout the middleware stack
   - [ ] in particular, if any routist middleware throws/rejects, it should be handled gracefully
   - [ ] use httperr?
+- [ ] add refresh() method to access control and dispatch middleware
 
 
 ## TODO List 01/11/17
