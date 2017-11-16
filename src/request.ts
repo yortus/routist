@@ -1,5 +1,5 @@
 import * as express from 'express';
-import User from './user';
+import {User} from './identity-types';
 
 
 

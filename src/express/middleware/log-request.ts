@@ -1,5 +1,5 @@
 import {RequestHandler} from 'express';
-import {GUEST} from '../../user';
+import {GUEST} from '../../identity-types';
 import debug from '../../util/debug';
 import createMiddleware from './create-middleware';
 

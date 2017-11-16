@@ -1,6 +1,5 @@
 import {Permission} from '../access-control-types';
 import Request from '../request';
-import {GUEST} from '../user';
 import makeAccessGuard from './make-access-guard';
 import makeQualifierChain, {QualifierChain} from './make-qualifier-chain';
 export {QualifierChain, Request};
@@ -61,20 +60,4 @@ export const deny = {
             })),
         }
     ),
-};
-
-
-
-
-
-// TODO: explain...
-export const user = {
-    isLoggedIn: (req: Request) => req.user !== GUEST,
-    isGuest: (req: Request) => req.user === GUEST,
-    is: (name: string | {field: string}) => {
-        return (req: Request) => {
-            if (typeof name !== 'string') name = req.fields[name.field] as string;
-            return req.user === name;
-        };
-    },
 };

@@ -2,9 +2,9 @@ import * as assert from 'assert';
 import {Request as ExpressRequest, RequestHandler as ExpressRequestHandler} from 'express';
 import {HttpError} from 'httperr';
 import * as url from 'url';
+import {GUEST, User} from '../../identity-types';
 import {default as RoutistRequest} from '../../request';
 import {default as RoutistResponse} from '../../response';
-import User, {GUEST} from '../../user';
 import debug from '../../util/debug';
 
 
