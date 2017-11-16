@@ -1,4 +1,4 @@
-import {createExpressApplication, deny, grant, Request, Response, user} from 'routist';
+import {createExpressApplication, deny, grant, Request, Response, staticFiles, user} from 'routist';
 import authenticate from './authenticate';
 
 
@@ -60,6 +60,7 @@ app.refine.access({
     'GET /fields**':          grant.access,
 
     '**':                     deny.access, // TODO: ultimate fallback... not needed since default fallback is DENIED
+    'GET /public/**':         grant.access,
     '{ANY} /session':         grant.access,
     'GET /users':             grant.access.when(user.is(CEO)),
     'GET /users/{name}':      grant.access.when(user.is({field: 'name'})).or(userIsSuperiorToUserInField('name')),
@@ -68,6 +69,12 @@ app.refine.access({
 
 
 
+
+
+// TODO: temp testing... static file(s)...
+// NB: since we don't copy static files to /dist, we have to navigate back to /extras
+app.routes['GET /public/{**path}'] = staticFiles('../../../extras/demo-server/static-files');
+app.routes['GET /public{**path}'] = reply.json(req => `Couldn't find static file '${req.fields.path}'`);
 
 
 // TODO: temp testing...

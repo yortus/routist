@@ -1,3 +1,4 @@
+import CONTINUE from './continue';
 import RouteHandler from './route-handler';
 import RouteTable from './route-table';
 
@@ -5,4 +6,4 @@ import RouteTable from './route-table';
 
 
 
-export {RouteHandler, RouteTable};
+export {CONTINUE, RouteHandler, RouteTable};

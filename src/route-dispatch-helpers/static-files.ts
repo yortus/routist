@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as serveStatic from 'serve-static';
 import * as stackTrace from 'stack-trace';
 import * as url from 'url';
-import {Handler} from '../route-table';
+import {CONTINUE, RouteHandler} from '../route-dispatch-types';
 import promisifyExpressHandler from '../util/promisify-express-handler';
 
 
@@ -10,7 +10,7 @@ import promisifyExpressHandler from '../util/promisify-express-handler';
 
 
 // TODO: doc...
-export default function staticFiles(rootPath: string): Handler {
+export default function staticFiles(rootPath: string): RouteHandler {
 
     // TODO: doc this... resolve rootPath relative to dir of immediate caller
     let callerFilename = stackTrace.get()[1].getFileName();
@@ -21,16 +21,16 @@ export default function staticFiles(rootPath: string): Handler {
     let serveStaticOptions = { index: [] }; // NB: Disable having `dirname` resolve to `dirname/index.html`
     let serveStaticHandler = promisifyExpressHandler(serveStatic(rootPath, serveStaticOptions));
 
-    return async (msg, captures: {[x: string]: string}) => {
-        if (typeof captures.path !== 'string') throw new Error(`static file route expects a {**path} capture variable`);
-        let oldUrl = msg.request.url;
+    return async (req, res) => {
+        if (typeof req.fields.path !== 'string') throw new Error(`static file route expects a 'path' field`);
+        let oldUrl = req.url;
         let {protocol, auth, host, search, hash} = url.parse(oldUrl);
-        let pathname = captures.path;
-        msg.request.url = url.format({ protocol, auth, host, pathname, search, hash });
+        let pathname = req.fields.path as string;
+        req.url = url.format({ protocol, auth, host, pathname, search, hash });
 
         // TODO: more graceful behaviour if handler throws? Esp don't leak exception details to response
-        let handled = await serveStaticHandler(msg.request, msg.response);
-        msg.request.url = oldUrl;
-        return handled ? undefined : false;
+        let handled = await serveStaticHandler(req, res);
+        req.url = oldUrl;
+        return handled ? undefined : CONTINUE;
     };
 }
