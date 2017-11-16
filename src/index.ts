@@ -1,9 +1,10 @@
 import {deny, grant} from './access-control';
-import {createApplication} from './express/application';
+import {createApplication, start, stop} from './express/application';
 
 
 
 
 
 export {createApplication as createExpressApplication};
+export {start, stop};
 export {grant, deny};

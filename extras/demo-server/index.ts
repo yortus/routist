@@ -1,5 +1,5 @@
 import * as express from 'express';
-import {createExpressApplication, deny, grant} from 'routist';
+import {createExpressApplication, deny, grant, start, stop} from 'routist';
 
 
 
@@ -12,6 +12,7 @@ subapp.refine.access({
 });
 subapp.refine.routes({
     'GET /foo{**X}': (req, res) => { res.send(`Something beginning with foo and ending with ${req.fields.X}`); },
+    'POST /stop': (_, res) => { stop(app); res.status(200).send(); },
 });
 
 
@@ -23,4 +24,9 @@ app.use(subapp);
 app.use((req, res) => {
     res.status(404).send(`EXPRESS UNHANDLED:   ${req.url}`);
 });
-app.listen(8080);
+
+
+
+
+
+start(app, 8080);

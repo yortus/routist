@@ -6,8 +6,14 @@
 - [x] optimisation: don't make new access/routes multimethods on every handler change
   - [x] EITHER: add refresh() method to access control and dispatch middleware
   - [x] OR: queue up pending changes from the same tick to the next tick
-- [ ] app start/end
+- [x] app start/stop
 - [ ] `user` fluent API
+- [ ] route handler helpers:
+  - [ ] static file
+  - [ ] static dir/files
+  - [ ] json
+  - [ ] error
+- [ ] HTTPAPI client/server stuff...
 
 
 ## TODO List 01/11/17
