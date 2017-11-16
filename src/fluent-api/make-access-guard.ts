@@ -1,4 +1,4 @@
-import AccessGuard from '../access-guard';
+import {AccessGuard} from '../access-control-types';
 import ChainState from './chain-state';
 
 

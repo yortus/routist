@@ -2,7 +2,7 @@ import {RequestHandler} from 'express';
 import * as multimethods from 'multimethods';
 import Request from '../../request';
 import Response from '../../response';
-import {RouteTable} from '../../route-dispatch';
+import {RouteTable} from '../../route-dispatch-types';
 import debug from '../../util/debug';
 import createMiddleware from './create-middleware';
 

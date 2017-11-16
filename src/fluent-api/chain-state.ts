@@ -1,4 +1,4 @@
-import Permission from '../permission';
+import {Permission} from '../access-control-types';
 import AccessPredicate from './access-predicate';
 
 

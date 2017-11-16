@@ -1,5 +1,5 @@
-import {deny, grant, user} from './access-control';
 import {createApplication, start, stop} from './express/application';
+import {deny, grant, user} from './fluent-api';
 import Request from './request';
 import Response from './response';
 

@@ -1,6 +1,6 @@
-import Request from '../../request';
-import {GUEST} from '../../user';
-import Permission from '../permission';
+import {Permission} from '../access-control-types';
+import Request from '../request';
+import {GUEST} from '../user';
 import makeAccessGuard from './make-access-guard';
 import makeQualifierChain, {QualifierChain} from './make-qualifier-chain';
 export {QualifierChain, Request};
