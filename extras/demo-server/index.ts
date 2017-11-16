@@ -1,4 +1,4 @@
-import {createExpressApplication, deny, grant, GUEST, Request, Response, user} from 'routist';
+import {createExpressApplication, deny, grant, Request, Response, user} from 'routist';
 import authenticate from './authenticate';
 
 
@@ -77,8 +77,8 @@ app.routes['GET /fields/{**path}'] = reply.json(req => req.fields);
 
 // Session maintenance (login/logout)
 app.routes['GET /session'] = reply.json(req => ({
-    isLoggedIn: req.user !== GUEST,
-    username: req.user === GUEST ? '' : req.user,
+    isLoggedIn: user.isLoggedIn(req),
+    username: user.isLoggedIn(req) ? req.user : '',
 }));
 app.routes['POST /session'] = authenticate('usn', 'pwd');
 
@@ -117,7 +117,7 @@ app.routes['assignto: /users/{name}'] = reply.error('Not Implemented');
 function userIsInRole(roleName: string) {
     return (req: Request) => {
         if (roleName !== 'managers') return false;
-        if (req.user === GUEST) return false;
+        if (user.isGuest(req)) return false;
         return Object.values(managers).includes(req.user as any);
     };
 }

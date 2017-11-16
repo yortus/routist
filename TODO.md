@@ -7,7 +7,7 @@
   - [x] EITHER: add refresh() method to access control and dispatch middleware
   - [x] OR: queue up pending changes from the same tick to the next tick
 - [x] app start/stop
-- [ ] `user` fluent API
+- [x] `user` fluent API
 - [ ] route handler helpers:
   - [ ] static file
   - [ ] static dir/files

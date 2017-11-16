@@ -1,4 +1,5 @@
-import {GUEST, Request, Response} from 'routist';
+import {Request, Response} from 'routist';
+import {GUEST} from 'routist/user'; // TODO: temp testing internal... remove ref to GUEST...
 
 
 
