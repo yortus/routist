@@ -63,8 +63,8 @@ app.refine.access({
     'GET /public**':         grant.access,
     '{ANY} /session':         grant.access,
     'GET /users':             grant.access.when(user.is(CEO)),
-    'GET /users/{name}':      grant.access.when(user.is({field: 'name'})).or(userIsSuperiorToUserInField('name')),
-    'GET /teams/{teamlead}':  grant.access.when(userIsInRole('managers')).and(userIsSuperiorToUserInField('teamlead')),
+    'GET /users/{name}':      grant.access.when(user.is({field: 'name'})).or(userIsSuperiorTo({field: 'name'})),
+    'GET /teams/{mngr}':  grant.access.when(userIsInRole('managers')).and(userIsSuperiorTo({field: 'mngr'})),
 });
 
 
@@ -73,9 +73,11 @@ app.refine.access({
 
 // TODO: temp testing... static file(s)...
 // NB: since we don't copy static files to /dist, we have to navigate back to /extras
-app.routes['GET /public|GET /public/'] = staticFile('../../../extras/demo-server/static-files/index.html');
-app.routes['GET /public/{**path}'] = staticFiles('../../../extras/demo-server/static-files');
-app.routes['GET /public{**path}'] = reply.json(req => `Couldn't find static file '${req.fields.path}'`);
+app.refine.routes({
+    'GET /public|GET /public/': staticFile('../../../extras/demo-server/static-files/index.html'),
+    'GET /public/{**path}': staticFiles('../../../extras/demo-server/static-files'),
+    'GET /public{**path}': reply.json(req => `Couldn't find static file '${req.fields.path}'`),
+});
 
 
 // TODO: temp testing...
@@ -130,9 +132,9 @@ function userIsInRole(roleName: string) {
     };
 }
 
-function userIsSuperiorToUserInField(fieldName: string) {
+function userIsSuperiorTo(comparandUser: {field: string}) {
     return (req: Request) => {
-        let teamleadUser = req.fields[fieldName] as string || '';
+        let teamleadUser = req.fields[comparandUser.field] as string || '';
 
         // TODO: include self for now...
         if (teamleadUser === req.user) return true;

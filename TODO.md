@@ -9,8 +9,8 @@
 - [x] app start/stop
 - [x] `user` fluent API
 - [ ] route handler helpers:
-  - [ ] static file
-  - [ ] static dir/files
+  - [x] static file
+  - [x] static dir/files
   - [ ] json
   - [ ] error
 - [ ] HTTPAPI client/server stuff...
