@@ -1,13 +1,13 @@
 import * as path from 'path';
 import * as stackTrace from 'stack-trace';
-import {Handler} from '../route-table';
+import {RouteHandler} from '../route-dispatch-types';
 
 
 
 
 
 // TODO: need this at all? subsume into staticFiles?
-export default function staticFile(filePath: string): Handler {
+export default function staticFile(filePath: string): RouteHandler {
 
     // TODO: doc this... resolve rootPath relative to dir of immediate caller
     let callerFilename = stackTrace.get()[1].getFileName();
@@ -15,7 +15,5 @@ export default function staticFile(filePath: string): Handler {
     filePath = path.resolve(callerDirname, filePath);
     // TODO: ensure path exists... and that it is a file...
 
-    return msg => {
-        msg.response.sendFile(filePath);
-    };
+    return (_, res) => res.sendFile(filePath);
 }
