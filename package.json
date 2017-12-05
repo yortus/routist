@@ -1,6 +1,6 @@
 {
   "name": "routist",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "description": "routist",
   "readmeFilename": "README.md",
   "main": "dist/release/index.js",
@@ -51,14 +51,14 @@
     "serve-favicon": "^2.4.5",
     "serve-static": "^1.12.1",
     "session-file-store": "^1.0.0",
-    "stack-trace": "0.0.10"
+    "stack-trace": "0.0.10",
+    "@types/express": "^4.0.35"
   },
   "devDependencies": {
     "@types/body-parser": "0.0.34",
     "@types/chai": "^4.0.0",
     "@types/compression": "0.0.33",
     "@types/debug": "0.0.29",
-    "@types/express": "^4.0.35",
     "@types/express-session": "0.0.32",
     "@types/httperr": "^1.0.29",
     "@types/joi": "^13.0.0",
