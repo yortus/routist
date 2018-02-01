@@ -1,7 +1,5 @@
 import * as Joi from 'joi';
 import {machineIdSync} from 'node-machine-id';
-import * as path from 'path';
-import * as pkgDir from 'pkg-dir';
 import DeepPartial from '../../util/deep-partial';
 
 
@@ -17,7 +15,6 @@ export default ApplicationOptions;
 
 export interface ApplicationConfig {
     compressResponses: boolean;
-    faviconPath: string;
     parseBody: boolean;
     sessions: {
         type: 'fs' | 'memory';
@@ -43,11 +40,9 @@ export function validate(options: ApplicationOptions): ApplicationConfig {
 
 
 // TODO: Schema for runtime validation...
-const DEFAULT_FAVICON_PATH = path.join(pkgDir.sync(__dirname)!, 'extras/public/default-favicon.ico');
 const DEFAULT_SESSIONS = { type: 'fs', dir: 'sessions', secret: machineIdSync(), ttl: 600 };
 const SCHEMA = Joi.object().keys({
     compressResponses: Joi.boolean().optional().default(false),
-    faviconPath: Joi.string().optional().default(DEFAULT_FAVICON_PATH),
     parseBody: Joi.boolean().optional().default(true),
     sessions: Joi.object().optional().default(DEFAULT_SESSIONS).keys({
         type: Joi.string().required().equal('fs', 'memory').default(DEFAULT_SESSIONS.type),

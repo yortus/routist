@@ -5,7 +5,6 @@ import * as express from 'express';
 import * as session from 'express-session';
 import {Store} from 'express-session';
 import * as path from 'path';
-import * as favicon from 'serve-favicon';
 import * as sessionFileStore from 'session-file-store';
 import {AccessTable} from '../../access-control-types';
 import {RouteTable} from '../../route-dispatch-types';
@@ -49,9 +48,6 @@ export default function createApplication(options?: ApplicationOptions): Routist
 
     // If the app is running behind a reverse proxy, then trust the X-Forwarded-For headers.
     app.set('trust proxy', config.usingReverseProxy);
-
-    // If a 'GET /favicon.ico' request reaches this app, serve the configured icon file.
-    app.use(favicon(path.resolve(process.cwd(), config.faviconPath)));
 
     // Install session-handling middleware. NB: If this app is mounted as a subapp within an app
     // that already has session middleware, then this session middleware will have no effect.
