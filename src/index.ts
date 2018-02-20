@@ -3,7 +3,7 @@ import {createApplication, start, stop} from './express/application';
 import {user} from './identity-helpers';
 import Request from './request';
 import Response from './response';
-import {staticFile, staticFiles} from './route-dispatch-helpers';
+import {rpcMethods, staticFile, staticFiles} from './route-dispatch-helpers';
 
 
 
@@ -13,4 +13,4 @@ export {createApplication as createExpressApplication};
 export {start, stop};
 export {grant, deny, user};
 export {Request, Response};
-export {staticFile, staticFiles};
+export {rpcMethods, staticFile, staticFiles};

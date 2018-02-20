@@ -1,4 +1,5 @@
-import {createExpressApplication, deny, grant, Request, Response, staticFile, staticFiles, user} from 'routist';
+import {createExpressApplication, deny, grant, Request, Response, user} from 'routist';
+import {rpcMethods, staticFile, staticFiles} from 'routist';
 import authenticate from './authenticate';
 
 
@@ -55,6 +56,7 @@ app.listen(8080);
 
 
 app.refine.access({
+    'GET /favicon.ico':     grant.access,
 
     // TODO: temp testing...
     'GET /fields**':        grant.access,
@@ -65,6 +67,8 @@ app.refine.access({
     'GET /users':           grant.access.when(user.is(CEO)),
     'GET /users/{name}':    grant.access.when(user.is({field: 'name'})).or(userIsSuperiorTo({field: 'name'})),
     'GET /teams/{mngr}':    grant.access.when(userIsInRole('managers')).and(userIsSuperiorTo({field: 'mngr'})),
+
+    'POST /api/**':         grant.access.when(user.isLoggedIn),
 });
 
 
@@ -74,6 +78,7 @@ app.refine.access({
 // TODO: temp testing... static file(s)...
 // NB: since we don't copy static files to /dist, we have to navigate back to /extras
 app.refine.routes({
+    'GET /favicon.ico':             staticFile(`../../../extras/demo-server/static-files/favicon.ico`),
     'GET /public|GET /public/':     staticFile('../../../extras/demo-server/static-files/index.html'),
     'GET /public/{**path}':         staticFiles('../../../extras/demo-server/static-files'),
     'GET /public{**path}':          reply.json(req => `Couldn't find static file '${req.fields.path}'`),
@@ -120,6 +125,12 @@ app.routes['DELETE /users'] = reply.error('Not Implemented');
 // Re-assign the given user to the given boss (only for managers; user must be subordinate to logged in user)
 app.routes['assignto: /users/{name}'] = reply.error('Not Implemented');
 
+// Implement a little RPC API
+app.routes['POST /api/{methodName}'] = rpcMethods({
+    add3: async (n: number) => n + 3,
+    double: async (n: number) => n * 2,
+    ha: async (n: number) => 'ha'.repeat(n),
+});
 
 
 
