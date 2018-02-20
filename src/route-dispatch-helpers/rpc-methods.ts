@@ -21,10 +21,13 @@ export default function rpcMethods(rpcObj: {[methodName: string]: (_: any) => Pr
         // If the method name doesn't exist on `rpcObj`, then don't handle the request.
         if (!rpcObj.hasOwnProperty(methodName)) return CONTINUE;
 
-        // TODO: validate/check body at all?
+        // Expect `req.body` to be an array corresponding to method args
+        if (!Array.isArray(req.body)) throw new Error(`RPC route expects body to be an array of args`);
+        let args = req.body;
+        // TODO: validate/check body further?
 
         // Call the RPC method
-        let result = await rpcObj[methodName].call(null, req.body);
+        let result = await rpcObj[methodName].apply(null, args);
 
         // TODO: validate/check response before sending?
 
