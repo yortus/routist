@@ -45,7 +45,7 @@ const SCHEMA = Joi.object().keys({
     compressResponses: Joi.boolean().optional().default(false),
     parseBody: Joi.boolean().optional().default(true),
     sessions: Joi.object().optional().default(DEFAULT_SESSIONS).keys({
-        type: Joi.string().required().equal('fs', 'memory').default(DEFAULT_SESSIONS.type),
+        type: Joi.string().optional().equal('fs', 'memory').default(DEFAULT_SESSIONS.type),
         dir: Joi.string().optional().default('sessions').default(DEFAULT_SESSIONS.dir),
         secret: Joi.string().optional().default(DEFAULT_SESSIONS.secret),
         ttl: Joi.number().optional().default(600).default(DEFAULT_SESSIONS.ttl),
