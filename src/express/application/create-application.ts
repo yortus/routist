@@ -108,6 +108,7 @@ function addSessionMiddleware(app: express.Application, config: ApplicationConfi
         cookie: { maxAge: config.sessions.ttl * 1000 },
         secret: config.sessions.secret,
         resave: false,
+        rolling: true,
         saveUninitialized: true,
         store,
     }));
