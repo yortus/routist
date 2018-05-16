@@ -1,11 +1,11 @@
 import * as bodyParser from 'body-parser';
 import * as compression from 'compression';
+import * as lokiStore from 'connect-loki';
 import {EventEmitter} from 'events';
 import * as express from 'express';
 import * as session from 'express-session';
 import {Store} from 'express-session';
 import * as path from 'path';
-import * as sessionFileStore from 'session-file-store';
 import {AccessTable} from '../../access-control-types';
 import {RouteTable} from '../../route-dispatch-types';
 import * as middleware from '../middleware';
@@ -16,8 +16,7 @@ import getApplicationMetadata from './get-application-metadata';
 
 
 
-// TODO: remove cast when @types/session-file-store is fixed
-const FileStore: typeof sessionFileStore = (sessionFileStore as any)(session);
+const LokiStore = lokiStore(session);
 
 
 
@@ -77,26 +76,16 @@ function addSessionMiddleware(app: express.Application, config: ApplicationConfi
 
     // Create a session store as per config. Also generate cleanup code for the store.
     let store: Store;
-    let cleanupSessionMiddleware: () => void;
+    let cleanupSessionMiddleware = () => 0; // TODO: don't need this anymore...
     switch (config.sessions.type) {
         case 'fs':
-            let fileStoreOptions: sessionFileStore.Options = {
-                path: path.resolve(process.cwd(), config.sessions.dir),
+            store = new LokiStore({
+                path: path.resolve(process.cwd(), config.sessions.path),
                 ttl: config.sessions.ttl,
-                reapIntervalObject: null,
-            };
-            // TODO: remove cast when @types/session-file-store is fixed
-            store = new FileStore(fileStoreOptions) as any as Store;
-            cleanupSessionMiddleware = () => {
-                if (fileStoreOptions.reapIntervalObject) {
-                    clearInterval(fileStoreOptions.reapIntervalObject);
-                    fileStoreOptions.reapIntervalObject = null; // this makes the call idempotent
-                }
-            };
+            });
             break;
         case 'memory':
             store = new session.MemoryStore() as Store;
-            cleanupSessionMiddleware = () => 0;
             break;
         default:
             throw new Error(`Unsupported session type '${config.sessions.type}'`);
