@@ -1,5 +1,5 @@
 import {createExpressApplication, deny, grant, Request, Response, user} from 'routist';
-import {rpcMethods, staticFile, staticFiles} from 'routist';
+import {rpcMethods, staticFile, staticFiles, start, stop} from 'routist';
 import authenticate from './authenticate';
 
 
@@ -49,7 +49,8 @@ managers = {
 // Demo Code
 // ================================================================================
 let app = createExpressApplication();
-app.listen(8080);
+start(app, 8080);
+setTimeout(() => stop(app), 5000); // TODO: temp testing...
 
 
 

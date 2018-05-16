@@ -1,7 +1,6 @@
 import * as bodyParser from 'body-parser';
 import * as compression from 'compression';
 import * as lokiStore from 'connect-loki';
-import {EventEmitter} from 'events';
 import * as express from 'express';
 import * as session from 'express-session';
 import {Store} from 'express-session';
@@ -10,7 +9,6 @@ import {AccessTable} from '../../access-control-types';
 import {RouteTable} from '../../route-dispatch-types';
 import * as middleware from '../middleware';
 import {ApplicationConfig, ApplicationOptions, validate} from './application-options';
-import getApplicationMetadata from './get-application-metadata';
 
 
 
@@ -76,7 +74,6 @@ function addSessionMiddleware(app: express.Application, config: ApplicationConfi
 
     // Create a session store as per config. Also generate cleanup code for the store.
     let store: Store;
-    let cleanupSessionMiddleware = () => 0; // TODO: don't need this anymore...
     switch (config.sessions.type) {
         case 'fs':
             store = new LokiStore({
@@ -101,18 +98,6 @@ function addSessionMiddleware(app: express.Application, config: ApplicationConfi
         saveUninitialized: true,
         store,
     }));
-
-    // TODO: Add the cleanup code to the app's metadata...
-    let appMetadata = getApplicationMetadata(app);
-    let oldCleanup = appMetadata.cleanup;
-    appMetadata.cleanup = () => { oldCleanup(); cleanupSessionMiddleware(); };
-    (app as any as EventEmitter).on('mount', (parent: express.Application) => {
-        // TODO: ^^^ remove cast above when '@types/express' is fixed
-        // If mounted as a subapp, add cleanup steps to parent
-        let parentAppMetadata = getApplicationMetadata(parent);
-        let parentOldCleanup = parentAppMetadata.cleanup;
-        parentAppMetadata.cleanup = () => { parentOldCleanup(); appMetadata.cleanup(); };
-    });
 }
 
 
