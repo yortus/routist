@@ -1,3 +1,6 @@
+## TODO
+- [ ] doc in readme special handling of HttpError instances, rest are passed to next for client app to handle
+
 ## TODO 15/11/2017
 - [x] handle errors properly throughout the middleware stack
   - [x] in particular, if any routist middleware throws/rejects, it should be handled gracefully
