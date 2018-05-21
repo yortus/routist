@@ -25,13 +25,17 @@ export default function createMiddleware(handler: RoutistRequestHandler): Expres
             // TODO: temp testing... better format/info?
             debug(`REQUEST ERROR: ${err}`);
 
+            // If the error is an HttpError, then respond to it. The permissions system uses this to respond with 403.
+            // Client can also use it as a way to get routist to handle errors (ie send response) directly.
+            // TODO: doc special case handling of HttpError instances - this is effectively part of the public API.
             if (err instanceof HttpError) {
                 res.status(err.statusCode);
                 res.send(err.message); // TODO: don't leak server details to client... how to ensure this reliably??
+                return;
             }
-            else {
-                res.status(500).send('Internal server error');
-            }
+
+            // In general, routist doesn't handle/respond on errors.The client application should do that for itself.
+            next(err);
         }
     };
 }
