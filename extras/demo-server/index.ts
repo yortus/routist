@@ -1,5 +1,5 @@
 import {createExpressApplication, deny, grant, Request, Response, user} from 'routist';
-import {rpcMethods, staticFile, staticFiles, start, stop} from 'routist';
+import {rpcMethods, start, staticFile, staticFiles} from 'routist';
 import authenticate from './authenticate';
 
 
