@@ -50,7 +50,7 @@ managers = {
 // ================================================================================
 let app = createExpressApplication();
 start(app, 8080);
-setTimeout(() => stop(app), 5000); // TODO: temp testing...
+// setTimeout(() => stop(app), 5000); // TODO: temp testing...
 
 
 
