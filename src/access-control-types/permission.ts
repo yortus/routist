@@ -3,5 +3,5 @@
 
 
 
-const enum Permission { GRANTED, DENIED, INHERITED }
+type Permission = 'grant' | 'deny' | 'pass';
 export default Permission;

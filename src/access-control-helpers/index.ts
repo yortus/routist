@@ -1,4 +1,3 @@
-import {Permission} from '../access-control-types';
 import Request from '../request';
 import makeAccessGuard from './make-access-guard';
 import makeQualifierChain, {QualifierChain} from './make-qualifier-chain';
@@ -27,14 +26,14 @@ export const grant = {
     access: Object.assign(
         makeAccessGuard({
             test: () => true,
-            consequent: Permission.GRANTED,
-            alternate: Permission.DENIED,
+            consequent: 'grant',
+            alternate: 'deny', // TODO: should this be 'pass'?
         }),
         {
             when: makeQualifierChain(predicate => ({
                 test: predicate,
-                consequent: Permission.GRANTED,
-                alternate: Permission.DENIED,
+                consequent: 'grant',
+                alternate: 'deny', // TODO: should this be 'pass'?
             })),
         }
     ),
@@ -49,14 +48,14 @@ export const deny = {
     access: Object.assign(
         makeAccessGuard({
             test: () => true,
-            consequent: Permission.DENIED,
-            alternate: Permission.GRANTED,
+            consequent: 'deny',
+            alternate: 'grant', // TODO: should this be 'pass'?
         }),
         {
             when: makeQualifierChain(predicate => ({
                 test: predicate,
-                consequent: Permission.DENIED,
-                alternate: Permission.GRANTED,
+                consequent: 'deny',
+                alternate: 'grant', // TODO: should this be 'pass'?
             })),
         }
     ),

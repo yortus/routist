@@ -1,4 +1,4 @@
-import {AccessGuard, Permission} from '../access-control-types';
+import {AccessGuard} from '../access-control-types';
 import AccessPredicate from './access-predicate';
 import ChainState from './chain-state';
 import makeAccessGuard from './make-access-guard';
@@ -35,7 +35,7 @@ export default function makeQualifierChain(deriveState: (predicate: AccessPredic
                     fallback: makeAccessGuard({
                         test: state.test,
                         consequent: state.consequent,
-                        alternate: Permission.INHERITED,
+                        alternate: 'pass',
                     }),
                 },
             }

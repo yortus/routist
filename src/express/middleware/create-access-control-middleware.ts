@@ -1,7 +1,7 @@
 import {RequestHandler} from 'express';
 import * as httperr from 'httperr';
 import * as multimethods from 'multimethods';
-import {AccessTable, Permission} from '../../access-control-types';
+import {AccessTable} from '../../access-control-types';
 import {GUEST} from '../../identity-types';
 import Request from '../../request';
 import debug from '../../util/debug';
@@ -40,15 +40,15 @@ export default function createAccessControlMiddleware() {
 
     // TODO: Express middleware function...
     let middleware = createMiddleware(async req => {
-        let permission: Permission.GRANTED | Permission.DENIED;
+        let permission: 'grant' | 'deny';
         try {
             permission = await multimethod(req);
         }
         catch {
-            permission = Permission.DENIED; // TODO: doc this... it's the fallback if no catchall or a perm rule throws
+            permission = 'deny'; // TODO: doc this... it's the fallback if no catchall or a perm rule throws
             // TODO: if something in permission system throws, we better log the error too...
         }
-        if (permission === Permission.GRANTED) return false;
+        if (permission === 'grant') return false;
 
         // TODO: Permission denied... improve error handling...
         // TODO: use httperr library?
@@ -75,15 +75,15 @@ function compileAccessTable(access: AccessTable) {
             meths[key] = async (req, captures) => {
                 req._captures = captures;
                 let result = await access[key](req);
-                return result === Permission.INHERITED ? multimethods.CONTINUE : result;
+                return result === 'pass' ? multimethods.CONTINUE : result;
             };
             return meths;
         },
-        {} as {[x: string]: (req: Request, captures: any) => Promise<Permission.GRANTED | Permission.DENIED>}
+        {} as {[x: string]: (req: Request, captures: any) => Promise<'grant' | 'deny'>}
     );
 
     // TODO: temp testing...
-    return multimethods.create<Request, Permission.GRANTED | Permission.DENIED>({
+    return multimethods.create<Request, 'grant' | 'deny'>({
         arity: 1,
         async: undefined,
         methods,
