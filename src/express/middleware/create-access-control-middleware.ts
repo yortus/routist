@@ -1,7 +1,7 @@
 import {RequestHandler} from 'express';
 import * as httperr from 'httperr';
 import * as multimethods from 'multimethods';
-import {AccessTable} from '../../access-control-types';
+import {AccessTable} from '../../access-control';
 import {GUEST} from '../../identity-types';
 import Request from '../../request';
 import debug from '../../util/debug';

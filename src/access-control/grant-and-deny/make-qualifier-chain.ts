@@ -1,4 +1,4 @@
-import {AccessGuard} from '../access-control-types';
+import AccessGuard from '../access-guard';
 import AccessPredicate from './access-predicate';
 import ChainState from './chain-state';
 import makeAccessGuard from './make-access-guard';

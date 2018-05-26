@@ -1,5 +1,4 @@
-import {deny, grant} from './access-control-helpers';
-import {AccessGuard, AccessTable, Permission} from './access-control-types';
+import {AccessGuard, AccessTable, deny, grant, Permission} from './access-control';
 import {createApplication, RoutistExpressApplication, start, stop} from './express/application';
 import {user} from './identity-helpers';
 import Request from './request';
