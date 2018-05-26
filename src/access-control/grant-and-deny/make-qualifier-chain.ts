@@ -1,7 +1,7 @@
-import AccessGuard from '../access-guard';
+import AccessRule from '../access-rule';
 import AccessPredicate from './access-predicate';
 import ChainState from './chain-state';
-import makeAccessGuard from './make-access-guard';
+import makeAccessRule from './make-access-rule';
 
 
 
@@ -15,11 +15,11 @@ export default function makeQualifierChain(deriveState: (predicate: AccessPredic
         let state = deriveState(predicate);
 
         // Make an access guard function based on the new chain state.
-        let accessGuard = makeAccessGuard(state);
+        let accessRule = makeAccessRule(state);
 
         // Form a chain by augmenting the access guard with recursive and/or/else chain continuations.
         return Object.assign(
-            accessGuard,
+            accessRule,
             {
                 and: makeQualifierChain(andPredicate => ({
                     test: async req => (await state.test(req)) && (await andPredicate(req)),
@@ -32,7 +32,7 @@ export default function makeQualifierChain(deriveState: (predicate: AccessPredic
                     alternate: state.alternate,
                 })),
                 else: {
-                    fallback: makeAccessGuard({
+                    fallback: makeAccessRule({
                         test: state.test,
                         consequent: state.consequent,
                         alternate: 'pass',
@@ -48,10 +48,10 @@ export default function makeQualifierChain(deriveState: (predicate: AccessPredic
 
 
 
-export type QualifierChain = (predicate: AccessPredicate) => AccessGuard & {
+export type QualifierChain = (predicate: AccessPredicate) => AccessRule & {
     and: QualifierChain;
     or: QualifierChain;
     else: {
-        fallback: AccessGuard;
+        fallback: AccessRule;
     }
 };
