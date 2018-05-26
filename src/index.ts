@@ -1,7 +1,6 @@
-import {AccessGuard, AccessTable, deny, grant, Permission} from './access-control';
+import {AccessGuard, AccessTable, deny, grant, Permission, user} from './access-control';
 import {createApplication, RoutistExpressApplication, start, stop} from './express/application';
 import GUEST from './guest';
-import {user} from './identity-helpers';
 import Request from './request';
 import Response from './response';
 import {staticFile, staticFiles} from './route-dispatch-helpers';
