@@ -1,4 +1,4 @@
-import {GUEST} from '../identity-types';
+import GUEST from '../guest';
 import Request from '../request';
 
 

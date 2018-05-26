@@ -2,7 +2,7 @@ import {RequestHandler} from 'express';
 import * as httperr from 'httperr';
 import * as multimethods from 'multimethods';
 import {AccessTable} from '../../access-control';
-import {GUEST} from '../../identity-types';
+import GUEST from '../../guest';
 import Request from '../../request';
 import debug from '../../util/debug';
 import createMiddleware from './create-middleware';

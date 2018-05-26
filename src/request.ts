@@ -1,5 +1,5 @@
 import * as express from 'express';
-import {User} from './identity-types';
+import GUEST from './guest';
 
 
 
@@ -7,7 +7,7 @@ import {User} from './identity-types';
 
 // TODO: ...
 export default interface Request extends express.Request {
-    user: User;
+    user: string | GUEST;
     intent: string;
     fields: { [name: string]: {} };
 

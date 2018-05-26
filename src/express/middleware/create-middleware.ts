@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import {Request as ExpressRequest, RequestHandler as ExpressRequestHandler} from 'express';
 import {HttpError} from 'httperr';
 import * as url from 'url';
-import {GUEST, User} from '../../identity-types';
+import GUEST from '../../guest';
 import {default as RoutistRequest} from '../../request';
 import {default as RoutistResponse} from '../../response';
 import debug from '../../util/debug';
@@ -70,11 +70,11 @@ function augmentRequest(expressRequest: ExpressRequest) {
     // TODO: how to ensure sync with RoutistRequest interface?
     Object.defineProperties(req, {
         user: {
-            get: (): User => {
+            get: (): string | GUEST => {
                 assert(req.session, 'Internal error: request contains no session property.');
                 return req.session!.user || GUEST;
             },
-            set: (value: User) => {
+            set: (value: string | GUEST) => {
                 assert(req.session, 'Internal error: request contains no session property.');
                 req.session!.user = value;
             },
