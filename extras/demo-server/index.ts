@@ -1,5 +1,5 @@
 import {createExpressApplication, deny, grant, Request, Response, user} from 'routist';
-import {rpcMethods, start, staticFile, staticFiles} from 'routist';
+import {start, staticFile, staticFiles} from 'routist';
 import authenticate from './authenticate';
 
 
@@ -125,13 +125,6 @@ app.routes['DELETE /users'] = reply.error('Not Implemented');
 
 // Re-assign the given user to the given boss (only for managers; user must be subordinate to logged in user)
 app.routes['assignto: /users/{name}'] = reply.error('Not Implemented');
-
-// Implement a little RPC API
-app.routes['POST /api/{methodName}'] = rpcMethods({
-    add3: async (n: number) => n + 3,
-    double: async (n: number) => n * 2,
-    ha: async (n: number) => 'ha'.repeat(n),
-});
 
 
 
