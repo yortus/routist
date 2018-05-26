@@ -1,7 +1,7 @@
 import AccessContext from './access-context';
 import AccessRule from './access-rule';
 import AccessTable from './access-table';
-import {user} from './builtin-predicates';
+import {user} from './builtin-rule-qualifiers';
 import {deny, grant} from './grant-and-deny';
 import RuleQualifier from './rule-qualifier';
 
