@@ -1,24 +1,24 @@
 import GUEST from '../../guest';
-import AccessPredicate from '../grant-and-deny/access-predicate';
+import RuleQualifier from '../rule-qualifier';
 
 
 
 
 
-export const isLoggedIn: AccessPredicate = user => user !== GUEST;
+export const isLoggedIn: RuleQualifier = user => user !== GUEST;
 
 
 
 
 
-export const isGuest: AccessPredicate = user => user === GUEST;
+export const isGuest: RuleQualifier = user => user === GUEST;
 
 
 
 
 
 export function is(name: string | {field: string}) {
-    let result: AccessPredicate = (user, ctx) => {
+    let result: RuleQualifier = (user, ctx) => {
         if (typeof name === 'string') {
             return user === name;
         }

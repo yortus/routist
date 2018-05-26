@@ -1,5 +1,5 @@
 import AccessRule from '../access-rule';
-import AccessPredicate from './access-predicate';
+import RuleQualifier from '../rule-qualifier';
 import ChainState from './chain-state';
 import makeAccessRule from './make-access-rule';
 
@@ -7,9 +7,9 @@ import makeAccessRule from './make-access-rule';
 
 
 
-export default function makeQualifierChain(deriveState: (predicate: AccessPredicate) => ChainState) {
+export default function makeQualifierChain(deriveState: (predicate: RuleQualifier) => ChainState) {
 
-    let result: QualifierChain = (predicate: AccessPredicate) => {
+    let result: QualifierChain = (predicate: RuleQualifier) => {
 
         // Derive a chain state from the given predicate using the supplied function.
         let state = deriveState(predicate);
@@ -48,7 +48,7 @@ export default function makeQualifierChain(deriveState: (predicate: AccessPredic
 
 
 
-export type QualifierChain = (predicate: AccessPredicate) => AccessRule & {
+export type QualifierChain = (predicate: RuleQualifier) => AccessRule & {
     and: QualifierChain;
     or: QualifierChain;
     else: {

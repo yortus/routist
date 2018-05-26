@@ -1,4 +1,4 @@
-import {AccessPredicate, createExpressApplication, deny, grant, GUEST, Request, Response, user} from 'routist';
+import {createExpressApplication, deny, grant, GUEST, Request, Response, RuleQualifier, user} from 'routist';
 import {start, staticFile, staticFiles} from 'routist';
 import authenticate from './authenticate';
 
@@ -130,7 +130,7 @@ app.routes['assignto: /users/{name}'] = reply.error('Not Implemented');
 
 
 function userIsInRole(roleName: string) {
-    let result: AccessPredicate = (usr, ctx) => {
+    let result: RuleQualifier = (usr, ctx) => {
         if (roleName !== 'managers') return false;
         if (user.isGuest(usr, ctx)) return false;
         return Object.values(managers).includes(usr as any);
@@ -139,7 +139,7 @@ function userIsInRole(roleName: string) {
 }
 
 function userIsSuperiorTo(comparandUser: {field: string}) {
-    let result: AccessPredicate = (usr, ctx) => {
+    let result: RuleQualifier = (usr, ctx) => {
         let teamleadUser = ctx.params[comparandUser.field] as string || '';
 
         // TODO: include self for now...

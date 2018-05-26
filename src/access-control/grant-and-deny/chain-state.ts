@@ -1,11 +1,11 @@
-import AccessPredicate from './access-predicate';
+import RuleQualifier from '../rule-qualifier';
 
 
 
 
 
 export default interface ChainState {
-    test: AccessPredicate;
+    test: RuleQualifier;
     consequent: 'grant' | 'deny' | 'pass'; // TODO: need 'pass' here?
     alternate: 'grant' | 'deny' | 'pass'; // TODO: need 'pass' here?
 }
