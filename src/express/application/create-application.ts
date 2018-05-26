@@ -6,7 +6,7 @@ import * as session from 'express-session';
 import {Store} from 'express-session';
 import * as path from 'path';
 import {AccessTable} from '../../access-control';
-import {RouteTable} from '../../route-dispatch-types';
+import {RouteTable} from '../../route-handling';
 import * as middleware from '../middleware';
 import {ApplicationConfig, ApplicationOptions, validate} from './application-options';
 

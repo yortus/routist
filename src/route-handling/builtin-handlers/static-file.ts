@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as stackTrace from 'stack-trace';
-import {RouteHandler} from '../route-dispatch-types';
+import RouteHandler from '../route-handler';
 
 
 

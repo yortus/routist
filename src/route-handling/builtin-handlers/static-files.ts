@@ -2,8 +2,8 @@ import * as path from 'path';
 import * as serveStatic from 'serve-static';
 import * as stackTrace from 'stack-trace';
 import * as url from 'url';
-import {RouteHandler} from '../route-dispatch-types';
-import promisifyExpressHandler from '../util/promisify-express-handler';
+import promisifyExpressHandler from '../../util/promisify-express-handler';
+import RouteHandler from '../route-handler';
 
 
 

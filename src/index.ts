@@ -3,8 +3,7 @@ import {createApplication, RoutistExpressApplication, start, stop} from './expre
 import GUEST from './guest';
 import Request from './request';
 import Response from './response';
-import {staticFile, staticFiles} from './route-dispatch-helpers';
-import {RouteHandler, RouteTable} from './route-dispatch-types';
+import {RouteHandler, RouteTable, staticFile, staticFiles} from './route-handling';
 
 
 
