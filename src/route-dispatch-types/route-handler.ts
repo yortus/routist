@@ -1,10 +1,9 @@
 import Request from '../request';
 import Response from '../response';
-import CONTINUE from './continue';
 
 
 
 
 
-type RouteHandler = (req: Request, res: Response) => void | CONTINUE | Promise<void | CONTINUE>;
+type RouteHandler = (req: Request, res: Response) => void | 'continue' | Promise<void | 'continue'>;
 export default RouteHandler;

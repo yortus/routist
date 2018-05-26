@@ -4,7 +4,7 @@ import {user} from './identity-helpers';
 import Request from './request';
 import Response from './response';
 import {staticFile, staticFiles} from './route-dispatch-helpers';
-import {CONTINUE, RouteHandler, RouteTable} from './route-dispatch-types';
+import {RouteHandler, RouteTable} from './route-dispatch-types';
 
 
 
@@ -14,4 +14,4 @@ export {start, stop};
 export {grant, deny, Permission, AccessGuard, AccessTable, user};
 export {Request, Response};
 export {staticFile, staticFiles};
-export {CONTINUE, RouteHandler, RouteTable};
+export {RouteHandler, RouteTable};

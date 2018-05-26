@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as serveStatic from 'serve-static';
 import * as stackTrace from 'stack-trace';
 import * as url from 'url';
-import {CONTINUE, RouteHandler} from '../route-dispatch-types';
+import {RouteHandler} from '../route-dispatch-types';
 import promisifyExpressHandler from '../util/promisify-express-handler';
 
 
@@ -31,6 +31,6 @@ export default function staticFiles(rootPath: string): RouteHandler {
         // TODO: more graceful behaviour if handler throws? Esp don't leak exception details to response
         let handled = await serveStaticHandler(req, res);
         req.url = oldUrl;
-        return handled ? undefined : CONTINUE;
+        return handled ? undefined : 'continue';
     };
 }
