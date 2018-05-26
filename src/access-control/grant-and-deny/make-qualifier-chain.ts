@@ -22,12 +22,12 @@ export default function makeQualifierChain(deriveState: (predicate: AccessPredic
             accessRule,
             {
                 and: makeQualifierChain(andPredicate => ({
-                    test: async req => (await state.test(req)) && (await andPredicate(req)),
+                    test: async (user, ctx) => (await state.test(user, ctx)) && (await andPredicate(user, ctx)),
                     consequent: state.consequent,
                     alternate: state.alternate,
                 })),
                 or: makeQualifierChain(orPredicate => ({
-                    test: async req => (await state.test(req)) || (await orPredicate(req)),
+                    test: async (user, ctx) => (await state.test(user, ctx)) || (await orPredicate(user, ctx)),
                     consequent: state.consequent,
                     alternate: state.alternate,
                 })),

@@ -3,8 +3,9 @@ import makeQualifierChain from './make-qualifier-chain';
 
 // TS4082/TS6133 workaraound
 import Request from '../../request';
+import AccessContext from '../access-context';
 import {QualifierChain} from './make-qualifier-chain';
-export {Request, QualifierChain};
+export {AccessContext, QualifierChain, Request};
 
 
 

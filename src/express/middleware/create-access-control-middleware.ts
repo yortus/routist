@@ -1,7 +1,7 @@
 import {RequestHandler} from 'express';
 import * as httperr from 'httperr';
 import * as multimethods from 'multimethods';
-import {AccessTable} from '../../access-control';
+import {AccessContext, AccessTable} from '../../access-control';
 import GUEST from '../../guest';
 import Request from '../../request';
 import debug from '../../util/debug';
@@ -74,7 +74,12 @@ function compileAccessTable(access: AccessTable) {
         (meths, key) => {
             meths[key] = async (req, captures) => {
                 req._captures = captures;
-                let result = await access[key](req);
+                let accessContext: AccessContext = {
+                    user: req.user,
+                    path: req.intent,
+                    params: captures,
+                };
+                let result = await access[key](req.user, accessContext);
                 return result === 'pass' ? multimethods.CONTINUE : result;
             };
             return meths;

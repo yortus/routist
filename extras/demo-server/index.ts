@@ -1,4 +1,4 @@
-import {createExpressApplication, deny, grant, Request, Response, user} from 'routist';
+import {AccessPredicate, createExpressApplication, deny, grant, GUEST, Request, Response, user} from 'routist';
 import {start, staticFile, staticFiles} from 'routist';
 import authenticate from './authenticate';
 
@@ -93,8 +93,8 @@ app.routes['GET /fields/{**path}'] = reply.json(req => req.fields);
 
 // Session maintenance (login/logout)
 app.routes['GET /session'] = reply.json(req => ({
-    isLoggedIn: user.isLoggedIn(req),
-    username: user.isLoggedIn(req) ? req.user : '',
+    isLoggedIn: req.user !== GUEST,
+    username: req.user !== GUEST ? req.user : '',
 }));
 app.routes['POST /session'] = authenticate('usn', 'pwd');
 
@@ -130,21 +130,23 @@ app.routes['assignto: /users/{name}'] = reply.error('Not Implemented');
 
 
 function userIsInRole(roleName: string) {
-    return (req: Request) => {
+    let result: AccessPredicate = (usr, ctx) => {
         if (roleName !== 'managers') return false;
-        if (user.isGuest(req)) return false;
-        return Object.values(managers).includes(req.user as any);
+        if (user.isGuest(usr, ctx)) return false;
+        return Object.values(managers).includes(usr as any);
     };
+    return result;
 }
 
 function userIsSuperiorTo(comparandUser: {field: string}) {
-    return (req: Request) => {
-        let teamleadUser = req.fields[comparandUser.field] as string || '';
+    let result: AccessPredicate = (usr, ctx) => {
+        let teamleadUser = ctx.params[comparandUser.field] as string || '';
 
         // TODO: include self for now...
-        if (teamleadUser === req.user) return true;
+        if (teamleadUser === usr) return true;
 
         // TODO: check should be recursive...
-        return (managers[teamleadUser] || '') === req.user;
+        return (managers[teamleadUser] || '') === usr;
     };
+    return result;
 }

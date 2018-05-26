@@ -1,4 +1,4 @@
-import {AccessRule, AccessTable, deny, grant, Permission, user} from './access-control';
+import {AccessContext, AccessPredicate, AccessRule, AccessTable, deny, grant, user} from './access-control';
 import {createApplication, RoutistExpressApplication, start, stop} from './express/application';
 import GUEST from './guest';
 import Request from './request';
@@ -11,7 +11,7 @@ import {RouteHandler, RouteTable, staticFile, staticFiles} from './route-handlin
 
 export {createApplication as createExpressApplication, RoutistExpressApplication};
 export {start, stop};
-export {grant, deny, Permission, AccessRule, AccessTable, user};
+export {grant, deny, AccessContext, AccessPredicate, AccessRule, AccessTable, user};
 export {Request, Response};
 export {staticFile, staticFiles};
 export {RouteHandler, RouteTable};

@@ -1,12 +1,13 @@
+import AccessContext from './access-context';
 import AccessRule from './access-rule';
 import AccessTable from './access-table';
 import {user} from './builtin-predicates';
 import {deny, grant} from './grant-and-deny';
-import Permission from './permission';
+import AccessPredicate from './grant-and-deny/access-predicate';
 
 
 
 
 
 export {grant, deny, user};
-export {AccessRule, AccessTable, Permission};
+export {AccessPredicate, AccessRule, AccessTable, AccessContext};

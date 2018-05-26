@@ -1,8 +1,9 @@
-import Request from '../../request';
+import GUEST from '../../guest';
+import AccessContext from '../access-context';
 
 
 
 
 
-type AccessPredicate = (req: Request) => boolean | Promise<boolean>;
+type AccessPredicate = (user: string | GUEST, context: AccessContext) => boolean | Promise<boolean>;
 export default AccessPredicate;

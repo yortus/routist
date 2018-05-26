@@ -6,8 +6,8 @@ import ChainState from './chain-state';
 
 
 export default function makeAccessRule(state: ChainState): AccessRule {
-    return async req => {
-        let testResult = await state.test(req);
+    return async (user, context) => {
+        let testResult = await state.test(user, context);
         return testResult ? state.consequent : state.alternate;
     };
 }
