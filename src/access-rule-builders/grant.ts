@@ -17,7 +17,7 @@ export {AccessContext, GUEST};
 const grant = {
     access: Object.assign(
         makeAccessRule({
-            test: (_user: string | GUEST) => true,
+            test: () => true,
             consequent: 'grant',
             alternate: 'deny', // TODO: should this be 'pass'?
         }),

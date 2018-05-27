@@ -1,9 +1,9 @@
 import {start, stop} from './application-control';
 import ApplicationOptions from './application-options';
-import createApplication, {RoutistExpressApplication} from './create-application';
+import createRouter, {ExpressRouter} from './create-router';
 
 
 
 
 
-export {ApplicationOptions, createApplication, RoutistExpressApplication, start, stop};
+export {ApplicationOptions, createRouter, ExpressRouter, start, stop};

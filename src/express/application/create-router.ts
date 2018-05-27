@@ -5,7 +5,8 @@ import * as express from 'express';
 import * as session from 'express-session';
 import {Store} from 'express-session';
 import * as path from 'path';
-import AccessTable, {AccessRule} from '../../access-table';
+import {AccessRule} from '../../access-table';
+import GUEST from '../../guest';
 import {RouteTable} from '../../route-handling';
 import * as middleware from '../middleware';
 import {ApplicationConfig, ApplicationOptions, validate} from './application-options';
@@ -21,13 +22,20 @@ const LokiStore = lokiStore(session);
 
 
 // TODO: ...
-export interface RoutistExpressApplication extends express.Application {
-    routes: RouteTable;
-    access: AccessTable;
-    refine: {
-        routes(newRoutes: RouteTable): void;
-        access(newRules: {[resourceQualifier: string]: AccessRule}): void;
-    };
+export interface ExpressRouter extends express.Application {
+
+    routes: never; // override express decl of `routes`
+    refineRoutes(newRoutes: RouteTable): ExpressRouter;
+    refineAccess(newRules: {[resourceQualifier: string]: AccessRule}): ExpressRouter;
+    queryAccess(user: string | GUEST, resource: string): Promise<boolean>;
+
+    // TODO: was...
+    // routes: RouteTable;
+    // access: AccessTable;
+    // refine: {
+    //     routes(newRoutes: RouteTable): void;
+    //     access(newRules: {[resourceQualifier: string]: AccessRule}): void;
+    // };
 }
 
 
@@ -35,7 +43,7 @@ export interface RoutistExpressApplication extends express.Application {
 
 
 // TODO: ...
-export default function createApplication(options?: ApplicationOptions): RoutistExpressApplication {
+export default function createRouter(options?: ApplicationOptions): ExpressRouter {
 
     // Validate options.
     const config = validate(options || {});
@@ -111,19 +119,28 @@ function addRoutistMiddlewareAndAugment(app: express.Application) {
     let authorise = middleware.createAccessControlMiddleware();
     let dispatch = middleware.createRouteDispatchMiddleware();
 
-    let augmentedApp = app as express.Application as RoutistExpressApplication;
+    let augmentedApp = app as express.Application as ExpressRouter;
     augmentedApp.use(logRequest, authorise, dispatch);
-    augmentedApp.access = authorise.access;
-    augmentedApp.routes = dispatch.routes;
-    augmentedApp.refine = {
-        routes(newRoutes: RouteTable) {
-            Object.keys(newRoutes).forEach(intentFilter => {
-                dispatch.routes[intentFilter] = newRoutes[intentFilter];
-            });
-        },
-        access(newRules: {[resourceQualifier: string]: AccessRule}) {
-            authorise.access.extend(newRules);
-        },
+
+
+
+// TODO: fixing...
+//    augmentedApp.access = authorise.access;
+//    augmentedApp.routes = dispatch.routes;
+    augmentedApp.refineRoutes = newRoutes => {
+        Object.keys(newRoutes).forEach(intentFilter => {
+            dispatch.routes[intentFilter] = newRoutes[intentFilter];
+        });
+        return augmentedApp;
+    };
+
+    augmentedApp.refineAccess = newRules => {
+        authorise.access.extend(newRules);
+        return augmentedApp;
+    };
+
+    augmentedApp.queryAccess = async (user, resource) => {
+        return await authorise.access.query(user, resource);
     };
 
     return augmentedApp;

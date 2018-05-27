@@ -1,4 +1,4 @@
-import {createExpressApplication, deny, grant, GUEST, Request, Response, RuleQualifier, user} from 'routist';
+import {createRouter, deny, grant, GUEST, Request, Response, RuleQualifier, user} from 'routist';
 import {start, staticFile, staticFiles} from 'routist';
 import authenticate from './authenticate';
 
@@ -48,7 +48,7 @@ managers = {
 // ================================================================================
 // Demo Code
 // ================================================================================
-let app = createExpressApplication();
+let app = createRouter();
 start(app, 8080);
 // setTimeout(() => stop(app), 5000); // TODO: temp testing...
 
@@ -56,7 +56,7 @@ start(app, 8080);
 
 
 
-app.refine.access({
+app.refineAccess({
     'GET /favicon.ico':     grant.access,
 
     // TODO: temp testing...
@@ -81,7 +81,7 @@ app.refine.access({
 
 // TODO: temp testing... static file(s)...
 // NB: since we don't copy static files to /dist, we have to navigate back to /extras
-app.refine.routes({
+app.refineRoutes({
     'GET /favicon.ico':             staticFile(`../../../extras/demo-server/static-files/favicon.ico`),
     'GET /public|GET /public/':     staticFile('../../../extras/demo-server/static-files/index.html'),
     'GET /public/{**path}':         staticFiles('../../../extras/demo-server/static-files'),
@@ -90,45 +90,46 @@ app.refine.routes({
 
 
 // TODO: temp testing...
-app.routes['GET /fields'] = reply.json(req => req.fields);
-app.routes['GET /fields/{name}'] = reply.json(req => req.fields);
-app.routes['GET /fields/{**path}'] = reply.json(req => req.fields);
+app.refineRoutes({
+    'GET /fields': reply.json(req => req.fields),
+    'GET /fields/{name}': reply.json(req => req.fields),
+    'GET /fields/{**path}': reply.json(req => req.fields),
 
-// Session maintenance (login/logout)
-app.routes['GET /session'] = reply.json(req => ({
-    isLoggedIn: req.user !== GUEST,
-    username: req.user !== GUEST ? req.user : '',
-}));
-app.routes['POST /session'] = authenticate('usn', 'pwd');
+    // Session maintenance (login/logout)
+    'GET /session': reply.json(req => ({
+        isLoggedIn: req.user !== GUEST,
+        username: req.user !== GUEST ? req.user : '',
+    })),
+    'POST /session': authenticate('usn', 'pwd'),
 
-// List all users (only for ceo)
-app.routes['GET /users'] = reply.json({users});
+    // List all users (only for ceo)
+    'GET /users': reply.json({users}),
 
-// Show details of given user (only if self or subordinate to logged in user)
-app.routes['GET /users/{name}'] = reply.json(req => ({
-    user: req.fields.name || 'GUEST',
-    boss: managers[req.fields.name as string],
-}));
+    // Show details of given user (only if self or subordinate to logged in user)
+    'GET /users/{name}': reply.json(req => ({
+        user: req.fields.name || 'GUEST',
+        boss: managers[req.fields.name as string],
+    })),
 
-// // List users assigned to given boss (only for managers; boss must be subordinate to logged in user)
-app.routes['GET /teams/{teamlead}'] = reply.json(req => Object.keys(managers)
-                                                              .filter(u => managers[u] === req.fields.teamlead));
+    // // List users assigned to given boss (only for managers; boss must be subordinate to logged in user)
+    'GET /teams/{teamlead}': reply.json(req => Object.keys(managers)
+                                                     .filter(u => managers[u] === req.fields.teamlead)),
 
-// Show details of logged in user (not allowed for GUEST)
-app.routes['GET /my/self'] = reply.error('Not Implemented');
+    // Show details of logged in user (not allowed for GUEST)
+    'GET /my/self': reply.error('Not Implemented'),
 
-// List users assigned to logged in user (only for managers)
-app.routes['GET /my/team'] = reply.error('Not Implemented');
+    // List users assigned to logged in user (only for managers)
+    'GET /my/team': reply.error('Not Implemented'),
 
-// Create a new user and assign to logged in user (only for managers; user must not already exist)
-app.routes['create: /users'] = reply.error('Not Implemented');
+    // Create a new user and assign to logged in user (only for managers; user must not already exist)
+    'create: /users': reply.error('Not Implemented'),
 
-// Delete the given user (only for managers; user must be subordinate to logged in user)
-app.routes['DELETE /users'] = reply.error('Not Implemented');
+    // Delete the given user (only for managers; user must be subordinate to logged in user)
+    'DELETE /users': reply.error('Not Implemented'),
 
-// Re-assign the given user to the given boss (only for managers; user must be subordinate to logged in user)
-app.routes['assignto: /users/{name}'] = reply.error('Not Implemented');
-
+    // Re-assign the given user to the given boss (only for managers; user must be subordinate to logged in user)
+    'assignto: /users/{name}': reply.error('Not Implemented'),
+});
 
 
 
