@@ -32,10 +32,15 @@ export default function makeQualifierChain(deriveState: (predicate: RuleQualifie
                     alternate: state.alternate,
                 })),
                 else: {
-                    fallback: makeAccessRule({
+                    grant: makeAccessRule({
                         test: state.test,
                         consequent: state.consequent,
-                        alternate: 'pass',
+                        alternate: 'grant',
+                    }),
+                    deny: makeAccessRule({
+                        test: state.test,
+                        consequent: state.consequent,
+                        alternate: 'deny',
                     }),
                 },
             }
@@ -52,6 +57,7 @@ export type QualifierChain = (predicate: RuleQualifier) => AccessRule & {
     and: QualifierChain;
     or: QualifierChain;
     else: {
-        fallback: AccessRule;
+        grant: AccessRule;
+        deny: AccessRule;
     }
 };

@@ -19,13 +19,13 @@ const grant = {
         makeAccessRule({
             test: () => true,
             consequent: 'grant',
-            alternate: 'deny', // TODO: should this be 'pass'?
+            alternate: 'pass',
         }),
         {
             when: makeQualifierChain(predicate => ({
                 test: predicate,
                 consequent: 'grant',
-                alternate: 'deny', // TODO: should this be 'pass'?
+                alternate: 'pass',
             })),
         }
     ),
