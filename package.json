@@ -67,7 +67,7 @@
     "@types/stack-trace": "0.0.28",
     "cross-env": "^5.0.1",
     "rimraf": "^2.6.1",
-    "tslint": "^5.5.0",
-    "typescript": "^2.7.0-dev.20171118"
+    "tslint": "^5.10.0",
+    "typescript": "^2.9.0-dev.20180519"
   }
 }
