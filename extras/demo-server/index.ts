@@ -70,6 +70,9 @@ app.refine.access({
     'GET /teams/{mngr}':    grant.access.when(userIsInRole('managers')).and(userIsSuperiorTo({field: 'mngr'})),
 
     'POST /api/**':         grant.access.when(user.isLoggedIn),
+
+    'TESTING 1':            usr => usr === 'bob' ? 'grant' : 'deny',
+    'TESTING 2':            grant.access.when(usr => usr === 'bob'),
 });
 
 
