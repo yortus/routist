@@ -1,4 +1,4 @@
-import RuleQualifier from '../rule-qualifier';
+import RuleQualifier from './rule-qualifier';
 
 
 

@@ -66,8 +66,8 @@ app.refine.access({
     'GET /public**':        grant.access,
     '{ANY} /session':       grant.access,
     'GET /users':           grant.access.when(user.is(CEO)),
-    'GET /users/{name}':    grant.access.when(user.is({field: 'name'})).or(userIsSuperiorTo({field: 'name'})),
-    'GET /teams/{mngr}':    grant.access.when(userIsInRole('managers')).and(userIsSuperiorTo({field: 'mngr'})),
+    'GET /users/{name}':    grant.access.when(user.is({param: 'name'})).or(userIsSuperiorTo({param: 'name'})),
+    'GET /teams/{mngr}':    grant.access.when(userIsInRole('managers')).and(userIsSuperiorTo({param: 'mngr'})),
 
     'POST /api/**':         grant.access.when(user.isLoggedIn),
 
@@ -141,9 +141,9 @@ function userIsInRole(roleName: string) {
     return result;
 }
 
-function userIsSuperiorTo(comparandUser: {field: string}) {
+function userIsSuperiorTo(comparandUser: {param: string}) {
     let result: RuleQualifier = (usr, ctx) => {
-        let teamleadUser = ctx.params[comparandUser.field] as string || '';
+        let teamleadUser = ctx.params[comparandUser.param] as string || '';
 
         // TODO: include self for now...
         if (teamleadUser === usr) return true;

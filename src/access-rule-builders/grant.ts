@@ -2,20 +2,22 @@ import makeAccessRule from './make-access-rule';
 import makeQualifierChain from './make-qualifier-chain';
 
 // TS4082/TS6133 workaraound
-import Request from '../../request';
-import AccessContext from '../access-context';
-import {QualifierChain} from './make-qualifier-chain';
-export {AccessContext, QualifierChain, Request};
+import {AccessContext} from '../access-table';
+import GUEST from '../guest';
+export {AccessContext, GUEST};
 
 
 
 
 
-// TODO: explain...
-export default {
+// TODO: explain further...
+/**
+ * Builds an access rule that grants access.
+ */
+const grant = {
     access: Object.assign(
         makeAccessRule({
-            test: () => true,
+            test: (_user: string | GUEST) => true,
             consequent: 'grant',
             alternate: 'deny', // TODO: should this be 'pass'?
         }),
@@ -28,3 +30,4 @@ export default {
         }
     ),
 };
+export default grant;

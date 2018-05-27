@@ -11,7 +11,7 @@ import debug from '../../util/debug';
 
 
 
-// TODO: ...
+/** internal helper function used to create express middleware functions from routist handler functions. */
 export default function createMiddleware(handler: RoutistRequestHandler): ExpressRequestHandler {
     return async (req, res, next) => {
         let reqx = augmentRequest(req);

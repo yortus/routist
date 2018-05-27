@@ -1,5 +1,5 @@
+import {AccessContext} from '../access-table';
 import GUEST from '../guest';
-import AccessContext from './access-context';
 
 
 

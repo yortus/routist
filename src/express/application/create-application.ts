@@ -5,7 +5,7 @@ import * as express from 'express';
 import * as session from 'express-session';
 import {Store} from 'express-session';
 import * as path from 'path';
-import {AccessTable} from '../../access-control';
+import AccessTable, {AccessRule} from '../../access-table';
 import {RouteTable} from '../../route-handling';
 import * as middleware from '../middleware';
 import {ApplicationConfig, ApplicationOptions, validate} from './application-options';
@@ -25,8 +25,8 @@ export interface RoutistExpressApplication extends express.Application {
     routes: RouteTable;
     access: AccessTable;
     refine: {
-        routes(value: RouteTable): void;
-        access(value: AccessTable): void;
+        routes(newRoutes: RouteTable): void;
+        access(newRules: {[resourceQualifier: string]: AccessRule}): void;
     };
 }
 
@@ -116,15 +116,13 @@ function addRoutistMiddlewareAndAugment(app: express.Application) {
     augmentedApp.access = authorise.access;
     augmentedApp.routes = dispatch.routes;
     augmentedApp.refine = {
-        access(table: AccessTable) {
-            Object.keys(table).forEach(intentFilter => {
-                authorise.access[intentFilter] = table[intentFilter];
+        routes(newRoutes: RouteTable) {
+            Object.keys(newRoutes).forEach(intentFilter => {
+                dispatch.routes[intentFilter] = newRoutes[intentFilter];
             });
         },
-        routes(table: RouteTable) {
-            Object.keys(table).forEach(intentFilter => {
-                dispatch.routes[intentFilter] = table[intentFilter];
-            });
+        access(newRules: {[resourceQualifier: string]: AccessRule}) {
+            authorise.access.extend(newRules);
         },
     };
 

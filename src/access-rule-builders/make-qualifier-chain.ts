@@ -1,7 +1,7 @@
-import AccessRule from '../access-rule';
-import RuleQualifier from '../rule-qualifier';
+import {AccessRule} from '../access-table';
 import ChainState from './chain-state';
 import makeAccessRule from './make-access-rule';
+import RuleQualifier from './rule-qualifier';
 
 
 
