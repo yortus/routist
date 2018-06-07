@@ -44,7 +44,7 @@
     "express": "^4.14.1",
     "express-session": "^1.15.1",
     "httperr": "^1.0.0",
-    "joi": "^13.0.2",
+    "joi": "^13.4.0",
     "json-refs": "^3.0.0",
     "mocha": "^3.4.2",
     "multimethods": "^0.8.4",
