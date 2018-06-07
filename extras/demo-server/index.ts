@@ -48,7 +48,12 @@ managers = {
 // ================================================================================
 // Demo Code
 // ================================================================================
-let app = createRouter();
+let app = createRouter({
+    sessions: {
+        type: 'memory',
+        ttl: 600,
+    },
+});
 start(app, 8080);
 // setTimeout(() => stop(app), 5000); // TODO: temp testing...
 

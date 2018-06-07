@@ -1,10 +1,10 @@
 import createAccessControlMiddleware from './create-access-control-middleware';
+import createRequestLoggerMiddleware from './create-request-logger-middleware';
 import createRouteDispatchMiddleware from './create-route-dispatch-middleware';
-import logRequest from './log-request';
 
 
 
 
 
 // TODO: ...
-export {createAccessControlMiddleware, createRouteDispatchMiddleware, logRequest};
+export {createAccessControlMiddleware, createRouteDispatchMiddleware, createRequestLoggerMiddleware};

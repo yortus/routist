@@ -1,5 +1,8 @@
 ## TODO
 - [ ] doc in readme special handling of HttpError instances, rest are passed to next for client app to handle
+- [ ] deprecate session config (apps should handle this themselves)
+  - [ ] also deprecate other middleware like compression?
+  - [ ] Make this just another standalone middleware, not a do-all express app wrapper
 
 ## TODO 15/11/2017
 - [x] handle errors properly throughout the middleware stack

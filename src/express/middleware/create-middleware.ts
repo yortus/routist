@@ -1,4 +1,3 @@
-import * as assert from 'assert';
 import {Request as ExpressRequest, RequestHandler as ExpressRequestHandler} from 'express';
 import {HttpError} from 'httperr';
 import * as url from 'url';
@@ -6,15 +5,16 @@ import GUEST from '../../guest';
 import {default as RoutistRequest} from '../../request';
 import {default as RoutistResponse} from '../../response';
 import debug from '../../util/debug';
+import {ApplicationConfig} from '../application/application-options';
 
 
 
 
 
 /** internal helper function used to create express middleware functions from routist handler functions. */
-export default function createMiddleware(handler: RoutistRequestHandler): ExpressRequestHandler {
-    return async (req, res, next) => {
-        let reqx = augmentRequest(req);
+export default function createMiddleware(handler: RoutistRequestHandler, config: ApplicationConfig) {
+    let result: ExpressRequestHandler = async (req, res, next) => {
+        let reqx = augmentRequest(req, config);
         try {
             let handled = await handler(reqx, res);
             if (!handled) {
@@ -38,6 +38,7 @@ export default function createMiddleware(handler: RoutistRequestHandler): Expres
             next(err);
         }
     };
+    return result;
 }
 
 
@@ -52,7 +53,7 @@ export type RoutistRequestHandler = (req: RoutistRequest, res: RoutistResponse) 
 
 
 // TODO: ...
-function augmentRequest(expressRequest: ExpressRequest) {
+function augmentRequest(expressRequest: ExpressRequest, config: ApplicationConfig) {
 
     // Return early if the request is already augmented.
     let req = expressRequest as RoutistRequest;
@@ -70,14 +71,8 @@ function augmentRequest(expressRequest: ExpressRequest) {
     // TODO: how to ensure sync with RoutistRequest interface?
     Object.defineProperties(req, {
         user: {
-            get: (): string | GUEST => {
-                assert(req.session, 'Internal error: request contains no session property.');
-                return req.session!.user || GUEST;
-            },
-            set: (value: string | GUEST) => {
-                assert(req.session, 'Internal error: request contains no session property.');
-                req.session!.user = value;
-            },
+            get: (): string | GUEST => config.getUser(req),
+            set: (value: string | GUEST) => config.setUser(req, value),
             enumerable: true,
         },
         fields: {

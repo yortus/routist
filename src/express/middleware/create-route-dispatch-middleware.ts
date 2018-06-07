@@ -4,13 +4,14 @@ import Request from '../../request';
 import Response from '../../response';
 import {RouteTable} from '../../route-handling';
 import debug from '../../util/debug';
+import {ApplicationConfig} from '../application/application-options';
 import createMiddleware from './create-middleware';
 
 
 
 
 
-export default function createRouteDispatcherMiddleware() {
+export default function createRouteDispatcherMiddleware(config: ApplicationConfig) {
 
     // TODO: ...
     let routeTable = {} as RouteTable;
@@ -57,7 +58,7 @@ export default function createRouteDispatcherMiddleware() {
                 throw err;
             }
         }
-    });
+    }, config);
 
     // TODO: combine...
     let result = middleware as RequestHandler & { routes: RouteTable };

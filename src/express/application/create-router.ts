@@ -1,21 +1,13 @@
 import * as bodyParser from 'body-parser';
 import * as compression from 'compression';
-import * as lokiStore from 'connect-loki';
 import * as express from 'express';
 import * as session from 'express-session';
 import {Store} from 'express-session';
-import * as path from 'path';
 import {AccessRule} from '../../access-table';
 import GUEST from '../../guest';
 import {RouteTable} from '../../route-handling';
 import * as middleware from '../middleware';
 import {ApplicationConfig, ApplicationOptions, validate} from './application-options';
-
-
-
-
-
-const LokiStore = lokiStore(session);
 
 
 
@@ -70,7 +62,7 @@ export default function createRouter(options?: ApplicationOptions): ExpressRoute
     }
 
     // Install routist middleware.
-    let augmentedApp = addRoutistMiddlewareAndAugment(app);
+    let augmentedApp = addRoutistMiddlewareAndAugment(app, config);
     return augmentedApp;
 }
 
@@ -81,13 +73,9 @@ export default function createRouter(options?: ApplicationOptions): ExpressRoute
 function addSessionMiddleware(app: express.Application, config: ApplicationConfig) {
 
     // Create a session store as per config. Also generate cleanup code for the store.
-    let store: Store;
+    let store: Store | undefined;
     switch (config.sessions.type) {
-        case 'fs':
-            store = new LokiStore({
-                path: path.resolve(process.cwd(), config.sessions.path),
-                ttl: config.sessions.ttl,
-            });
+        case 'none':
             break;
         case 'memory':
             store = new session.MemoryStore() as Store;
@@ -97,15 +85,17 @@ function addSessionMiddleware(app: express.Application, config: ApplicationConfi
     }
 
     // TODO: ...
-    app.use(session({
-        name: 'sid',
-        cookie: { maxAge: config.sessions.ttl * 1000 },
-        secret: config.sessions.secret,
-        resave: false,
-        rolling: true,
-        saveUninitialized: true,
-        store,
-    }));
+    if (store) {
+        app.use(session({
+            name: 'sid',
+            cookie: { maxAge: config.sessions.ttl * 1000 },
+            secret: config.sessions.secret,
+            resave: false,
+            rolling: true,
+            saveUninitialized: true,
+            store,
+        }));
+    }
 }
 
 
@@ -113,11 +103,11 @@ function addSessionMiddleware(app: express.Application, config: ApplicationConfi
 
 
 // TODO: ...
-function addRoutistMiddlewareAndAugment(app: express.Application) {
+function addRoutistMiddlewareAndAugment(app: express.Application, config: ApplicationConfig) {
 
-    let logRequest = middleware.logRequest;
-    let authorise = middleware.createAccessControlMiddleware();
-    let dispatch = middleware.createRouteDispatchMiddleware();
+    let logRequest = middleware.createRequestLoggerMiddleware(config);
+    let authorise = middleware.createAccessControlMiddleware(config);
+    let dispatch = middleware.createRouteDispatchMiddleware(config);
 
     let augmentedApp = app as express.Application as ExpressRouter;
     augmentedApp.use(logRequest, authorise, dispatch);

@@ -1,5 +1,6 @@
 import * as Joi from 'joi';
-import {machineIdSync} from 'node-machine-id';
+import GUEST from '../../guest';
+import Request from '../../request';
 import DeepPartial from '../../util/deep-partial';
 
 
@@ -16,12 +17,16 @@ export default ApplicationOptions;
 export interface ApplicationConfig {
     compressResponses: boolean;
     parseBody: boolean;
+    getUser: (req: Request) => string | GUEST;
+    setUser: (req: Request, value: string | GUEST) => void;
+
+    // TODO: deprecate altogether... (move to caller's responsibility)
     sessions: {
-        type: 'fs' | 'memory';
-        path: string; // NB: if not an absolute path, it is relative to CWD
+        type: 'none' | 'memory';
         secret: string;
         ttl: number; // NB: in seconds
     };
+
     usingReverseProxy: boolean;
 }
 
@@ -40,15 +45,33 @@ export function validate(options: ApplicationOptions): ApplicationConfig {
 
 
 // TODO: Schema for runtime validation...
-const DEFAULT_SESSIONS = { type: 'fs', path: 'sessions.json', secret: machineIdSync(), ttl: 600 };
+const DEFAULT: ApplicationConfig = {
+    compressResponses: false,
+    parseBody: true,
+    getUser: req => {
+        if (!req.session) throw new Error(`request contains no session property.`);
+        return req.session.user || GUEST;
+    },
+    setUser: (req, value) => {
+        if (!req.session) throw new Error(`request contains no session property.`);
+        req.session.user = value;
+    },
+    sessions: {
+        type: 'none',
+        secret: '-',
+        ttl: 0,
+    },
+    usingReverseProxy: false,
+};
 const SCHEMA = Joi.object().keys({
-    compressResponses: Joi.boolean().optional().default(false),
-    parseBody: Joi.boolean().optional().default(true),
-    sessions: Joi.object().optional().default(DEFAULT_SESSIONS).keys({
-        type: Joi.string().optional().equal('fs', 'memory').default(DEFAULT_SESSIONS.type),
-        path: Joi.string().optional().default(DEFAULT_SESSIONS.path),
-        secret: Joi.string().optional().default(DEFAULT_SESSIONS.secret),
-        ttl: Joi.number().optional().default(600).default(DEFAULT_SESSIONS.ttl),
+    compressResponses: Joi.boolean().optional().default(DEFAULT.compressResponses),
+    parseBody: Joi.boolean().optional().default(DEFAULT.parseBody),
+    getUser: Joi.func().arity(1).optional().default(DEFAULT.getUser),
+    setUser: Joi.func().arity(2).optional().default(DEFAULT.setUser),
+    sessions: Joi.object().optional().default(DEFAULT.sessions).keys({
+        type: Joi.string().optional().equal('none', 'memory').default(DEFAULT.sessions.type),
+        secret: Joi.string().optional().default(DEFAULT.sessions.secret),
+        ttl: Joi.number().optional().default(600).default(DEFAULT.sessions.ttl),
     }),
-    usingReverseProxy: Joi.boolean().optional().default(false),
+    usingReverseProxy: Joi.boolean().optional().default(DEFAULT.usingReverseProxy),
 });
