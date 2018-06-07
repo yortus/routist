@@ -26,7 +26,7 @@ export interface ExpressRouter extends express.Application {
 
     routes: never; // override express decl of `routes`
     refineRoutes(newRoutes: RouteTable): ExpressRouter;
-    refineAccess(newRules: {[resourceQualifier: string]: AccessRule}): ExpressRouter;
+    refineAccess(newRules: {[pathQualifier: string]: AccessRule}): ExpressRouter;
     queryAccess(user: string | GUEST, resource: string): Promise<boolean>;
 
     // TODO: was...
