@@ -1,7 +1,6 @@
 import {Request as ExpressRequest, RequestHandler as ExpressRequestHandler} from 'express';
 import {HttpError} from 'httperr';
 import * as url from 'url';
-import GUEST from '../../guest';
 import {default as RoutistRequest} from '../../request';
 import {default as RoutistResponse} from '../../response';
 import debug from '../../util/debug';
@@ -71,8 +70,8 @@ function augmentRequest(expressRequest: ExpressRequest, config: ApplicationConfi
     // TODO: how to ensure sync with RoutistRequest interface?
     Object.defineProperties(req, {
         user: {
-            get: (): string | GUEST => config.getUser(req),
-            set: (value: string | GUEST) => config.setUser(req, value),
+            get: (): string | null => config.getUser(req),
+            set: (value: string | null) => config.setUser(req, value),
             enumerable: true,
         },
         fields: {

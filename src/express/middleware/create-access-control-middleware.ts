@@ -1,7 +1,6 @@
 import {RequestHandler} from 'express';
 import * as httperr from 'httperr';
 import AccessTable from '../../access-table';
-import GUEST from '../../guest';
 import {ApplicationConfig} from '../application/application-options';
 import createMiddleware from './create-middleware';
 
@@ -29,7 +28,7 @@ export default function createAccessControlMiddleware(config: ApplicationConfig)
         // TODO: Permission denied... improve error handling...
         // TODO: use httperr library?
         // TODO: throw error instead of using next...
-        let user = req.user === GUEST ? 'GUEST' : req.user;
+        let user = req.user === null ? 'GUEST' : req.user;
         throw new httperr[403](`Not permitted:   user="${user}"   intent="${req.intent}"`);
     }, config);
 

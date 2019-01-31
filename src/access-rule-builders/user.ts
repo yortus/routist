@@ -1,17 +1,16 @@
-import GUEST from '../guest';
 import RuleQualifier from './rule-qualifier';
 
 
 
 
 
-export const isLoggedIn: RuleQualifier = user => user !== GUEST;
+export const isLoggedIn: RuleQualifier = user => user !== null;
 
 
 
 
 
-export const isGuest: RuleQualifier = user => user === GUEST;
+export const isGuest: RuleQualifier = user => user === null;
 
 
 

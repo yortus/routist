@@ -1,5 +1,4 @@
 import * as Joi from 'joi';
-import GUEST from '../../guest';
 import Request from '../../request';
 import DeepPartial from '../../util/deep-partial';
 
@@ -17,8 +16,8 @@ export default ApplicationOptions;
 export interface ApplicationConfig {
     compressResponses: boolean;
     parseBody: boolean;
-    getUser: (req: Request) => string | GUEST;
-    setUser: (req: Request, value: string | GUEST) => void;
+    getUser: (req: Request) => string | null;
+    setUser: (req: Request, value: string | null) => void;
 
     // TODO: deprecate altogether... (move to caller's responsibility)
     sessions: {
@@ -50,7 +49,7 @@ const DEFAULT: ApplicationConfig = {
     parseBody: true,
     getUser: req => {
         if (!req.session) throw new Error(`request contains no session property.`);
-        return req.session.user || GUEST;
+        return req.session.user || null;
     },
     setUser: (req, value) => {
         if (!req.session) throw new Error(`request contains no session property.`);

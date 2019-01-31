@@ -4,7 +4,6 @@ import * as express from 'express';
 import * as session from 'express-session';
 import {Store} from 'express-session';
 import {AccessRule} from '../../access-table';
-import GUEST from '../../guest';
 import {RouteTable} from '../../route-handling';
 import * as middleware from '../middleware';
 import {ApplicationConfig, ApplicationOptions, validate} from './application-options';
@@ -19,7 +18,7 @@ export interface ExpressRouter extends express.Application {
     routes: never; // override express decl of `routes`
     refineRoutes(newRoutes: RouteTable): ExpressRouter;
     refineAccess(newRules: {[pathQualifier: string]: AccessRule}): ExpressRouter;
-    queryAccess(user: string | GUEST, resource: string): Promise<boolean>;
+    queryAccess(user: string | null, resource: string): Promise<boolean>;
 
     // TODO: was...
     // routes: RouteTable;

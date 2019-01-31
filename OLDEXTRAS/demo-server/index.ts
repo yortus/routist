@@ -5,7 +5,7 @@
 // import {allow, ALWAYS, createRouteTable, NEVER, updateSession} from './vnext/express-middleware';
 
 import {Request, Response} from 'express';
-import {createExpressApplication, deny, grant, GUEST/*, AccessPredicate*/} from './vnext';
+import {createExpressApplication, deny, grant/*, AccessPredicate*/} from './vnext';
 import authenticate from './vnext/authenticate';
 import debug from './vnext/debug';
 
@@ -79,8 +79,8 @@ app.routes['GET /fields/{**path}'] = reply.json(req => req.fields);
 
 // Session maintenance (login/logout)
 app.routes['GET /session'] = reply.json(req => ({
-    isLoggedIn: req.user !== GUEST,
-    username: req.user === GUEST ? '' : req.user,
+    isLoggedIn: req.user !== null,
+    username: req.user === null ? '' : req.user,
 }));
 app.routes['POST /session'] = authenticate('usn', 'pwd');
 
@@ -119,7 +119,7 @@ app.routes['assignto: /users/{name}'] = reply.error('Not Implemented');
 function userIsInRole(roleName: string) {
     return (req: Request) => {
         if (roleName !== 'managers') return false;
-        if (req.user === GUEST) return false;
+        if (req.user === null) return false;
         return Object.values(managers).includes(req.user as any);
     };
 }

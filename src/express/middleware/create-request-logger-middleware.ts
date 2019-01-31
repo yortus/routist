@@ -1,5 +1,4 @@
 import {RequestHandler} from 'express';
-import GUEST from '../../guest';
 import debug from '../../util/debug';
 import {ApplicationConfig} from '../application/application-options';
 import createMiddleware from './create-middleware';
@@ -11,7 +10,7 @@ import createMiddleware from './create-middleware';
 export default function createRequestLoggerMiddleware(config: ApplicationConfig): RequestHandler {
     return createMiddleware(async req => {
         // TODO: temp testing... better format/info?
-        const user = req.user === GUEST ? 'GUEST' : req.user;
+        const user = req.user === null ? 'GUEST' : req.user;
         debug(`INCOMING REQUEST:\tUSER=${user}\tINTENT=${req.intent}`);
         return false;
     }, config);

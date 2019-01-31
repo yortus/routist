@@ -1,5 +1,4 @@
 import {Handler} from './express/create-dispatcher-middleware';
-import GUEST from './guest';
 
 
 
@@ -19,7 +18,7 @@ export default function authenticate(usernameField = 'username', passwordField =
         }
 
         if (usn === '') {
-            req.user = GUEST;
+            req.user = null;
             res.status(200).send('ok');
             return;
         }

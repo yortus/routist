@@ -1,4 +1,4 @@
-import {GUEST, Server, User} from 'routist';
+import {Server, User} from 'routist';
 import {HttpReceiver, isHttpMessage, makeRoleAuthoriser} from 'routist';
 
 
@@ -75,11 +75,11 @@ let server = new Server({
     }),
 
     authenticator: msg => {
-        if (!isHttpMessage(msg)) return GUEST;
+        if (!isHttpMessage(msg)) return null;
 
         // TODO: temp testing...
         let user = msg.request.query.u as User;
-        return user || GUEST;
+        return user || null;
     },
 
     authoriser,

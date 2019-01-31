@@ -1,5 +1,4 @@
 import {Request, Response} from 'routist';
-import {GUEST} from 'routist'; // TODO: temp testing internal... remove ref to GUEST...
 
 
 
@@ -19,7 +18,7 @@ export default function authenticate(usernameField = 'username', passwordField =
         }
 
         if (usn === '') {
-            req.user = GUEST;
+            req.user = null;
             res.status(200).send('ok');
             return;
         }

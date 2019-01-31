@@ -1,5 +1,4 @@
 import * as multimethods from 'multimethods';
-import GUEST from '../guest';
 import debug from '../util/debug';
 import AccessContext from './access-context';
 import AccessRule from './access-rule';
@@ -62,7 +61,7 @@ export default class AccessTable {
      * @param user the user seeking access.
      * @param resource the resource to which access is being sought.
      */
-    async query(user: string | GUEST, resource: string) {
+    async query(user: string | null, resource: string) {
         try {
             // Delegate to the multimethod.
             let result = await this._mm(user, resource);
@@ -104,11 +103,11 @@ function buildMultimethodFromRules(rules: {[resourceQualifier: string]: AccessRu
             };
             return meths;
         },
-        {} as {[x: string]: (user: string | GUEST, resource: string, captures: any) => Promise<'grant' | 'deny'>}
+        {} as {[x: string]: (user: string | null, resource: string, captures: any) => Promise<'grant' | 'deny'>}
     );
 
     // TODO: temp testing...
-    return multimethods.create<string | GUEST, string, 'grant' | 'deny'>({
+    return multimethods.create<string | null, string, 'grant' | 'deny'>({
         arity: 2,
         async: true,
         methods,

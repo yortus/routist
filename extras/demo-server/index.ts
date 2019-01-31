@@ -1,4 +1,4 @@
-import {createRouter, deny, grant, GUEST, Request, Response, RuleQualifier, user} from 'routist';
+import {createRouter, deny, grant, Request, Response, RuleQualifier, user} from 'routist';
 import {start, staticFile, staticFiles} from 'routist';
 import authenticate from './authenticate';
 
@@ -102,8 +102,8 @@ app.refineRoutes({
 
     // Session maintenance (login/logout)
     'GET /session': reply.json(req => ({
-        isLoggedIn: req.user !== GUEST,
-        username: req.user !== GUEST ? req.user : '',
+        isLoggedIn: req.user !== null,
+        username: req.user !== null ? req.user : '',
     })),
     'POST /session': authenticate('usn', 'pwd'),
 

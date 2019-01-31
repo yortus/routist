@@ -3,8 +3,7 @@ import makeQualifierChain from './make-qualifier-chain';
 
 // TS4082/TS6133 workaraound
 import {AccessContext} from '../access-table';
-import GUEST from '../guest';
-export {AccessContext, GUEST};
+export {AccessContext};
 
 
 

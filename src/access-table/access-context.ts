@@ -1,11 +1,10 @@
-import GUEST from '../guest';
 
 
 
 
 
 export default interface AccessContext {
-    user: string | GUEST;
+    user: string | null;
     path: string;
     params: {[name: string]: string};
 }
