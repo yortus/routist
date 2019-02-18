@@ -1,6 +1,6 @@
 {
   "name": "routist",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "routist",
   "readmeFilename": "README.md",
   "main": "dist/release/index.js",
@@ -35,14 +35,14 @@
   },
   "homepage": "https://github.com/yortus/routist#readme",
   "dependencies": {
-    "body-parser": "^1.16.1",
-    "compression": "^1.6.2",
+    "body-parser": "^1.18.3",
+    "compression": "^1.7.3",
     "debug": "^3.1.0",
     "express": "^4.16.3",
-    "express-session": "^1.15.1",
+    "express-session": "^1.15.6",
     "httperr": "^1.0.0",
     "joi": "^13.4.0",
-    "json-refs": "^3.0.8",
+    "json-refs": "^3.0.12",
     "multimethods": "^0.8.6",
     "serve-static": "^1.13.2",
     "stack-trace": "0.0.10"
