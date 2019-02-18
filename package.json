@@ -1,6 +1,6 @@
 {
   "name": "routist",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "routist",
   "readmeFilename": "README.md",
   "main": "dist/release/index.js",
@@ -43,7 +43,7 @@
     "httperr": "^1.0.0",
     "joi": "^13.4.0",
     "json-refs": "^3.0.12",
-    "multimethods": "^0.8.6",
+    "multimethods": "^0.8.7",
     "serve-static": "^1.13.2",
     "stack-trace": "0.0.10"
   },
