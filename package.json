@@ -1,6 +1,6 @@
 {
   "name": "routist",
-  "version": "0.10.2",
+  "version": "1.0.0",
   "description": "routist",
   "readmeFilename": "README.md",
   "main": "dist/release/index.js",
