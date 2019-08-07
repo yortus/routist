@@ -1,4 +1,4 @@
-import * as multimethods from 'multimethods';
+import {Multimethod, next} from 'multimethods';
 import debug from '../util/debug';
 import AccessContext from './access-context';
 import AccessRule from './access-rule';
@@ -96,21 +96,16 @@ function buildMultimethodFromRules(rules: {[resourceQualifier: string]: AccessRu
     // Wrap every rule's handler to convert arguments and to handle 'pass' returns.
     const methods = Object.keys(rules).reduce(
         (meths, resourceQualifier) => {
-            meths[resourceQualifier] = async (user, resource, captures) => {
-                let context: AccessContext = {user, path: resource, params: captures};
+            meths[resourceQualifier] = async (bindings, user, resource) => {
+                let context: AccessContext = {user, path: resource, params: bindings as any};
                 let result = await rules[resourceQualifier](user, context);
-                return result === 'pass' ? multimethods.CONTINUE : result;
+                return result === 'pass' ? next : result;
             };
             return meths;
         },
-        {} as {[x: string]: (user: string | null, resource: string, captures: any) => Promise<'grant' | 'deny'>}
+        {} as {[x: string]: (bindings: unknown, user: string | null, resource: string) => Promise<'grant' | 'deny'>}
     );
 
     // TODO: temp testing...
-    return multimethods.create<string | null, string, 'grant' | 'deny'>({
-        arity: 2,
-        async: true,
-        methods,
-        toDiscriminant: (_, resource) => resource,
-    });
+    return Multimethod((_: string | null, resource: string) => resource).extend(methods);
 }

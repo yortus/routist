@@ -43,7 +43,7 @@
     "httperr": "^1.0.0",
     "joi": "^13.7.0",
     "json-refs": "^3.0.13",
-    "multimethods": "^0.8.7",
+    "multimethods": "^1.0.1",
     "serve-static": "^1.14.1",
     "stack-trace": "0.0.10"
   },
@@ -66,6 +66,6 @@
     "mocha": "^5.2.0",
     "rimraf": "^2.6.3",
     "tslint": "^5.18.0",
-    "typescript": "^2.9.2"
+    "typescript": "^3.5.3"
   }
 }

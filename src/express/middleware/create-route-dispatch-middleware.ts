@@ -1,5 +1,5 @@
 import {RequestHandler} from 'express';
-import * as multimethods from 'multimethods';
+import {Multimethod, next} from 'multimethods';
 import Request from '../../request';
 import Response from '../../response';
 import {RouteTable} from '../../route-handling';
@@ -49,7 +49,7 @@ export default function createRouteDispatcherMiddleware(config: ApplicationConfi
             return true;
         }
         catch (err) {
-            if (err.code && err.code === multimethods.UNHANDLED_DISPATCH) {
+            if (err === UNHANDLED) {
                 // The multimethod dispatch went unhandled, so indicate the request is still unhandled...
                 return false;
             }
@@ -73,19 +73,30 @@ export default function createRouteDispatcherMiddleware(config: ApplicationConfi
 function compileRouteTable(routes: RouteTable) {
 
     // TODO: wrap every handler to set req._captures
-    const methods = {} as {[x: string]: (req: Request, res: Response, captures: any) => void};
+    const methods = {} as {[x: string]: (bindings: unknown, req: Request, res: Response) => void};
     Object.keys(routes).forEach(key => {
-        methods[key] = (req, res, captures) => {
-            req._captures = captures;
+        methods[key] = (bindings, req, res) => {
+            req._captures = bindings as any;
             return routes[key](req, res);
         };
     });
 
     // TODO: temp testing...
-    return multimethods.create<Request, Response, void>({
-        arity: 2,
-        async: undefined,
-        methods,
-        toDiscriminant: req => req.intent,
-    });
+    return Multimethod(async (req: Request, _res: Response) => req.intent)
+        .extend(methods)
+        .decorate({'**': throwOnUnhandled});
 }
+
+
+
+
+async function throwOnUnhandled(_: any, method: any, args: any[]) {
+    let result = await method(...args);
+    if (result === next) throw UNHANDLED;
+    return result;
+}
+
+
+
+
+const UNHANDLED = new Error('Unhandled dispatch');
